@@ -132,3 +132,20 @@ window.openModal = function(content, title, meta) {
 window.closeModal = function() {
     document.getElementById("modal").style.display = "none";
 };
+
+import { db } from './JavaScript/Firebase.js';
+
+async function initApp() {
+    console.log("Démarrage de l'application...");
+    try {
+        // 1. On charge les stats
+        if (typeof updateStats === 'function') await updateStats();
+        // 2. On charge la liste
+        if (typeof loadPending === 'function') await loadPending();
+        // 3. Le graphique se chargera tout seul via son propre listener Firebase
+    } catch (error) {
+        console.error("Erreur au démarrage :", error);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', initApp);

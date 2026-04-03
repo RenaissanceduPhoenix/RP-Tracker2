@@ -51,24 +51,22 @@ function getType() {
 // 🔒 LIMITATION 7 JOURS
 // =======================
 
-function updateFlatpickrLimits() {
-  const type = getType();
-  const start = startPicker.selectedDates[0];
+function updateFlatpickrLimits(data) {
+    // Sécurité : Si data est vide ou mal chargé, on s'arrête là
+    if (!data || data.length === 0) return; 
 
-  // 🔹 reset complet
-  startPicker.set("maxDate", null);
-  endPicker.set("minDate", null);
-  endPicker.set("maxDate", null);
-
-  if (!start) return;
-
-  if (type === "week" || type === "server" || type === "character") {
-    const maxEnd = new Date(start);
-    maxEnd.setDate(maxEnd.getDate() + 6);
-
-    endPicker.set("minDate", start);
-    endPicker.set("maxDate", maxEnd);
-  }
+    // On vérifie que l'élément 0 existe bien avant de lire 'date'
+    if (data[0] && data[0].date) {
+        const minDate = data[0].date;
+        const maxDate = data[data.length - 1].date;
+        
+        if (window.fpStart && window.fpEnd) {
+            window.fpStart.set('minDate', minDate);
+            window.fpStart.set('maxDate', maxDate);
+            window.fpEnd.set('minDate', minDate);
+            window.fpEnd.set('maxDate', maxDate);
+        }
+    }
 }
 
 // =======================
