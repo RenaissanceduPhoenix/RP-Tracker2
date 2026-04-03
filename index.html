@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RP Tracker</title>
+<link rel="stylesheet" href="./CSS/Style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+<div class="dashboard">
+    <div class="row haut">
+        <div class="box zone-ajout">
+            <h2>Ajouter un RP ENVOYÉ</h2>
+            <input id="char_sent" placeholder="Ton personnage">
+            <input id="server_sent" placeholder="Serveur">
+            <button onclick="addSent()">Ajouter</button>
+        </div>
+
+        <div class="box zone-ajout-pending">
+            <h2>Ajout de RP à répondre</h2>
+            <input id="title" placeholder="Titre du RP">
+            <input id="char_received" placeholder="Personnage en face">
+            <input id="server_received" placeholder="Serveur">
+            <textarea id="content" placeholder="Contenu du RP"></textarea>
+            <button onclick="addReceived()">Ajouter au Pending</button>
+        </div>
+    </div>
+
+    <div class="row milieu">
+        <div class="box zone-liste-pending">
+            <h2>Liste Pending</h2>
+            <div id="pendingList"></div>
+        </div>
+        <div class="box zone-vue-pending">
+            <h2>Zone de Pending</h2>
+            <p style="color: #666;">(Sélectionnez un RP dans la liste pour l'afficher ici)</p>
+            <div id="displayArea"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="box zone-stats">
+            <h2>Statistiques Globales</h2>
+            <div id="statsContainer">
+                <p>Chargement des indicateurs...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="box zone-graphique">
+            <h2>Évolution de l'activité</h2>
+            <div class="controls-graph">
+                <select id="chartType" onchange="loadCharts()">
+                    <option value="week">7 derniers jours</option>
+                    <option value="month">30 derniers jours</option>
+                    <option value="year">Année en cours</option>
+                </select>
+            </div>
+            <div class="canvas-container">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+<div id="modal" onclick="closeModal()">
+    <div id="modalContent" onclick="event.stopPropagation()">
+        <span id="closeModal" onclick="closeModal()">X</span>
+        <h3 id="modalTitle"></h3>
+        <p id="modalMeta"></p>
+        <hr>
+        <div id="modalText"></div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script src="JavaScript/Markdown.js"></script>
+<script type="module" src="JavaScript/Firebase.js"></script>
+<script type="module" src="JavaScript/RP.js"></script>
+<script type="module" src="JavaScript/Chart.js"></script>
+</body>
+</html>
