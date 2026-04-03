@@ -61,11 +61,11 @@ window.loadPending = function() {
       // Préparation du contenu pour la modal
       const safeContent = rp.content ? rp.content.replace(/`/g, "\\`").replace(/\n/g, "\\n") : "";
 
-      div.onclick = () => {
-          if (typeof openModal === 'function') {
-              openModal(safeContent, rp.title, `${rp.character} — ${rp.server}`);
-          }
-      };
+      //div.onclick = () => {
+        //  if (typeof openModal === 'function') {
+          //    openModal(safeContent, rp.title, `${rp.character} — ${rp.server}`);
+          //}
+      //};
 
       div.innerHTML = `
         <div class="rp-info">
@@ -132,8 +132,6 @@ window.openModal = function(content, title, meta) {
 window.closeModal = function() {
     document.getElementById("modal").style.display = "none";
 };
-
-import { db } from './JavaScript/Firebase.js';
 
 async function initApp() {
     console.log("Démarrage de l'application...");

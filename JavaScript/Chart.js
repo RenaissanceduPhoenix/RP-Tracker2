@@ -103,50 +103,47 @@ document.getElementById("chartType").addEventListener("change", () => {
 // =======================
 // 📥 LOAD DATA + CHART
 // =======================
+window.loadCharts = async function() { // Retire l'argument (data) ici car on va chercher dans Firestore
+    const type = getType();
+    const start = startPicker.selectedDates[0];
+    const end = endPicker.selectedDates[0];
 
-window.loadCharts = async function() {
-  const type = getType();
-  const start = startPicker.selectedDates[0];
-  const end = endPicker.selectedDates[0];
+    // Sécurité : on ne fait rien si les dates sont vides ou si db n'est pas là
+    if (!start || !end || !db) return;
 
-  // Sécurité : on ne fait rien si les dates sont vides
-  if (!start || !end) return;
+    const endDateFull = new Date(end);
+    endDateFull.setHours(23, 59, 59, 999);
 
-  const endDateFull = new Date(end);
-  endDateFull.setHours(23, 59, 59, 999);
+    try {
+        const qSent = query(
+            collection(db, "rps_sent"),
+            where("createdAt", ">=", start),
+            where("createdAt", "<=", endDateFull),
+            orderBy("createdAt", "asc")
+        );
 
-  try {
-    // 1. Préparation de la requête Firestore
-    const qSent = query(
-      collection(db, "rps_sent"),
-      where("createdAt", ">=", start),
-      where("createdAt", "<=", endDateFull),
-      orderBy("createdAt", "asc")
-    );
+        const snapshot = await getDocs(qSent);
+        let data = [];
 
-    // 2. Récupération des données
-    const snapshot = await getDocs(qSent);
-    let data = [];
+        snapshot.forEach(docSnap => {
+            const rp = docSnap.data();
+            const date = rp.createdAt?.toDate ? rp.createdAt.toDate() : new Date(rp.createdAt);
+            data.push({ character: rp.character, server: rp.server, date: date });
+        });
 
-    snapshot.forEach(docSnap => {
-      const rp = docSnap.data();
-      // Conversion sécurisée du timestamp Firebase en Date JS
-      const date = rp.createdAt?.toDate ? rp.createdAt.toDate() : new Date(rp.createdAt);
+        // 🛡️ Sécurité supplémentaire avant de générer
+        if (data.length === 0) {
+            console.warn("Aucun RP trouvé pour ces dates.");
+            if (chart) chart.destroy(); // On vide le graph s'il y en avait un
+            return;
+        }
 
-      data.push({
-        character: rp.character,
-        server: rp.server,
-        date: date
-      });
-    });
+        generateChart(data, type, start, endDateFull);
 
-    // 3. Génération du graphique avec les données propres
-    generateChart(data, type, start, endDateFull);
-
-  } catch (err) {
-    console.error("❌ loadCharts Error:", err.message);
-  }
-};
+    } catch (err) {
+        console.error("❌ loadCharts Error:", err.message);
+    }
+}; // Vérifie bien que la parenthèse ferme ici
 // =======================
 // 📊 GENERATE CHART
 // =======================
