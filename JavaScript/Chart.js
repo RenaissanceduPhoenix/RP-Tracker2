@@ -105,13 +105,37 @@ function generateChart(data, type, start, end) {
         });
     }
 
-    chart = new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+chart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // INDISPENSABLE pour que le CSS gère la hauteur
+        scales: {
+            y: {
+                beginAtZero: true,
+                min: 0,
+                max: 16, // FORCE la graduation à 16
+                ticks: {
+                    stepSize: 1, // Un trait tous les 1 RP
+                    color: '#333'
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#333'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            }
         }
-    });
+    }
+});
 }

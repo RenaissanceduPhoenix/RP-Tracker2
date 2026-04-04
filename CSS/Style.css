@@ -45,12 +45,20 @@ body {
 }
 
 
-/* Taille du graphique */
+/* La boîte qui contient tout le bloc graphique */
+.zone-graphique {
+    width: 100%; /* Elle prend la largeur de sa colonne */
+    max-width: 400px; /* AJUSTE ICI : la même largeur que ta box stats */
+    margin: 0 auto; /* Centre la box si besoin */
+}
+
+/* Le conteneur spécifique du Canvas */
 .canvas-container {
-    height: 400px; /* Plus grand pour tes graduations */
+    position: relative;
     width: 100%;
+    height: 500px; /* AJUSTE ICI : 5 fois la hauteur de tes stats */
     background: white;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 10px;
 }
 
