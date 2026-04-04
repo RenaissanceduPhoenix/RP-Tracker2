@@ -48,7 +48,7 @@ body {
 /* La boîte qui contient tout le bloc graphique */
 .zone-graphique {
     width: 100%; /* Elle prend la largeur de sa colonne */
-    max-width: 400px; /* AJUSTE ICI : la même largeur que ta box stats */
+    flex: 1; /* AJUSTE ICI : la même largeur que ta box stats */
     margin: 0 auto; /* Centre la box si besoin */
 }
 
