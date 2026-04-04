@@ -4,7 +4,9 @@ import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.
 let chart;
 let startPicker, endPicker;
 
-// On initialise Flatpickr uniquement si les éléments existent
+// =======================
+// 📅 INITIALISATION DES CALENDRIERS
+// =======================
 document.addEventListener('DOMContentLoaded', () => {
     const startElem = document.getElementById("startDate");
     const endElem = document.getElementById("endDate");
@@ -24,30 +26,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// =======================
+// 📊 FONCTION PRINCIPALE
+// =======================
 window.loadCharts = async function() {
-    // 🛡️ LA SÉCURITÉ ANTI-CRASH (Ligne 41)
-    if (!startPicker || !endPicker || !startPicker.selectedDates[0] || !endPicker.selectedDates[0]) {
-        console.warn("Le graphique attend l'initialisation des calendriers...");
-        return;
-    }
-
+    // 🛡️ SÉCURITÉ : Vérifier si les calendriers existent
+    if (!startPicker || !endPicker) return;
+    
+    // On récupère les dates sélectionnées
     const start = startPicker.selectedDates[0];
     const end = endPicker.selectedDates[0];
-    // ... reste du code identique
 
-    if (!selectedStart || !selectedEnd) {
-        console.warn("Graphique : Dates non sélectionnées.");
+    // Si une des deux dates manque, on s'arrête
+    if (!start || !end) {
+        console.warn("Graphique : Dates manquantes.");
         return;
     }
 
-    const type = getType();
-    const endDateFull = new Date(selectedEnd);
+    const type = document.getElementById("chartType")?.value || "week";
+    const endDateFull = new Date(end);
     endDateFull.setHours(23, 59, 59, 999);
 
     try {
         const qSent = query(
             collection(db, "rps_sent"),
-            where("createdAt", ">=", selectedStart),
+            where("createdAt", ">=", start),
             where("createdAt", "<=", endDateFull),
             orderBy("createdAt", "asc")
         );
@@ -67,7 +70,7 @@ window.loadCharts = async function() {
             return;
         }
 
-        generateChart(data, type, selectedStart, endDateFull);
+        generateChart(data, type, start, endDateFull);
     } catch (err) {
         console.error("❌ loadCharts Error:", err);
     }
@@ -89,7 +92,6 @@ function generateChart(data, type, start, end) {
     }
 
     const datasets = [];
-    // Logique simplifiée pour les datasets
     if (type === "week") {
         const values = labels.map(label => 
             data.filter(rp => rp.date.toISOString().split("T")[0] === label).length
