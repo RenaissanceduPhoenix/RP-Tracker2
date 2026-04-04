@@ -4,9 +4,6 @@ import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.
 let chart;
 let startPicker, endPicker;
 
-// =======================
-// 📅 INITIALISATION DES CALENDRIERS
-// =======================
 document.addEventListener('DOMContentLoaded', () => {
     const startElem = document.getElementById("startDate");
     const endElem = document.getElementById("endDate");
@@ -26,24 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// =======================
-// 📊 FONCTION PRINCIPALE
-// =======================
 window.loadCharts = async function() {
-    // 🛡️ SÉCURITÉ : Vérifier si les calendriers existent
-    if (!startPicker || !endPicker) return;
+    if (!startPicker || !endPicker || !startPicker.selectedDates[0] || !endPicker.selectedDates[0]) return;
     
-    // On récupère les dates sélectionnées
     const start = startPicker.selectedDates[0];
     const end = endPicker.selectedDates[0];
+    const type = document.getElementById("chartType")?.value || "week"; // Assure-toi que l'ID est bien chartType
 
-    // Si une des deux dates manque, on s'arrête
-    if (!start || !end) {
-        console.warn("Graphique : Dates manquantes.");
-        return;
-    }
-
-    const type = document.getElementById("chartType")?.value || "week";
     const endDateFull = new Date(end);
     endDateFull.setHours(23, 59, 59, 999);
 
@@ -65,7 +51,6 @@ window.loadCharts = async function() {
         });
 
         if (data.length === 0) {
-            console.log("Graphique : Aucun RP trouvé.");
             if (chart) chart.destroy();
             return;
         }
@@ -76,14 +61,12 @@ window.loadCharts = async function() {
     }
 };
 
-// =======================
-// 📈 GÉNÉRATION DU GRAPH
-// =======================
 function generateChart(data, type, start, end) {
     const ctx = document.getElementById("chart");
     if (!ctx) return;
     if (chart) chart.destroy();
 
+    // 1. Création des labels (tous les jours entre début et fin)
     const labels = [];
     let curr = new Date(start);
     while (curr <= end) {
@@ -92,7 +75,9 @@ function generateChart(data, type, start, end) {
     }
 
     const datasets = [];
-    if (type === "week") {
+
+    if (type === "week" || type === "month" || type === "year") {
+        // MODE TOTAL (Une seule ligne)
         const values = labels.map(label => 
             data.filter(rp => rp.date.toISOString().split("T")[0] === label).length
         );
@@ -101,41 +86,47 @@ function generateChart(data, type, start, end) {
             data: values, 
             borderColor: "#ffcc00", 
             backgroundColor: "rgba(255,204,0,0.1)", 
-            fill: true 
+            fill: true,
+            tension: 0.3
+        });
+    } else {
+        // MODE RÉPARTITION (Serveur ou Personnage)
+        const groups = {};
+        data.forEach(rp => {
+            const key = (type === "server") ? rp.server : rp.character;
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(rp);
+        });
+
+        const colors = ['#ffcc00', '#00d1b2', '#3273dc', '#ff3860', '#9b59b6']; // Liste de couleurs
+        
+        Object.keys(groups).forEach((key, index) => {
+            const values = labels.map(label => 
+                groups[key].filter(rp => rp.date.toISOString().split("T")[0] === label).length
+            );
+            datasets.push({ 
+                label: key, 
+                data: values, 
+                borderColor: colors[index % colors.length],
+                tension: 0.3 
+            });
         });
     }
 
-chart = new Chart(ctx, {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false, // INDISPENSABLE pour que le CSS gère la hauteur
-        scales: {
-            y: {
-                beginAtZero: true,
-                min: 0,
-                max: 16, // FORCE la graduation à 16
-                ticks: {
-                    stepSize: 1, // Un trait tous les 1 RP
-                    color: '#333'
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.1)'
-                }
-            },
-            x: {
-                ticks: {
-                    color: '#333'
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top'
+    chart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    min: 0, 
+                    max: 16, 
+                    ticks: { stepSize: 1 } 
+                } 
             }
         }
-    }
-});
+    });
 }
