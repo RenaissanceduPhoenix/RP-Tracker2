@@ -133,17 +133,32 @@ window.closeModal = function() {
     document.getElementById("modal").style.display = "none";
 };
 
+// 🚀 Initialisation de l'application
 async function initApp() {
     console.log("Démarrage de l'application...");
     try {
-        // 1. On charge les stats
-        if (typeof updateStats === 'function') await updateStats();
-        // 2. On charge la liste
-        if (typeof loadPending === 'function') await loadPending();
-        // 3. Le graphique se chargera tout seul via son propre listener Firebase
+        // 1. Charger la liste des RP en attente (Live Snapshot)
+        if (typeof loadPending === 'function') {
+            await loadPending();
+        }
+
+        // 2. Charger les stats (si la fonction existe)
+        if (typeof updateStats === 'function') {
+            await updateStats();
+        }
+
+        // 3. Déclencher le premier rendu du graphique
+        // On attend un court instant pour laisser Flatpickr s'initialiser
+        setTimeout(() => {
+            if (typeof window.loadCharts === 'function') {
+                window.loadCharts();
+            }
+        }, 500);
+
     } catch (error) {
-        console.error("Erreur au démarrage :", error);
+        console.error("Erreur lors de l'initialisation :", error);
     }
 }
 
+// Lancement
 window.addEventListener('DOMContentLoaded', initApp);

@@ -51,15 +51,19 @@ function getType() {
 // 🔒 LIMITATION 7 JOURS
 // =======================
 
+// 🔧 1. Correction de la fonction des limites (Ligne 56/108)
 function updateFlatpickrLimits(data) {
-    // Sécurité : Si data est vide ou mal chargé, on s'arrête là
-    if (!data || data.length === 0) return; 
+    // Si pas de données, on ne fait rien
+    if (!data || !Array.isArray(data) || data.length === 0) return;
 
-    // On vérifie que l'élément 0 existe bien avant de lire 'date'
-    if (data[0] && data[0].date) {
-        const minDate = data[0].date;
-        const maxDate = data[data.length - 1].date;
-        
+    // On s'assure que l'élément 0 et le dernier élément existent
+    const firstEntry = data[0];
+    const lastEntry = data[data.length - 1];
+
+    if (firstEntry && firstEntry.date && lastEntry && lastEntry.date) {
+        const minDate = firstEntry.date;
+        const maxDate = lastEntry.date;
+
         if (window.fpStart && window.fpEnd) {
             window.fpStart.set('minDate', minDate);
             window.fpStart.set('maxDate', maxDate);
@@ -68,6 +72,60 @@ function updateFlatpickrLimits(data) {
         }
     }
 }
+
+// 📊 2. Fonction loadCharts complète et sécurisée
+window.loadCharts = async function() {
+    // Vérification des sélecteurs
+    const start = startPicker ? startPicker.selectedDates[0] : null;
+    const end = endPicker ? endPicker.selectedDates[0] : null;
+
+    if (!start || !end || !db) {
+        console.warn("Graphique : En attente des dates ou de la base de données.");
+        return;
+    }
+
+    const type = getType();
+    const endDateFull = new Date(end);
+    endDateFull.setHours(23, 59, 59, 999);
+
+    try {
+        const qSent = query(
+            collection(db, "rps_sent"),
+            where("createdAt", ">=", start),
+            where("createdAt", "<=", endDateFull),
+            orderBy("createdAt", "asc")
+        );
+
+        const snapshot = await getDocs(qSent);
+        let data = [];
+
+        snapshot.forEach(docSnap => {
+            const rp = docSnap.data();
+            // Sécurité sur la conversion de date Firebase
+            const date = rp.createdAt?.toDate ? rp.createdAt.toDate() : new Date(rp.createdAt);
+            data.push({ 
+                character: rp.character || "Inconnu", 
+                server: rp.server || "Sans serveur", 
+                date: date 
+            });
+        });
+
+        if (data.length === 0) {
+            console.log("Graphique : Aucun RP trouvé pour cette période.");
+            if (chart) chart.destroy();
+            return;
+        }
+
+        // On met à jour les limites du calendrier avec les vraies dates trouvées
+        updateFlatpickrLimits(data);
+
+        // On génère le graphique
+        generateChart(data, type, start, endDateFull);
+
+    } catch (err) {
+        console.error("❌ Erreur loadCharts:", err);
+    }
+};
 
 // =======================
 // 🔁 CHANGEMENT DE TYPE
@@ -100,50 +158,6 @@ document.getElementById("chartType").addEventListener("change", () => {
   loadCharts();
 });
 
-// =======================
-// 📥 LOAD DATA + CHART
-// =======================
-window.loadCharts = async function() { // Retire l'argument (data) ici car on va chercher dans Firestore
-    const type = getType();
-    const start = startPicker.selectedDates[0];
-    const end = endPicker.selectedDates[0];
-
-    // Sécurité : on ne fait rien si les dates sont vides ou si db n'est pas là
-    if (!start || !end || !db) return;
-
-    const endDateFull = new Date(end);
-    endDateFull.setHours(23, 59, 59, 999);
-
-    try {
-        const qSent = query(
-            collection(db, "rps_sent"),
-            where("createdAt", ">=", start),
-            where("createdAt", "<=", endDateFull),
-            orderBy("createdAt", "asc")
-        );
-
-        const snapshot = await getDocs(qSent);
-        let data = [];
-
-        snapshot.forEach(docSnap => {
-            const rp = docSnap.data();
-            const date = rp.createdAt?.toDate ? rp.createdAt.toDate() : new Date(rp.createdAt);
-            data.push({ character: rp.character, server: rp.server, date: date });
-        });
-
-        // 🛡️ Sécurité supplémentaire avant de générer
-        if (data.length === 0) {
-            console.warn("Aucun RP trouvé pour ces dates.");
-            if (chart) chart.destroy(); // On vide le graph s'il y en avait un
-            return;
-        }
-
-        generateChart(data, type, start, endDateFull);
-
-    } catch (err) {
-        console.error("❌ loadCharts Error:", err.message);
-    }
-}; // Vérifie bien que la parenthèse ferme ici
 // =======================
 // 📊 GENERATE CHART
 // =======================
