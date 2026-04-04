@@ -50,20 +50,16 @@
     </div>
 
 <div class="row">
-    <div class="box zone-graphique">
-        <h2>Évolution de l'activité</h2>
-        <div class="controls-graph">
-            <input type="text" id="startDate">
-            <input type="text" id="endDate">
-            
-            <select id="chartType" onchange="loadCharts()">
-                <select id="chartType" onchange="loadCharts()">
-                    <option value="week">Total (Période sél.)</option>
-                    <option value="server">Par Serveur</option>
-                    <option value="character">Par Personnage</option>
-                </select>
-            </select>
-        </div>
+    <div class="controls-graph">
+    <input type="text" id="startDate">
+    <input type="text" id="endDate">
+    
+    <select id="viewType" onchange="loadCharts()">
+        <option value="week">Total (Période sél.)</option>
+        <option value="server">Par Serveur</option>
+        <option value="character">Par Personnage</option>
+    </select>
+</div>
         <div class="canvas-container" style="height: 300px; margin-top: 20px;">
             <canvas id="chart"></canvas>
         </div>

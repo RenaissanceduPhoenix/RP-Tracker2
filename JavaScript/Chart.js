@@ -5,30 +5,27 @@ let chart;
 let startPicker, endPicker;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const startElem = document.getElementById("startDate");
-    const endElem = document.getElementById("endDate");
+    startPicker = flatpickr("#startDate", {
+        dateFormat: "Y-m-d",
+        defaultDate: new Date(Date.now() - 6 * 86400000),
+        onChange: () => window.loadCharts()
+    });
 
-    if (startElem && endElem) {
-        startPicker = flatpickr("#startDate", {
-            dateFormat: "Y-m-d",
-            defaultDate: new Date(Date.now() - 6 * 86400000),
-            onChange: () => window.loadCharts()
-        });
-
-        endPicker = flatpickr("#endDate", {
-            dateFormat: "Y-m-d",
-            defaultDate: new Date(),
-            onChange: () => window.loadCharts()
-        });
-    }
+    endPicker = flatpickr("#endDate", {
+        dateFormat: "Y-m-d",
+        defaultDate: new Date(),
+        onChange: () => window.loadCharts()
+    });
 });
 
 window.loadCharts = async function() {
+    const startElem = document.getElementById("startDate");
+    const endElem = document.getElementById("endDate");
     if (!startPicker || !endPicker || !startPicker.selectedDates[0] || !endPicker.selectedDates[0]) return;
-    
+
     const start = startPicker.selectedDates[0];
     const end = endPicker.selectedDates[0];
-    const type = document.getElementById("chartType")?.value || "week"; // Assure-toi que l'ID est bien chartType
+    const type = document.getElementById("viewType")?.value || "week";
 
     const endDateFull = new Date(end);
     endDateFull.setHours(23, 59, 59, 999);
@@ -43,30 +40,22 @@ window.loadCharts = async function() {
 
         const snapshot = await getDocs(qSent);
         let data = [];
-
         snapshot.forEach(docSnap => {
             const rp = docSnap.data();
             const date = rp.createdAt?.toDate ? rp.createdAt.toDate() : new Date(rp.createdAt);
             data.push({ character: rp.character, server: rp.server, date: date });
         });
 
-        if (data.length === 0) {
-            if (chart) chart.destroy();
-            return;
-        }
-
         generateChart(data, type, start, endDateFull);
     } catch (err) {
-        console.error("❌ loadCharts Error:", err);
+        console.error("❌ Erreur loadCharts:", err);
     }
 };
 
 function generateChart(data, type, start, end) {
     const ctx = document.getElementById("chart");
-    if (!ctx) return;
     if (chart) chart.destroy();
 
-    // 1. Création des labels (tous les jours entre début et fin)
     const labels = [];
     let curr = new Date(start);
     while (curr <= end) {
@@ -75,22 +64,23 @@ function generateChart(data, type, start, end) {
     }
 
     const datasets = [];
+    const palette = ['#ffcc00', '#00d1b2', '#3273dc', '#ff3860', '#9b59b6', '#f1c40f', '#e67e22'];
 
-    if (type === "week" || type === "month" || type === "year") {
-        // MODE TOTAL (Une seule ligne)
+    if (type === "week") {
+        // --- MODE 7 JOURS : UNE SEULE COURBE ---
         const values = labels.map(label => 
             data.filter(rp => rp.date.toISOString().split("T")[0] === label).length
         );
-        datasets.push({ 
-            label: "Total RP", 
-            data: values, 
-            borderColor: "#ffcc00", 
-            backgroundColor: "rgba(255,204,0,0.1)", 
+        datasets.push({
+            label: "Total RP",
+            data: values,
+            borderColor: "#ffcc00",
+            backgroundColor: "rgba(255, 204, 0, 0.1)",
             fill: true,
             tension: 0.3
         });
     } else {
-        // MODE RÉPARTITION (Serveur ou Personnage)
+        // --- MODE SERVEUR OU PERSO : MULTI-COURBES ---
         const groups = {};
         data.forEach(rp => {
             const key = (type === "server") ? rp.server : rp.character;
@@ -98,17 +88,23 @@ function generateChart(data, type, start, end) {
             groups[key].push(rp);
         });
 
-        const colors = ['#ffcc00', '#00d1b2', '#3273dc', '#ff3860', '#9b59b6']; // Liste de couleurs
-        
         Object.keys(groups).forEach((key, index) => {
-            const values = labels.map(label => 
-                groups[key].filter(rp => rp.date.toISOString().split("T")[0] === label).length
-            );
-            datasets.push({ 
-                label: key, 
-                data: values, 
-                borderColor: colors[index % colors.length],
-                tension: 0.3 
+            // On applique un minuscule décalage visuel (0.05 * index) 
+            // pour éviter la superposition parfaite des points
+            const offset = index * 0.05; 
+            
+            const values = labels.map(label => {
+                const count = groups[key].filter(rp => rp.date.toISOString().split("T")[0] === label).length;
+                return count > 0 ? count + offset : 0; // On ne décale que si la valeur n'est pas 0
+            });
+
+            datasets.push({
+                label: key,
+                data: values,
+                borderColor: palette[index % palette.length],
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 4
             });
         });
     }
@@ -119,13 +115,21 @@ function generateChart(data, type, start, end) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { 
-                y: { 
-                    beginAtZero: true, 
-                    min: 0, 
-                    max: 16, 
-                    ticks: { stepSize: 1 } 
-                } 
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        // On réarrondit la valeur dans la bulle d'info pour masquer le décalage technique
+                        label: (context) => `${context.dataset.label}: ${Math.floor(context.raw)}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 16,
+                    ticks: { stepSize: 1 }
+                }
             }
         }
     });
