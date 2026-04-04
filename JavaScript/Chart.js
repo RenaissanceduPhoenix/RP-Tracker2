@@ -2,58 +2,56 @@ import { db } from './Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let chart;
+let startPicker, endPicker; // Variables locales au module
 
 // =======================
-// 📅 FLATPICKR INIT
+// 📅 INITIALISATION DES CALENDRIERS
 // =======================
-const startPicker = flatpickr("#startDate", {
-    dateFormat: "Y-m-d",
-    defaultDate: new Date(Date.now() - 6 * 86400000),
-    onChange: function() { loadCharts(); }
-});
+// On attend que le DOM soit prêt pour être sûr que les IDs existent
+document.addEventListener('DOMContentLoaded', () => {
+    startPicker = flatpickr("#startDate", {
+        dateFormat: "Y-m-d",
+        defaultDate: new Date(Date.now() - 6 * 86400000),
+        onChange: () => window.loadCharts()
+    });
 
-const endPicker = flatpickr("#endDate", {
-    dateFormat: "Y-m-d",
-    defaultDate: new Date(),
-    onChange: function() { loadCharts(); }
+    endPicker = flatpickr("#endDate", {
+        dateFormat: "Y-m-d",
+        defaultDate: new Date(),
+        onChange: () => window.loadCharts()
+    });
 });
 
 // =======================
 // 🔧 HELPERS
 // =======================
 function getType() {
-    return document.getElementById("viewType")?.value || "week";
-}
-
-function updateFlatpickrLimits(data) {
-    if (!data || data.length === 0 || !window.fpStart) return;
-    const minDate = data[0].date;
-    const maxDate = data[data.length - 1].date;
-    window.fpStart.set('minDate', minDate);
-    window.fpEnd.set('maxDate', maxDate);
+    return document.getElementById("chartType")?.value || "week";
 }
 
 // =======================
-// 📊 FONCTION PRINCIPALE (CORRIGÉE)
+// 📊 FONCTION PRINCIPALE
 // =======================
 window.loadCharts = async function() {
-    // 🛡️ SÉCURITÉ : On vérifie si les calendriers sont prêts
-    if (!startPicker || !endPicker || !startPicker.selectedDates[0] || !endPicker.selectedDates[0]) {
-        console.warn("Graphique : En attente de l'initialisation des dates...");
+    // 🛡️ SÉCURITÉ : On vérifie si les calendriers sont bien initialisés ET ont une date
+    if (!startPicker || !endPicker) return;
+    
+    const selectedStart = startPicker.selectedDates[0];
+    const selectedEnd = endPicker.selectedDates[0];
+
+    if (!selectedStart || !selectedEnd) {
+        console.warn("Graphique : Dates non sélectionnées.");
         return;
     }
 
-    const start = startPicker.selectedDates[0];
-    const end = endPicker.selectedDates[0];
     const type = getType();
-    
-    const endDateFull = new Date(end);
+    const endDateFull = new Date(selectedEnd);
     endDateFull.setHours(23, 59, 59, 999);
 
     try {
         const qSent = query(
             collection(db, "rps_sent"),
-            where("createdAt", ">=", start),
+            where("createdAt", ">=", selectedStart),
             where("createdAt", "<=", endDateFull),
             orderBy("createdAt", "asc")
         );
@@ -68,12 +66,12 @@ window.loadCharts = async function() {
         });
 
         if (data.length === 0) {
-            console.log("Graphique : Aucun RP à afficher.");
+            console.log("Graphique : Aucun RP trouvé.");
             if (chart) chart.destroy();
             return;
         }
 
-        generateChart(data, type, start, endDateFull);
+        generateChart(data, type, selectedStart, endDateFull);
     } catch (err) {
         console.error("❌ loadCharts Error:", err);
     }
@@ -83,6 +81,8 @@ window.loadCharts = async function() {
 // 📈 GÉNÉRATION DU GRAPH
 // =======================
 function generateChart(data, type, start, end) {
+    const ctx = document.getElementById("chart");
+    if (!ctx) return;
     if (chart) chart.destroy();
 
     const labels = [];
@@ -93,28 +93,21 @@ function generateChart(data, type, start, end) {
     }
 
     const datasets = [];
+    // Logique simplifiée pour les datasets
     if (type === "week") {
         const values = labels.map(label => 
             data.filter(rp => rp.date.toISOString().split("T")[0] === label).length
         );
-        datasets.push({ label: "Total RP", data: values, borderColor: "#ffcc00", backgroundColor: "rgba(255,204,0,0.1)", fill: true });
-    } else {
-        const groups = {};
-        data.forEach(rp => {
-            const key = type === "server" ? rp.server : rp.character;
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(rp);
-        });
-
-        Object.keys(groups).forEach(key => {
-            const values = labels.map(label => 
-                groups[key].filter(rp => rp.date.toISOString().split("T")[0] === label).length
-            );
-            datasets.push({ label: key, data: values, tension: 0.3 });
+        datasets.push({ 
+            label: "Total RP", 
+            data: values, 
+            borderColor: "#ffcc00", 
+            backgroundColor: "rgba(255,204,0,0.1)", 
+            fill: true 
         });
     }
 
-    chart = new Chart(document.getElementById("chart"), {
+    chart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {

@@ -52,12 +52,13 @@
     <div class="row">
         <div class="box zone-graphique">
             <h2>Évolution de l'activité</h2>
-            <div class="controls-graph">
-                <select id="chartType" onchange="loadCharts()">
-                    <option value="week">7 derniers jours</option>
-                    <option value="month">30 derniers jours</option>
-                    <option value="year">Année en cours</option>
-                </select>
+<div class="controls-graph">
+    <input type="text" id="startDate" placeholder="Début">
+    <input type="text" id="endDate" placeholder="Fin">
+    <select id="chartType" onchange="loadCharts()">
+        <option value="week">7 derniers jours</option>
+        </select>
+</div>
             </div>
             <div class="canvas-container">
                 <canvas id="chart"></canvas>
