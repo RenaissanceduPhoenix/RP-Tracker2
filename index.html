@@ -49,22 +49,24 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="box zone-graphique">
-            <h2>Évolution de l'activité</h2>
-<div class="controls-graph">
-    <input type="text" id="startDate" placeholder="Début">
-    <input type="text" id="endDate" placeholder="Fin">
-    <select id="chartType" onchange="loadCharts()">
-        <option value="week">7 derniers jours</option>
-        </select>
-</div>
-            </div>
-            <div class="canvas-container">
-                <canvas id="chart"></canvas>
-            </div>
+<div class="row">
+    <div class="box zone-graphique">
+        <h2>Évolution de l'activité</h2>
+        <div class="controls-graph">
+            <input type="text" id="startDate" placeholder="Date début" style="width: 120px; padding: 5px;">
+            <input type="text" id="endDate" placeholder="Date fin" style="width: 120px; padding: 5px;">
+            
+            <select id="chartType" onchange="loadCharts()">
+                <option value="week">7 derniers jours</option>
+                <option value="month">30 derniers jours</option>
+                <option value="year">Année en cours</option>
+            </select>
+        </div>
+        <div class="canvas-container" style="height: 300px; margin-top: 20px;">
+            <canvas id="chart"></canvas>
         </div>
     </div>
+</div>
 
 <div id="modal" onclick="closeModal()">
     <div id="modalContent" onclick="event.stopPropagation()">

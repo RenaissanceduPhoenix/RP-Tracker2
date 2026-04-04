@@ -2,42 +2,38 @@ import { db } from './Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let chart;
-let startPicker, endPicker; // Variables locales au module
+let startPicker, endPicker;
 
-// =======================
-// 📅 INITIALISATION DES CALENDRIERS
-// =======================
-// On attend que le DOM soit prêt pour être sûr que les IDs existent
+// On initialise Flatpickr uniquement si les éléments existent
 document.addEventListener('DOMContentLoaded', () => {
-    startPicker = flatpickr("#startDate", {
-        dateFormat: "Y-m-d",
-        defaultDate: new Date(Date.now() - 6 * 86400000),
-        onChange: () => window.loadCharts()
-    });
+    const startElem = document.getElementById("startDate");
+    const endElem = document.getElementById("endDate");
 
-    endPicker = flatpickr("#endDate", {
-        dateFormat: "Y-m-d",
-        defaultDate: new Date(),
-        onChange: () => window.loadCharts()
-    });
+    if (startElem && endElem) {
+        startPicker = flatpickr("#startDate", {
+            dateFormat: "Y-m-d",
+            defaultDate: new Date(Date.now() - 6 * 86400000),
+            onChange: () => window.loadCharts()
+        });
+
+        endPicker = flatpickr("#endDate", {
+            dateFormat: "Y-m-d",
+            defaultDate: new Date(),
+            onChange: () => window.loadCharts()
+        });
+    }
 });
 
-// =======================
-// 🔧 HELPERS
-// =======================
-function getType() {
-    return document.getElementById("chartType")?.value || "week";
-}
-
-// =======================
-// 📊 FONCTION PRINCIPALE
-// =======================
 window.loadCharts = async function() {
-    // 🛡️ SÉCURITÉ : On vérifie si les calendriers sont bien initialisés ET ont une date
-    if (!startPicker || !endPicker) return;
-    
-    const selectedStart = startPicker.selectedDates[0];
-    const selectedEnd = endPicker.selectedDates[0];
+    // 🛡️ LA SÉCURITÉ ANTI-CRASH (Ligne 41)
+    if (!startPicker || !endPicker || !startPicker.selectedDates[0] || !endPicker.selectedDates[0]) {
+        console.warn("Le graphique attend l'initialisation des calendriers...");
+        return;
+    }
+
+    const start = startPicker.selectedDates[0];
+    const end = endPicker.selectedDates[0];
+    // ... reste du code identique
 
     if (!selectedStart || !selectedEnd) {
         console.warn("Graphique : Dates non sélectionnées.");
