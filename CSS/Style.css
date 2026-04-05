@@ -202,3 +202,33 @@ button:hover {
         min-height: 300px;
     }
 }
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #444;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #bbb;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+}

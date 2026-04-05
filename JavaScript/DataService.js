@@ -52,3 +52,51 @@ export async function getChartData(startDate, endDate) {
 
     return results;
 }
+
+export async function getAdvancedStats() {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    // Récupération des RP envoyés cette semaine
+    const qSent = query(
+        collection(db, "rps_sent"),
+        where("createdAt", ">=", oneWeekAgo),
+        orderBy("createdAt", "desc")
+    );
+    
+    const querySnapshot = await getDocs(qSent);
+    const sentRps = [];
+    const serverCounts = {};
+    const charCounts = {};
+
+    querySnapshot.forEach(doc => {
+        const data = doc.data();
+        sentRps.push(data);
+        
+        // Comptage pour le serveur le plus actif
+        serverCounts[data.server] = (serverCounts[data.server] || 0) + 1;
+        // Comptage pour le perso le plus actif
+        charCounts[data.character] = (charCounts[data.character] || 0) + 1;
+    });
+
+    // Calculs
+    const totalSemaine = sentRps.length;
+    const moyenneJour = (totalSemaine / 7).toFixed(1);
+    
+    // Trouver le max pour serveur et perso
+    const topServer = Object.keys(serverCounts).reduce((a, b) => serverCounts[a] > serverCounts[b] ? a : b, "Aucun");
+    const topChar = Object.keys(charCounts).reduce((a, b) => charCounts[a] > charCounts[b] ? a : b, "Aucun");
+
+    // Nombre de RP à répondre (Pending)
+    const pendingSnapshot = await getCountFromServer(
+        query(collection(db, "rps_received"), where("status", "==", "pending"))
+    );
+
+    return {
+        totalSemaine,
+        moyenneJour,
+        topServer,
+        topChar,
+        pendingCount: pendingSnapshot.data().count
+    };
+}

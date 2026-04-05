@@ -1,6 +1,43 @@
 import { db } from './Firebase.js';
 import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from './Markdown.js'; // Vérifie bien le nom du fichier ici !
+import { getAdvancedStats } from './DataService.js';
+
+window.updateStats = async function() {
+    const statsContainer = document.getElementById("statsContainer");
+    if (!statsContainer) return;
+
+    try {
+        const s = await getAdvancedStats();
+        
+        statsContainer.innerHTML = `
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="stat-label">RP cette semaine</span>
+                    <span class="stat-value">${s.totalSemaine}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Moyenne / jour</span>
+                    <span class="stat-value">${s.moyenneJour}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">À répondre (Pending)</span>
+                    <span class="stat-value" style="color: #ffcc00;">${s.pendingCount}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Serveur Top</span>
+                    <span class="stat-value" style="font-size: 1rem;">${s.topServer}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Perso Top</span>
+                    <span class="stat-value" style="font-size: 1rem;">${s.topChar}</span>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error("Erreur calcul stats:", error);
+    }
+};
 
 let unsubscribePending = null;
 
