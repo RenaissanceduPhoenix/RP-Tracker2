@@ -1,0 +1,20 @@
+.
+└── Projet/
+    ├── Bot Discord/
+    │   └── main.py
+    ├── Extension Chrome/
+    │   └── .zip
+    └── Site Web/
+        ├── index.html
+        ├── images présentative.jpeg
+        ├── gitattributes.txt/
+        │   ├── JavaScript/
+        │   │   ├── RP.js
+        │   │   ├── Firebase.js
+        │   │   ├── Markdown.js
+        │   │   └── Charts.js
+        │   └── CSS/
+        │       ├── Style.css
+        │       └── darkv3.jpeg
+        ├── Explication MarkDown
+        └── File Tree
