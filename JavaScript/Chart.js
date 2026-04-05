@@ -108,28 +108,30 @@ function generateChart(data, type, start, end) {
         });
     }
 
-    chart = new Chart(ctx, {
-        type: "line",
-        data: { labels, datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        // On arrondit pour afficher la vraie valeur (sans le jitter)
-                        label: (context) => `${context.dataset.label}: ${Math.floor(context.raw)}`
-                    }
+    // ... dans la fonction generateChart
+chart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // Le CSS gère la hauteur (450px)
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    // On arrondit pour masquer le décalage technique (jitter)
+                    label: (context) => `${context.dataset.label}: ${Math.floor(context.raw)}`
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    min: 0,
-                    max: 16,
-                    ticks: { stepSize: 1 }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                min: 0,
+                max: 16,
+                ticks: { 
+                    stepSize: 1 
                 }
             }
         }
-    });
-}
+    } // Fin de options
+})};

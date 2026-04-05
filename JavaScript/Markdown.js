@@ -1,4 +1,4 @@
-function parseInline(str) {
+export function parseInline(str) {
     // 1. Souligné + Gras + Italique (___***)
     str = str.replace(/__\*\*\*(.*?)\*\*\*__/g, '<span style="text-decoration:underline; font-weight:bold; font-style:italic">$1</span>');
     
