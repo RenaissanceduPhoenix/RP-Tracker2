@@ -147,3 +147,28 @@ button:hover {
     padding: 15px;
     height: 400px;
 }
+
+/* Pastille d'urgence */
+.urgency-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: black;
+    margin-left: 10px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+/* Animation légère pour les RP très urgents (Rouge) */
+.urgency-tag[style*="#ff3860"] {
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(255, 56, 96, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 56, 96, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 56, 96, 0); }
+}

@@ -1,4 +1,5 @@
 import { db } from './Firebase.js';
+import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
@@ -56,9 +57,15 @@ window.loadPending = function() {
             const card = document.createElement("div");
             card.className = "rp-card";
             card.onclick = () => window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
-            card.innerHTML = `<div><b>${rp.title}</b><br><small>${rp.character}</small></div>
-                              <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>`;
-            list.appendChild(card);
+            // Trouve la ligne où tu génères le HTML de la carte (card.innerHTML)
+// Remplace-la par celle-ci :
+card.innerHTML = `
+    <div>
+        <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
+        <small>${rp.character}</small>
+    </div>
+    <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>
+`;
         });
     });
 };
