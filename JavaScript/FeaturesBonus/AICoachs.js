@@ -18,6 +18,8 @@ export async function askIaRP(userInstruction, isFirstMessage = false) {
     chatHistory.push({ role: "user", content: userInstruction });
 
     try {
+        // ... (haut du fichier inchangé)
+
         const response = await fetch(url, {
             method: "POST",
             headers: {
@@ -25,11 +27,14 @@ export async function askIaRP(userInstruction, isFirstMessage = false) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "llama3-70b-8192",
+                // CHANGEMENT ICI : llama3-70b-8192 est obsolète
+                model: "llama-3.3-70b-versatile", 
                 messages: chatHistory,
                 temperature: 0.8
             })
         });
+
+// ... (reste du fichier inchangé)
 
         const data = await response.json();
         
