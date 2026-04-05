@@ -65,7 +65,8 @@ function renderChart(data, start, end) {
 scales: {
     y: {
         beginAtZero: true,
-        // On enlève "max: 16" pour que ça s'adapte tout seul
+        min: 0,
+        max: 20,
         ticks: {
             stepSize: 1, // Force l'affichage de 1, 2, 3, 4 (pas de 1.5)
             color: '#666' // Optionnel : couleur des chiffres
