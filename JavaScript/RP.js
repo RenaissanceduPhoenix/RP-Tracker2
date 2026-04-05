@@ -115,30 +115,29 @@ window.debugFirebase = async function() {
 };
 window.openModal = function(content, title, meta) {
     const displayArea = document.getElementById("displayArea");
-    
     if (displayArea) {
-        // On vide le message d'attente
-        displayArea.innerHTML = ""; 
-
-        // Création de la structure
-        const header = `<h3>${title}</h3><p><small>${meta}</small></p><hr>`;
-        
-        // Utilisation de ta fonction de Markdown.js
-        // Si parseRP n'est pas trouvé, on affiche le texte brut
-        const formattedContent = (typeof parseRP === 'function') 
-            ? parseRP(content) 
-            : content.replace(/\n/g, "<br>");
+        // On génère le contenu formaté via Markdown.js
+        const formattedContent = parseRP(content);
 
         displayArea.innerHTML = `
-            ${header}
+            <div class="display-header">
+                <span class="close-view" onclick="window.clearView()">×</span>
+                <h3 style="margin:0; color:black;">${title}</h3>
+                <small style="color:#666;">${meta}</small>
+            </div>
+            <hr style="border:0; border-top:1px solid #ccc; margin:15px 0;">
             <div class="rp-display-content">
                 ${formattedContent}
             </div>
         `;
-
-        // Scroll automatique en haut de la zone quand on change de RP
         displayArea.scrollTop = 0;
     }
+};
+
+// Fonction pour vider la zone (la croix)
+window.clearView = function() {
+    const displayArea = document.getElementById("displayArea");
+    displayArea.innerHTML = `<p style="color: #666;">(Sélectionnez un RP dans la liste pour l'afficher ici)</p>`;
 };
 window.closeModal = function() {
     document.getElementById("modal").style.display = "none";

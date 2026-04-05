@@ -1,0 +1,19 @@
+*Test* --> Dois être en italique dans l'affichage pending
+**Test** --> Dois être en gras dans l'affichage pending
+***Test*** --> Dois être en gras + en italique dans l'affichage pending
+
+> *Test* --> Dois être en italique dans l'affichage pending + tabulation sur tout le paragraphe
+> **Test** --> Dois être en gras dans l'affichage pending + tabulation sur tout le paragraphe
+> ***Test*** --> Dois être en gras + en italique dans l'affichage pending + tabulation sur tout le paragraphe
+
+__*Test*__ --> Dois être en italique + souligné dans l'affichage pending
+__**Test**__ --> Dois être en gras + souligné dans l'affichage pending
+__***Test***__ --> Dois être en gras + en italique + souligné dans l'affichage pending
+
+> __*Test*__ --> Dois être en italique + souligné dans l'affichage pending + tabulation sur tout le paragraphe
+> __**Test**__ --> Dois être en gras +souligné dans l'affichage pending + tabulation sur tout le paragraphe
+> __***Test***__ --> Dois être en gras + en italique + souligné dans l'affichage pending + tabulation sur tout le paragraphe
+
+L'ENTIERTE DU TEXTE EST ECRIT EN NOIR SUR LE FOND BLANC DE LA ZONE D'AFFICHAGE.
+
+Il faut supprimer le texte entre parenthèse quand un rp est affiché et aussi ajouter une croix pour pouvoir supprimer l'affichage du rp mais le laisser en pending
