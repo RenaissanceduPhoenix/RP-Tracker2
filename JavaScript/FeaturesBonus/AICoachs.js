@@ -1,16 +1,26 @@
+import { charactersDB } from './CharacterData.js';
 const GROQ_API_KEY = "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";
 let chatHistory = []; // Pour se souvenir de la discussion en cours
 
 
-export async function askIaRP(userInstruction, isFirstMessage = false) {
+export async function askIaRP(userInstruction, isFirstMessage = false, charName = "") {
     const url = "https://api.groq.com/openai/v1/chat/completions";
     
     if (isFirstMessage) {
-        // On initialise l'historique avec le message système et le contexte du RP
+        // On récupère la fiche via l'alias (nom actuel dans le tracker)
+        const characterFiche = charactersDB[charName] || "Pas de fiche détaillée.";
+
         chatHistory = [
             { 
                 role: "system", 
-                content: "Tu es Ia_RP, un assistant expert en Roleplay. Ton but est d'aider l'utilisateur à rédiger des réponses immersives. Réponds toujours en français, de manière créative et stylée." 
+                content: `Tu es Ia_RP, un assistant expert en écriture. 
+                Tu dois aider l'utilisateur à répondre à un RP en incarnant ce personnage :
+                ${characterFiche}
+                
+                Règles :
+                - Garde le ton du personnage décrit.
+                - Si c'est un chaton (ex: Petite Lynx), le langage est plus simple et naïf.
+                - Si c'est une apprentie ou guerrière, adapte la maturité.`
             }
         ];
     }
@@ -57,33 +67,42 @@ window.initAiChat = async function() {
     const displayArea = document.querySelector(".rp-display-content");
     if (!displayArea) return;
 
-    const context = displayArea.innerText;
+    // 1. On récupère le texte du header (ex: "Nuage de Lynx — Clan de la Canopée")
+    const metaText = document.querySelector(".display-header small")?.innerText || "";
+    
+    // 2. On extrait juste le nom (ce qui est avant le tiret) et on nettoie les espaces
+    const charName = metaText.split("—")[0].trim(); 
 
-    // Si le chat existe déjà, on ne le recrée pas
+    // 3. On cherche la fiche dans notre dictionnaire d'alias
+    const charInfo = charactersDB[charName] || "Personnage inconnu. Reste cohérent avec le contexte du message.";
+
+    // 4. Création de l'interface (si elle n'existe pas)
     if (!document.getElementById("ai-chat-container")) {
         const container = document.createElement("div");
         container.id = "ai-chat-container";
-        container.style = "margin-top:20px; border-top: 2px solid #a777e3; padding-top:15px;";
+        container.style = "margin-top:20px; border-top: 2px dashed #a777e3; padding-top:15px;";
         container.innerHTML = `
-            <div id="ai-response-box" style="padding:15px; background:#f4f4ff; border-left:4px solid #a777e3; border-radius:4px; color:#333; font-size:0.95rem;">
-                <strong>Ia_RP :</strong> <span id="ai-text">Analyse du texte en cours...</span>
+            <div id="ai-response-box" style="padding:15px; background:#f4f4ff; border-left:4px solid #a777e3; border-radius:4px; color:#333;">
+                <strong style="color:#6e8efb;">Ia_RP (${charName}) :</strong> <br>
+                <span id="ai-text">Analyse de la fiche et du contexte...</span>
             </div>
             <div style="display:flex; gap:5px; margin-top:10px;">
-                <input type="text" id="ai-user-input" placeholder="Donne une consigne..." 
+                <input type="text" id="ai-user-input" placeholder="Consigne pour ${charName}..." 
                        style="flex:1; padding:10px; border-radius:5px; border:1px solid #ccc; color:black !important; background:white !important;">
-                <button id="btn-send-ai" style="width:auto; background:#a777e3; color:white; padding:10px 20px; border-radius:5px; border:none; cursor:pointer;">Envoyer</button>
+                <button id="btn-send-ai" style="background:#a777e3; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Envoyer</button>
             </div>
         `;
         displayArea.appendChild(container);
-
-        // On lie l'événement clic au bouton
         document.getElementById("btn-send-ai").onclick = window.sendToAI;
-        // Permettre d'envoyer avec la touche "Entrée"
-        document.getElementById("ai-user-input").onkeypress = (e) => { if(e.key === 'Enter') window.sendToAI(); };
     }
 
-    const firstPrompt = `Voici le RP actuel, propose-moi une suite : \n\n${context}`;
-    const reply = await askIaRP(firstPrompt, true);
+    const context = displayArea.innerText;
+
+    // 5. On lance l'IA avec la fiche trouvée
+    // On passe charName pour que askIaRP sache quelle fiche utiliser pour le system prompt
+    const firstPrompt = `Voici le message de mon partenaire de RP, propose-moi une suite immersive : \n\n${context}`;
+    const reply = await askIaRP(firstPrompt, true, charName); 
+    
     document.getElementById("ai-text").innerHTML = reply.replace(/\n/g, "<br>");
 };
 
