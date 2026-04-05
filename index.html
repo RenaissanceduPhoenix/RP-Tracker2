@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>RP Tracker</title>
-<link rel="stylesheet" href="./CSS/Style.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./CSS/Style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="icon" href="data:,">
 </head>
 <body>
-<script type="module" src="JavaScript/Firebase.js"></script>
-<div class="dashboard">
+  <div class="dashboard">
     <div class="row haut">
         <div class="box zone-ajout">
             <h2>Ajouter un RP ENVOYÉ</h2>
@@ -17,7 +16,6 @@
             <input id="server_sent" placeholder="Serveur">
             <button onclick="addSent()">Ajouter</button>
         </div>
-
         <div class="box zone-ajout-pending">
             <h2>Ajout de RP à répondre</h2>
             <input id="title" placeholder="Titre du RP">
@@ -49,36 +47,30 @@
         </div>
     </div>
 
-<div class="row">
-    <div class="controls-graph">
-    <input type="text" id="startDate">
-    <input type="text" id="endDate">
-    
-    <select id="viewType" onchange="loadCharts()">
-        <option value="week">Total (Période sél.)</option>
-        <option value="server">Par Serveur</option>
-        <option value="character">Par Personnage</option>
-    </select>
-</div>
-        <div class="canvas-container" style="height: 300px; margin-top: 20px;">
-            <canvas id="chart"></canvas>
+    <div class="row">
+        <div class="box zone-graphique">
+            <h2>Évolution de l'activité</h2>
+            <div class="controls-graph">
+                <input type="text" id="startDate" placeholder="Début">
+                <input type="text" id="endDate" placeholder="Fin">
+                <select id="viewType" onchange="loadCharts()">
+                    <option value="week">Total RP</option>
+                    <option value="server">Par Serveur</option>
+                    <option value="character">Par Personnage</option>
+                </select>
+            </div>
+            <div class="canvas-container">
+                <canvas id="chart"></canvas>
+            </div>
         </div>
     </div>
-</div>
+  </div>
 
-<div id="modal" onclick="closeModal()">
-    <div id="modalContent" onclick="event.stopPropagation()">
-        <span id="closeModal" onclick="closeModal()">X</span>
-        <h3 id="modalTitle"></h3>
-        <p id="modalMeta"></p>
-        <hr>
-        <div id="modalText"></div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script type="module" src="JavaScript/Markdown.js"></script>
-<script type="module" src="JavaScript/RP.js"></script>
-<script type="module" src="JavaScript/Chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script type="module" src="JavaScript/Firebase.js"></script>
+  <script type="module" src="JavaScript/Markdown.js"></script>
+  <script type="module" src="JavaScript/RP.js"></script>
+  <script type="module" src="JavaScript/Chart.js"></script>
 </body>
 </html>

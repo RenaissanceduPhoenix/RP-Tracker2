@@ -5,6 +5,7 @@ let chart;
 let startPicker, endPicker;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialisation des calendriers
     startPicker = flatpickr("#startDate", {
         dateFormat: "Y-m-d",
         defaultDate: new Date(Date.now() - 6 * 86400000),
@@ -19,8 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.loadCharts = async function() {
-    const startElem = document.getElementById("startDate");
-    const endElem = document.getElementById("endDate");
     if (!startPicker || !endPicker || !startPicker.selectedDates[0] || !endPicker.selectedDates[0]) return;
 
     const start = startPicker.selectedDates[0];
@@ -56,6 +55,7 @@ function generateChart(data, type, start, end) {
     const ctx = document.getElementById("chart");
     if (chart) chart.destroy();
 
+    // Création de l'axe X (les jours)
     const labels = [];
     let curr = new Date(start);
     while (curr <= end) {
@@ -67,7 +67,7 @@ function generateChart(data, type, start, end) {
     const palette = ['#ffcc00', '#00d1b2', '#3273dc', '#ff3860', '#9b59b6', '#f1c40f', '#e67e22'];
 
     if (type === "week") {
-        // --- MODE 7 JOURS : UNE SEULE COURBE ---
+        // --- 1 SEULE COURBE : TOTAL ---
         const values = labels.map(label => 
             data.filter(rp => rp.date.toISOString().split("T")[0] === label).length
         );
@@ -80,7 +80,7 @@ function generateChart(data, type, start, end) {
             tension: 0.3
         });
     } else {
-        // --- MODE SERVEUR OU PERSO : MULTI-COURBES ---
+        // --- MULTI-COURBES (SERVEUR OU PERSO) ---
         const groups = {};
         data.forEach(rp => {
             const key = (type === "server") ? rp.server : rp.character;
@@ -89,13 +89,12 @@ function generateChart(data, type, start, end) {
         });
 
         Object.keys(groups).forEach((key, index) => {
-            // On applique un minuscule décalage visuel (0.05 * index) 
-            // pour éviter la superposition parfaite des points
-            const offset = index * 0.05; 
+            // Décalage de 0.04 par index pour éviter la superposition
+            const offset = index * 0.04; 
             
             const values = labels.map(label => {
                 const count = groups[key].filter(rp => rp.date.toISOString().split("T")[0] === label).length;
-                return count > 0 ? count + offset : 0; // On ne décale que si la valeur n'est pas 0
+                return count > 0 ? count + offset : 0;
             });
 
             datasets.push({
@@ -118,7 +117,7 @@ function generateChart(data, type, start, end) {
             plugins: {
                 tooltip: {
                     callbacks: {
-                        // On réarrondit la valeur dans la bulle d'info pour masquer le décalage technique
+                        // On arrondit pour afficher la vraie valeur (sans le jitter)
                         label: (context) => `${context.dataset.label}: ${Math.floor(context.raw)}`
                     }
                 }
