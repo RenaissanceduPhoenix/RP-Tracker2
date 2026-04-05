@@ -1,11 +1,10 @@
 /**
  * Calcule la pastille d'urgence en fonction de la date du RP
- * @param {Date} createdAt - Date de création du document Firebase
- * @returns {string} - HTML de la pastille
  */
 export function getUrgencyTag(createdAt) {
     if (!createdAt) return "";
 
+    // Conversion de la date Firebase (Timestamp) en objet Date JS
     const dateRP = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
     const now = new Date();
     const diffInMs = now - dateRP;
@@ -15,8 +14,8 @@ export function getUrgencyTag(createdAt) {
     let label = "Récent";
 
     if (diffInDays >= 3 && diffInDays < 6) {
-        color = "#ffcc00"; // Orange (À prévoir)
-        label = "En attente";
+        color = "#ffcc00"; // Orange (En attente)
+        label = "Attente";
     } else if (diffInDays >= 6) {
         color = "#f81a1a"; // Rouge (Urgent)
         label = "Relance !";

@@ -2,46 +2,51 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RP Tracker - Dashboard</title>
     <link rel="stylesheet" href="./CSS/Style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
+
     <div class="dashboard">
-        <div class="row haut">
+        <div class="row">
             <div class="box zone-ajout">
                 <h2>Ajouter un RP ENVOYÉ</h2>
                 <input id="char_sent" placeholder="Ton personnage">
                 <input id="server_sent" placeholder="Serveur">
-                <button onclick="addSent()">Ajouter</button>
+                <button onclick="addSent()">Ajouter aux stats</button>
             </div>
+
             <div class="box zone-ajout-pending">
-                <h2>Ajout de RP à répondre</h2>
+                <h2>Ajout de RP à répondre (Pending)</h2>
                 <input id="title" placeholder="Titre du RP">
                 <input id="char_received" placeholder="Personnage en face">
                 <input id="server_received" placeholder="Serveur">
-                <textarea id="content" placeholder="Contenu du RP"></textarea>
+                <textarea id="content" placeholder="Contenu du RP ou contexte..."></textarea>
                 <button onclick="addReceived()">Ajouter au Pending</button>
             </div>
         </div>
 
-        <div class="row milieu">
+        <div class="row">
             <div class="box zone-liste-pending">
                 <h2>Liste Pending</h2>
-                <div id="pendingList"></div>
+                <div id="pendingList">
+                    </div>
             </div>
+
             <div class="box zone-vue-pending">
                 <div id="displayArea">
-                    <p style="color:#999;">(Sélectionnez un RP pour l'afficher)</p>
+                    <p style="color:#999; text-align:center; margin-top:50px;">(Sélectionnez un RP dans la liste pour le lire)</p>
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="box zone-stats">
-                <h2>Statistiques Globales</h2>
+                <h2>Indicateurs de performance</h2>
                 <div id="statsContainer">
-                    <p>Chargement des indicateurs...</p>
+                    <p>Calcul des données...</p>
                 </div>
             </div>
         </div>
@@ -50,12 +55,12 @@
             <div class="box zone-graphique">
                 <h2>Évolution de l'activité</h2>
                 <div class="controls-graph">
-                    <input type="text" id="startDate" placeholder="Début">
-                    <input type="text" id="endDate" placeholder="Fin">
+                    <input type="text" id="startDate" placeholder="Date début">
+                    <input type="text" id="endDate" placeholder="Date fin">
                     <select id="viewType" onchange="loadCharts()">
-                        <option value="week">Total RP</option>
-                        <option value="server">Par Serveur</option>
-                        <option value="character">Par Personnage</option>
+                        <option value="week">Total RP (Global)</option>
+                        <option value="server">Répartition par Serveur</option>
+                        <option value="character">Répartition par Perso</option>
                     </select>
                 </div>
                 <div class="canvas-container">
@@ -74,5 +79,6 @@
     <script type="module" src="./JavaScript/Markdown.js"></script>
     <script type="module" src="./JavaScript/RP.js"></script>
     <script type="module" src="./JavaScript/Chart.js"></script>
+
 </body>
 </html>
