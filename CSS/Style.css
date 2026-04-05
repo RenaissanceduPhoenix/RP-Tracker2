@@ -192,10 +192,19 @@ button:hover {
     height: 400px;
 }
 
-.controls-graph {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+/* Pour corriger la liste déroulante du graphique */
+.controls-graph select {
+    background-color: white !important;
+    color: #333 !important; /* Texte gris foncé pour être lisible */
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Optionnel : pour que les options à l'intérieur soient aussi lisibles */
+.controls-graph select option {
+    background-color: white;
+    color: #333;
 }
 
 .controls-graph input, .controls-graph select {

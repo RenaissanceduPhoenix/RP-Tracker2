@@ -61,7 +61,20 @@ function renderChart(data, start, end) {
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Math.floor(c.raw)}` } } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            // ... dans les options de ton new Chart
+scales: {
+    y: {
+        beginAtZero: true,
+        // On enlève "max: 16" pour que ça s'adapte tout seul
+        ticks: {
+            stepSize: 1, // Force l'affichage de 1, 2, 3, 4 (pas de 1.5)
+            color: '#666' // Optionnel : couleur des chiffres
+        },
+        grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
         }
-    });
-}
+    },
+    x: {
+        ticks: { color: '#666' }
+    }
+}}})}
