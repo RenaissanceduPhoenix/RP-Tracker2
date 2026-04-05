@@ -1,8 +1,9 @@
 export function parseRP(text) {
+  if (!text) return "";
   const lines = text.split("\n");
 
   function parseInline(str) {
-    // 1. Souligné + Gras + Italique (___ ou __***)
+    // 1. Souligné + Gras + Italique ( ___*** )
     str = str.replace(/__\*\*\*(.*?)\*\*\*__/g, '<span style="text-decoration:underline; font-weight:bold; font-style:italic">$1</span>');
     // 2. Souligné + Gras ( __** )
     str = str.replace(/__\*\*(.*?)\*\*__/g, '<span style="text-decoration:underline; font-weight:bold">$1</span>');
@@ -14,7 +15,6 @@ export function parseRP(text) {
     str = str.replace(/\*\*(.*?)\*\*/g, '<span style="font-weight:bold">$1</span>');
     // 6. Italique ( * )
     str = str.replace(/\*(.*?)\*/g, '<span style="font-style:italic">$1</span>');
-    
     return str;
   }
 
@@ -22,7 +22,7 @@ export function parseRP(text) {
     const trimmed = line.trim();
     if (!trimmed) return '<div style="height:12px"></div>';
 
-    // Gestion de la tabulation (blockquote)
+    // Tabulation si ça commence par ">"
     if (trimmed.startsWith(">")) {
       const content = trimmed.substring(1).trim();
       return `<div class="rp-dialogue">${parseInline(content)}</div>`;

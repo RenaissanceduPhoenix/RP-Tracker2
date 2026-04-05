@@ -1,12 +1,10 @@
 import { db } from './Firebase.js';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, onSnapshot, Timestamp} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { parseRP } from './Markdown.js';
 
-// 1. Déclaration en haut du fichier pour éviter l'erreur d'initialisation
 let unsubscribePending = null;
 
-
-
-// ➜ Ajouter RP envoyé
+// Ajouter RP envoyé (Stats)
 window.addSent = async function() {
   const character = document.getElementById("char_sent").value;
   const server = document.getElementById("server_sent").value;
@@ -16,109 +14,61 @@ window.addSent = async function() {
   document.getElementById("server_sent").value = "";
 };
 
-// ➜ Ajouter RP reçu
+// Ajouter RP reçu (Pending)
 window.addReceived = async function() {
   const title = document.getElementById("title").value;
   const character = document.getElementById("char_received").value;
   const server = document.getElementById("server_received").value;
   const content = document.getElementById("content").value;
-  if (!title || !character || !server) { alert("Remplis tous les champs importants"); return; }
+  if (!title || !character || !server) { alert("Remplis tous les champs"); return; }
   await addDoc(collection(db, "rps_received"), { title, character, server, content, status: "pending", createdAt: new Date() });
   document.getElementById("title").value = "";
   document.getElementById("char_received").value = "";
   document.getElementById("server_received").value = "";
   document.getElementById("content").value = "";
-  loadPending();
 };
 
-// ➜ Charger RP à répondre
-
-
+// Charger la liste Pending
 window.loadPending = function() {
-  // 2. Sécurité : Si une écoute existe déjà, on l'arrête proprement avant d'en créer une nouvelle
-  if (unsubscribePending) {
-    unsubscribePending();
-  }
-
-  const q = query(collection(db, "rps_received"), where("status", "==", "pending"));
+  const q = query(collection(db, "rps_received"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
   
-  // 3. On stocke la fonction de désabonnement dans notre variable
+  if (unsubscribePending) unsubscribePending();
+
   unsubscribePending = onSnapshot(q, (snapshot) => {
     const list = document.getElementById("pendingList");
-    if (!list) return;
-
-    // On vide la liste avant de la reconstruire (plus simple pour débuter)
     list.innerHTML = "";
+    snapshot.forEach((docSnap) => {
+      const rp = docSnap.data();
+      const id = docSnap.id;
+      const card = document.createElement("div"); // Correction de la variable div -> card
+      card.className = "rp-card";
+      
+      const metaText = `${rp.character} — ${rp.server}`;
 
-  snapshot.forEach((docSnap) => {
-    const rp = docSnap.data();
-    const id = docSnap.id;
+      card.onclick = () => window.openModal(rp.content, rp.title, metaText);
 
-    const div = document.createElement("div");
-    div.className = "rp-card";
-    div.setAttribute("data-id", id);
-
-    // Préparation du texte pour éviter les bugs d'affichage
-    const contentText = rp.content || "";
-    const metaText = `${rp.character} — ${rp.server}`;
-
-    // 🟢 LA CORRECTION EST ICI : on réactive le clic
-    div.onclick = () => {
-      // On appelle openModal qui, chez toi, gère l'affichage dans displayArea
-      window.openModal(contentText, rp.title, metaText);
-    };
-
-  div.innerHTML = `
-    <div class="rp-info">
-      <b>${rp.title}</b><br>
-      <small>${rp.character} — ${rp.server}</small>
-    </div>
-    <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>
-  `;
-  list.appendChild(div);
-});
-
-      div.innerHTML = `
+      card.innerHTML = `
         <div class="rp-info">
           <b>${rp.title}</b><br>
-          <small>${rp.character} — ${rp.server}</small>
+          <small>${metaText}</small>
         </div>
         <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>
       `;
-      list.appendChild(div);
+      list.appendChild(card);
     });
-  }, (err) => {
-    console.error("❌ Erreur loadPending:", err);
-  }
-;
+  });
+};
 
-// ➜ Marquer comme fait
+// Marquer comme fait
 window.markDone = async function(id) {
-  try {
-    await updateDoc(doc(db, "rps_received", id), { status: "done" });
-    // Le refresh se fera tout seul grâce au onSnapshot !
-  } catch (e) {
-    console.error("Erreur markDone:", e);
-  }
+  await updateDoc(doc(db, "rps_received", id), { status: "done" });
 };
 
-// Lancement initial
-loadPending();
-
-window.debugFirebase = async function() {
-  try {
-    const snap = await getDocs(collection(db, "rps_sent"));
-    console.log("🔥 Docs trouvés:", snap.size);
-  } catch (err) {
-    console.error("❌ Firebase mort:", err.message);
-  }
-};
+// AFFICHAGE DU RP (Zone Blanche)
 window.openModal = function(content, title, meta) {
     const displayArea = document.getElementById("displayArea");
     if (displayArea) {
-        // On génère le contenu formaté via Markdown.js
-        const formattedContent = parseRP(content);
-
+        const formattedContent = parseRP(content || "");
         displayArea.innerHTML = `
             <div class="display-header">
                 <span class="close-view" onclick="window.clearView()">×</span>
@@ -134,41 +84,13 @@ window.openModal = function(content, title, meta) {
     }
 };
 
-// Fonction pour vider la zone (la croix)
+// La Croix : vider l'affichage
 window.clearView = function() {
     const displayArea = document.getElementById("displayArea");
     displayArea.innerHTML = `<p style="color: #666;">(Sélectionnez un RP dans la liste pour l'afficher ici)</p>`;
 };
-window.closeModal = function() {
-    document.getElementById("modal").style.display = "none";
-};
 
-// 🚀 Initialisation de l'application
-async function initApp() {
-    console.log("Démarrage de l'application...");
-    try {
-        // 1. Charger la liste des RP en attente (Live Snapshot)
-        if (typeof loadPending === 'function') {
-            await loadPending();
-        }
-
-        // 2. Charger les stats (si la fonction existe)
-        if (typeof updateStats === 'function') {
-            await updateStats();
-        }
-
-        // 3. Déclencher le premier rendu du graphique
-        // On attend un court instant pour laisser Flatpickr s'initialiser
-        setTimeout(() => {
-            if (typeof window.loadCharts === 'function') {
-                window.loadCharts();
-            }
-        }, 500);
-
-    } catch (error) {
-        console.error("Erreur lors de l'initialisation :", error);
-    }
-}
-
-// Lancement
-window.addEventListener('DOMContentLoaded', initApp);
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    window.loadPending();
+});
