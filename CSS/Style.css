@@ -96,9 +96,24 @@ input, textarea {
 
 
 
-/* Style spécifique pour le rendu Markdown à l'intérieur de la zone blanche */
 .rp-display-content {
-    font-size: 16px;
     line-height: 1.6;
-    color: #333;
+    font-size: 1.1em;
+    color: #eee; /* Ou la couleur de ton texte */
+}
+
+.rp-thought {
+    font-style: italic;
+    color: #aaa;
+}
+
+.rp-action {
+    font-weight: bold;
+    color: #ffcc00;
+}
+
+.rp-dialogue {
+    border-left: 3px solid #ffcc00;
+    padding-left: 10px;
+    margin-left: 5px;
 }

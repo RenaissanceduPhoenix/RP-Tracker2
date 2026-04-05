@@ -50,22 +50,33 @@ window.loadPending = function() {
     // On vide la liste avant de la reconstruire (plus simple pour débuter)
     list.innerHTML = "";
 
-    snapshot.forEach((docSnap) => {
-      const rp = docSnap.data();
-      const id = docSnap.id;
+  snapshot.forEach((docSnap) => {
+    const rp = docSnap.data();
+    const id = docSnap.id;
 
-      const div = document.createElement("div");
-      div.className = "rp-card";
-      div.setAttribute("data-id", id);
+    const div = document.createElement("div");
+    div.className = "rp-card";
+    div.setAttribute("data-id", id);
 
-      // Préparation du contenu pour la modal
-      const safeContent = rp.content ? rp.content.replace(/`/g, "\\`").replace(/\n/g, "\\n") : "";
+    // Préparation du texte pour éviter les bugs d'affichage
+    const contentText = rp.content || "";
+    const metaText = `${rp.character} — ${rp.server}`;
 
-      //div.onclick = () => {
-        //  if (typeof openModal === 'function') {
-          //    openModal(safeContent, rp.title, `${rp.character} — ${rp.server}`);
-          //}
-      //};
+    // 🟢 LA CORRECTION EST ICI : on réactive le clic
+    div.onclick = () => {
+      // On appelle openModal qui, chez toi, gère l'affichage dans displayArea
+      window.openModal(contentText, rp.title, metaText);
+    };
+
+  div.innerHTML = `
+    <div class="rp-info">
+      <b>${rp.title}</b><br>
+      <small>${rp.character} — ${rp.server}</small>
+    </div>
+    <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>
+  `;
+  list.appendChild(div);
+});
 
       div.innerHTML = `
         <div class="rp-info">
@@ -78,8 +89,8 @@ window.loadPending = function() {
     });
   }, (err) => {
     console.error("❌ Erreur loadPending:", err);
-  });
-};
+  }
+;
 
 // ➜ Marquer comme fait
 window.markDone = async function(id) {
