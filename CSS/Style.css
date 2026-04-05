@@ -216,3 +216,32 @@ button:hover {
 @media (max-width: 900px) {
     .row { flex-direction: column; }
 }
+
+/* Bouton IA Générateur */
+.btn-ai {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-ai:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(167, 119, 227, 0.4);
+    transform: translateY(-2px);
+}
+
+.ai-loading {
+    font-style: italic;
+    color: #a777e3;
+    margin-top: 10px;
+    font-size: 0.9rem;
+}

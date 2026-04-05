@@ -94,7 +94,12 @@ window.openModal = function(content, title, meta) {
             <div><h3 style="margin:0; color:black;">${title}</h3><small style="color:#666;">${meta}</small></div>
             <span style="cursor:pointer; font-size:24px; color:#999;" onclick="window.clearView()">×</span>
         </div>
-        <div class="rp-display-content">${parseRP(content)}</div>`;
+        <div class="rp-display-content">
+            ${parseRP(content)}
+        </div>
+        <div style="padding: 0 20px 20px 20px;">
+            <button class="btn-ai" onclick="window.askAI()">✨ Demander à Ia_RP</button>
+        </div>`;
 };
 
 window.clearView = function() {
