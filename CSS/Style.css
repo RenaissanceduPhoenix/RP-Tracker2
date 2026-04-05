@@ -245,3 +245,14 @@ button:hover {
     margin-top: 10px;
     font-size: 0.9rem;
 }
+
+#ai-user-input {
+    background: white !important;
+    color: black !important;
+}
+
+#ai-response-box {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}

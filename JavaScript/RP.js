@@ -98,7 +98,7 @@ window.openModal = function(content, title, meta) {
             ${parseRP(content)}
         </div>
         <div style="padding: 0 20px 20px 20px;">
-            <button class="btn-ai" onclick="window.askAI()">✨ Demander à Ia_RP</button>
+            <button class="btn-ai" onclick="window.initAiChat()">✨ Discuter avec Ia_RP</button>
         </div>`;
 };
 
