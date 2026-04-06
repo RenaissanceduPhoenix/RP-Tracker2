@@ -59,23 +59,23 @@ function renderChart(data, start, end) {
         type: 'line',
         data: { labels, datasets },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${Math.floor(c.raw)}` } } },
-            // ... dans les options de ton new Chart
-scales: {
-    y: {
-        beginAtZero: true,
-        min: 0,
-        max: 20,
-        ticks: {
-            stepSize: 1, // Force l'affichage de 1, 2, 3, 4 (pas de 1.5)
-            color: '#666' // Optionnel : couleur des chiffres
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+        y: {
+            beginAtZero: true,
+            ticks: {
+                stepSize: 2, // Graduation de 2 en 2
+                color: "#ddd" // Chiffres lisibles en gris clair
+            },
+            grid: { color: "rgba(255,255,255,0.1)" }
         },
-        grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
+        x: {
+            ticks: { color: "#ddd" },
+            grid: { display: false }
         }
     },
-    x: {
-        ticks: { color: '#666' }
+    plugins: {
+        legend: { labels: { color: "#eee" } } // Légende lisible
     }
-}}})}
+}})}

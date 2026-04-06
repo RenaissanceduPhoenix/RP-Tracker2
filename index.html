@@ -49,44 +49,41 @@
                 </div>
             </div>
             
-            <div class="box zone-graphique">
-                <h2>Évolution de l'activité</h2>
-                <div class="controls-graph">
-                    <input type="text" id="startDate" placeholder="Date début">
-                    <input type="text" id="endDate" placeholder="Date fin">
-                    <select id="viewType" onchange="loadCharts()">
-                        <option value="week">Total RP (Global)</option>
-                        <option value="server">Répartition par Serveur</option>
-                        <option value="character">Répartition par Perso</option>
-                    </select>
-                </div>
-                <div class="canvas-container">
-                    <canvas id="chart"></canvas>
-                </div>
+            <div class="row full-width-row">
+    <div class="box zone-graphique-principale">
+        <h2>Évolution de l'activité</h2>
+        <div class="controls-graph">
+            <input type="text" id="startDate">
+            <input type="text" id="endDate">
+            <select id="viewType" onchange="window.loadCharts()">
+                <option value="week">Total RP (Global)</option>
+                <option value="server">Répartition par Serveur</option>
+                <option value="character">Répartition par Perso</option>
+            </select>
+        </div>
+        <div class="canvas-container">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row split-row">
+    <div class="box zone-galerie">
+        <h2>Galerie</h2>
+        <div id="char-gallery" class="char-gallery"></div>
+        <div class="char-stats-mini">
+            <span id="stat-pending-count">RP en attente : -</span><br>
+            <span id="stat-sent-total">Total envoyés : -</span>
+        </div>
+        <div class="galerie-actions-container">
+            <button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tout le monde</button>
+            <div class="perso-buttons-group">
+                <button class="btn-profile" onclick="window.openFullPerso()">📊 Profil</button>
+                <button class="btn-fiche" onclick="window.openOriginalFiche()">📜 Fiche</button>
             </div>
         </div>
+    </div>
 
-        <div class="row full-width-row">
-            <div class="box zone-galerie">
-                <h2>Galerie de Personnages</h2>
-                
-                <div id="char-gallery" class="char-gallery"></div>
-                
-                <div class="char-stats-mini">
-                    <span id="stat-pending-count">RP en attente : -</span> | 
-                    <span id="stat-sent-total">Total envoyés : -</span>
-                </div>
-
-                <div class="galerie-actions-container">
-                    <button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tous les personnages</button>
-                    
-                    <div class="perso-buttons-group">
-                        <button class="btn-profile" onclick="window.openFullPerso()">📊 Profil Complet</button>
-                        <button class="btn-fiche" onclick="window.openOriginalFiche()">📜 Fiche Détaillée</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="row full-width-row">
             <div id="displayArea" class="box">

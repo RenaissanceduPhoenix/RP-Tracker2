@@ -2,64 +2,40 @@ import { db } from '../Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { charactersDB } from './CharacterData.js';
 
-// --- BOUTON 1 : VOIR LE PROFIL COMPLET (Résumé + Historique) ---
+// Nettoyage de la zone
+window.clearView = function() {
+    document.getElementById("displayArea").innerHTML = `<p style="color:#666; text-align:center; margin-top:100px;">Sélectionnez un perso et cliquez sur Profil/Fiche</p>`;
+};
+
+// Profil Complet
 window.openFullPerso = async function() {
     const activeCard = document.querySelector('.char-card.active');
-    if (!activeCard) return alert("Sélectionne un personnage dans la galerie !");
-
+    if (!activeCard) return alert("Choisis un perso !");
     const charName = activeCard.querySelector('p').innerText;
     const data = charactersDB[charName];
-    
-    // On récupère tous les noms pour l'historique
     const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === data);
-
-    const displayArea = document.getElementById("displayArea");
-    displayArea.style.display = "block";
     
-    displayArea.innerHTML = `
-        <div class="perso-view-container">
-            <div class="perso-nav-top">
-                <h2>📊 Profil : ${charName}</h2>
-                <button class="btn-close-view" onclick="window.clearView()">×</button>
-            </div>
-            
-            <div class="resume-section" style="margin-bottom:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
-                <h3 style="color:#ffcc00; margin-top:0;">Résumé du personnage</h3>
-                <p style="line-height:1.5;">${data.resume}</p>
-            </div>
-
-            <div id="perso-history-content">
-                <h3 style="color:#a777e3;">⏳ Historique des RP envoyés</h3>
-                <div class="loading-text">Chargement de la base de données...</div>
-            </div>
-        </div>
-    `;
-
+    document.getElementById("displayArea").innerHTML = `
+        <div class="perso-info">
+            <h3>📊 Profil : ${charName}</h3>
+            <p><strong>Résumé :</strong> ${data.resume}</p>
+            <div id="perso-history-content">Chargement de l'historique...</div>
+        </div>`;
     loadActivityHistory(allAliases);
 };
 
-// --- BOUTON 2 : VOIR LA FICHE DÉTAILLÉE (Version ORIGINALE sans stats) ---
+// Fiche Détaillée
 window.openOriginalFiche = function() {
     const activeCard = document.querySelector('.char-card.active');
-    if (!activeCard) return alert("Sélectionne un personnage dans la galerie !");
-
+    if (!activeCard) return alert("Choisis un perso !");
     const charName = activeCard.querySelector('p').innerText;
     const data = charactersDB[charName];
 
-    const displayArea = document.getElementById("displayArea");
-    displayArea.style.display = "block";
-
-    displayArea.innerHTML = `
+    document.getElementById("displayArea").innerHTML = `
         <div class="perso-fiche-originale">
-            <div class="fiche-header-aesthetic">
-                <h1>${charName}</h1>
-                <button class="btn-close-aesthetic" onclick="window.clearView()">Quitter la fiche</button>
-            </div>
-            <div class="fiche-body-content">
-                ${data.complete.replace(/\n/g, '<br>')}
-            </div>
-        </div>
-    `;
+            <h2 style="color:#a777e3">${charName}</h2>
+            <div class="fiche-content">${data.complete.replace(/\n/g, '<br>')}</div>
+        </div>`;
 };
 
 // --- LOGIQUE DE CHARGEMENT FIREBASE ---

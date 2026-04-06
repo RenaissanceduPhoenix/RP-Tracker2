@@ -110,11 +110,7 @@ button:hover {
 /* ===================================================
    4. GALERIE DE PERSONNAGES (LAYOUT SCHÉMA)
    =================================================== */
-.zone-galerie {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+
 
 .char-gallery {
     display: flex;
@@ -157,24 +153,9 @@ button:hover {
     margin: 15px 0;
 }
 
-/* Conteneur des boutons selon ton dessin */
-.galerie-actions-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
 
-.btn-reset-filter {
-    width: 100%;
-    background: #444; /* Gris pour le bouton du haut */
-}
 
-.perso-buttons-group {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-}
+
 
 .btn-profile { background: #4a90e2; flex: 1; }
 .btn-fiche { background: #a777e3; flex: 1; }
@@ -182,15 +163,6 @@ button:hover {
 /* ===================================================
    5. ZONE D'AFFICHAGE (FICHES & PROFILS)
    =================================================== */
-#displayArea {
-    margin-top: 10px;
-    padding: 25px;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.95);
-    border: 1px solid #a777e3;
-    min-height: 100px;
-    animation: fadeIn 0.4s ease;
-}
 
 /* Style Immersion Fiche Originale */
 .perso-fiche-originale {
@@ -240,4 +212,57 @@ button:hover {
     width: auto;
     background: #ff4d4d;
     padding: 5px 12px;
+}
+
+/* --- Ligne Graphique Pleine Largeur --- */
+.zone-graphique-principale {
+    width: 100%;
+    flex: none;
+}
+    /* Nouveau */
+.canvas-container {
+    width: 100%;
+    height: 500px; /* Hauteur demandée */
+    position: relative;
+    background: rgba(255, 255, 255, 0.02); /* Fond léger pour voir le graph */
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* --- Split 35% / 65% --- */
+.split-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+.zone-galerie {
+    flex: 0 0 35%; /* Fixe à 35% */
+    max-width: 35%;
+}
+
+.zone-affichage-detail {
+    flex: 0 0 65%; /* Fixe à 65% */
+    max-width: 65%;
+}
+
+/* --- Correction Couleurs Graphiques (Pas de noir sur noir) --- */
+.controls-graph select, .controls-graph input {
+    background: #222;
+    color: #a777e3; /* Texte violet clair */
+    border: 1px solid #444;
+}
+
+/* --- Boutons Galerie --- */
+.galerie-actions-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.perso-buttons-group { display: flex; gap: 8px; width: 100%; }
+.perso-buttons-group button { flex: 1; }
+.btn-reset-filter { width: 100%; margin-bottom: 5px; }
+
+/* Zone d'affichage interne */
+#displayArea {
+    color: #eee;
+    line-height: 1.6;
+    overflow-y: auto;
+    max-height: 600px;
 }
