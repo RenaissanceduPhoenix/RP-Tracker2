@@ -61,22 +61,22 @@ window.filterDashboard = async function(charName) {
 };
 
 // --- LA FONCTION QUI MANQUAIT ---
+// À mettre à la toute fin du fichier CharacterGalery.js
 window.resetCharFilter = function() {
+    console.log("Reset du filtre activé");
+    // Retire la classe active des cartes
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
-    if (typeof window.loadPending === "function") window.loadPending(); 
-    document.getElementById('stat-pending-count').innerText = "RP en attente : -";
-    document.getElementById('stat-sent-total').innerText = "Total envoyés : -";
+    
+    // Recharge tous les RPs sans filtre
+    if (typeof window.loadPending === "function") {
+        window.loadPending(); 
+    }
+    
+    // Remet les compteurs à zéro
+    const pendingStat = document.getElementById('stat-pending-count');
+    const sentStat = document.getElementById('stat-sent-total');
+    if(pendingStat) pendingStat.innerText = "RP en attente : -";
+    if(sentStat) sentStat.innerText = "Total envoyés : -";
 };
-
-async function updateCharStats(namesArray) {
-    try {
-        const qSent = query(collection(db, "rps_sent"), where("character", "in", namesArray));
-        const snapSent = await getDocs(qSent);
-        const qPending = query(collection(db, "rps_received"), where("character", "in", namesArray), where("status", "==", "pending"));
-        const snapPending = await getDocs(qPending);
-        document.getElementById('stat-sent-total').innerText = `Total envoyés : ${snapSent.size}`;
-        document.getElementById('stat-pending-count').innerText = `RP en attente : ${snapPending.size}`;
-    } catch (e) { console.error(e); }
-}
 
 window.initGallery();

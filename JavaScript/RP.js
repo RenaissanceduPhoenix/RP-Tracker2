@@ -10,19 +10,15 @@ let unsubscribePending = null;
 
 function showFeedback(element, isError = false, message = "") {
     if (isError) {
-        element.style.border = "2px solid #ff4d4d";
+        // Ajoute la classe de secousse et bordure rouge
         element.classList.add("shake-animation");
         setTimeout(() => {
-            element.style.border = "";
             element.classList.remove("shake-animation");
-        }, 2000);
+        }, 1000);
     } else {
-        // Message de succès en vert
+        // Crée le message vert
         const feedbackMsg = document.createElement("div");
-        feedbackMsg.style.color = "#23d160";
-        feedbackMsg.style.fontWeight = "bold";
-        feedbackMsg.style.marginTop = "10px";
-        feedbackMsg.style.fontSize = "0.9rem";
+        feedbackMsg.className = "feedback-success";
         feedbackMsg.innerText = "✅ " + message;
         element.appendChild(feedbackMsg);
         setTimeout(() => feedbackMsg.remove(), 3000);
