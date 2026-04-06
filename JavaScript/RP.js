@@ -4,6 +4,55 @@ import { collection, updateDoc, doc, query, where, onSnapshot, orderBy } from "h
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
+import { db } from './Firebase.js';
+import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
+import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { parseRP } from './Markdown.js';
+import { getAdvancedStats } from './DataService.js';
+
+// --- AJOUT DES FONCTIONS POUR LE HTML ---
+
+window.addSent = async function() {
+    const char = document.getElementById("char_sent").value;
+    const server = document.getElementById("server_sent").value;
+    if (!char || !server) return alert("Remplis les champs !");
+
+    try {
+        await addDoc(collection(db, "rps_sent"), {
+            character: char,
+            server: server,
+            createdAt: serverTimestamp()
+        });
+        alert("Stat ajoutée !");
+        document.getElementById("char_sent").value = "";
+        document.getElementById("server_sent").value = "";
+        if(window.updateStats) window.updateStats();
+    } catch (e) { console.error(e); }
+};
+
+window.addReceived = async function() {
+    const title = document.getElementById("title").value;
+    const char = document.getElementById("char_received").value;
+    const server = document.getElementById("server_received").value;
+    const content = document.getElementById("content").value;
+
+    if (!title || !char || !server || !content) return alert("Remplis tout !");
+
+    try {
+        await addDoc(collection(db, "rps_received"), {
+            title: title,
+            character: char,
+            server: server,
+            content: content,
+            status: "pending",
+            createdAt: serverTimestamp()
+        });
+        alert("Ajouté au Pending !");
+        // Reset des champs
+        ["title", "char_received", "server_received", "content"].forEach(id => document.getElementById(id).value = "");
+    } catch (e) { console.error(e); }
+};
+
 let unsubscribePending = null;
 
 window.updateStats = async function() {
@@ -88,3 +137,7 @@ window.openModal = function(content, title, meta) {
         `;
     }
 };
+
+// Lancer le chargement initial
+window.updateStats();
+window.loadPending();
