@@ -4,27 +4,25 @@ import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, 
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
-let unsubscribePending = null;
+// Fonction d'ouverture des messages (Pending)
+window.openModal = function(content, title, meta) {
+    const area = document.getElementById('displayAreaPending');
+    if(!area) return;
+    
+    area.innerHTML = `
+        <div class="rp-reader">
+            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px;">
+                <h3 style="margin:0; color:#ffcc00;">${title}</h3>
+                <small style="color:#888;">${meta}</small>
+            </div>
+            <div style="line-height:1.6; color:#ddd; font-style:italic;">
+                ${content.replace(/\n/g, '<br>')}
+            </div>
+        </div>
+    `;
+};
 
-// --- SYSTÈME DE FEEDBACK VISUEL ---
-
-function showFeedback(element, isError = false, message = "") {
-    if (isError) {
-        // Ajoute la classe de secousse et bordure rouge
-        element.classList.add("shake-animation");
-        setTimeout(() => {
-            element.classList.remove("shake-animation");
-        }, 1000);
-    } else {
-        // Crée le message vert
-        const feedbackMsg = document.createElement("div");
-        feedbackMsg.className = "feedback-success";
-        feedbackMsg.innerText = "✅ " + message;
-        element.appendChild(feedbackMsg);
-        setTimeout(() => feedbackMsg.remove(), 3000);
-    }
-}
-
+// ... Reste des fonctions addSent, addReceived déjà fonctionnelles ...
 // --- AJOUT RP ENVOYÉ ---
 window.addSent = async function() {
     const charInput = document.getElementById("char_sent");

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RP Tracker - Dashboard</title>
+    <title>RP Tracker PRO - Renaissance du Phoenix</title>
     <link rel="stylesheet" href="./CSS/Style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
@@ -11,100 +11,95 @@
 
     <div class="dashboard">
         <div class="row">
-            <div class="box zone-ajout">
-                <h2>Ajouter un RP ENVOYÉ</h2>
-                <input id="char_sent" placeholder="Ton personnage">
-                <input id="server_sent" placeholder="Serveur">
-                <button onclick="addSent()">Ajouter aux stats</button>
+            <div class="box">
+                <h2>Ajouter un RP Envoyé</h2>
+                <input id="char_sent" placeholder="Nom du personnage">
+                <input id="server_sent" placeholder="Nom du serveur">
+                <button onclick="addSent()">Enregistrer l'envoi</button>
             </div>
 
-            <div class="box zone-ajout-pending">
-                <h2>Ajout de RP à répondre (Pending)</h2>
+            <div class="box">
+                <h2>Nouveau RP en attente (Pending)</h2>
                 <input id="title" placeholder="Titre du RP">
-                <input id="char_received" placeholder="Personnage en face">
+                <input id="char_received" placeholder="Ton personnage">
                 <input id="server_received" placeholder="Serveur">
-                <textarea id="content" placeholder="Contenu du RP ou contexte..."></textarea>
-                <button onclick="addReceived()">Ajouter au Pending</button>
+                <textarea id="content" placeholder="Contenu du message..."></textarea>
+                <button onclick="addReceived()">Ajouter à la liste</button>
             </div>
         </div>
 
         <div class="row">
-            <div class="box zone-liste-pending">
+            <div class="box" style="flex: 0 0 40%;">
                 <h2>Liste Pending</h2>
-                <div id="pendingList"></div>
+                <div id="pending-list"></div>
             </div>
-
-            <div class="box zone-vue-pending">
+            <div class="box" style="flex: 1;">
+                <h2>Lecteur de Message</h2>
                 <div id="displayAreaPending">
-                    <p style="color:#999; text-align:center; margin-top:50px;">(Sélectionnez un RP dans la liste pour le lire)</p>
+                    <p class="empty-msg">Sélectionnez un message dans la liste pour le lire ici.</p>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="box zone-stats">
-                <h2>Indicateurs de performance</h2>
-                <div id="statsContainer">
-                    <p>Calcul des données...</p>
-                </div>
-            </div>
-            
-            <div class="row full-width-row">
-    <div class="box zone-graphique-principale">
-        <h2>Évolution de l'activité</h2>
-        <div class="controls-graph">
-            <input type="text" id="startDate">
-            <input type="text" id="endDate">
-            <select id="viewType" onchange="window.loadCharts()">
-                <option value="week">Total RP (Global)</option>
-                <option value="server">Répartition par Serveur</option>
-                <option value="character">Répartition par Perso</option>
-            </select>
-        </div>
-        <div class="canvas-container">
-            <canvas id="chart"></canvas>
-        </div>
-    </div>
-</div>
-
-<div class="row split-row">
-    <div class="box zone-galerie">
-        <h2>Galerie</h2>
-        <div id="char-gallery" class="char-gallery"></div>
-        <div class="char-stats-mini">
-            <span id="stat-pending-count">RP en attente : -</span><br>
-            <span id="stat-sent-total">Total envoyés : -</span>
-        </div>
-        <div class="galerie-actions-container">
-            <button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tout le monde</button>
-            <div class="perso-buttons-group">
-                <button class="btn-profile" onclick="window.openFullPerso()">📊 Profil</button>
-                <button class="btn-fiche" onclick="window.openOriginalFiche()">📜 Fiche</button>
-            </div>
-        </div>
-    </div>
-
 
         <div class="row full-width-row">
-            <div id="displayArea" class="box">
-                <p style="color:#666; text-align:center;">Cliquez sur "Profil" ou "Fiche" pour afficher les détails ici.</p>
+            <div class="box zone-graphique-principale">
+                <h2>Évolution de l'activité</h2>
+                <div class="controls-graph">
+                    <select id="viewType" onchange="window.loadCharts()">
+                        <option value="week">Activité Globale</option>
+                        <option value="server">Par Serveur</option>
+                        <option value="character">Par Personnage</option>
+                    </select>
+                    <input type="text" id="startDate" placeholder="Date début">
+                    <input type="text" id="endDate" placeholder="Date fin">
+                </div>
+                <div class="canvas-container">
+                    <canvas id="chart"></canvas>
+                </div>
             </div>
         </div>
 
+        <div class="row split-row">
+            <div class="box zone-galerie">
+                <h2>Galerie</h2>
+                <div id="char-gallery" class="char-gallery"></div>
+                
+                <div class="char-stats-mini-box">
+                    <p id="stat-pending-count">Attente : --</p>
+                    <p id="stat-sent-total">Total Envoyés : --</p>
+                </div>
+
+                <div class="galerie-actions">
+                    <button class="btn-reset" onclick="window.resetCharFilter()">Voir tous les personnages</button>
+                    <div class="btn-group">
+                        <button class="btn-profile" onclick="window.openFullPerso()">📊 Profil</button>
+                        <button class="btn-fiche" onclick="window.openOriginalFiche()">📜 Fiche</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box zone-affichage-perso">
+                <h2>Détails du Personnage</h2>
+                <div id="displayAreaPerso">
+                    <p class="empty-msg">Sélectionnez un personnage dans la galerie pour afficher ses informations.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
+    
     <script type="module" src="./JavaScript/Firebase.js"></script>
     <script type="module" src="./JavaScript/DataService.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/UrgencyTags.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js"></script>
     <script type="module" src="./JavaScript/Markdown.js"></script>
     <script type="module" src="./JavaScript/RP.js"></script>
     <script type="module" src="./JavaScript/Chart.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/UrgencyTags.js"></script>
 
 </body>
 </html>

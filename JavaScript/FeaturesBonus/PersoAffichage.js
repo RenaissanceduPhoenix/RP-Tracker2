@@ -1,65 +1,66 @@
 import { db } from '../Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { charactersDB } from './CharacterData.js';
+import { charactersDB } from '../CharacterData.js';
 
-// Nettoyage de la zone
-window.clearView = function() {
-    document.getElementById("displayArea").innerHTML = `<p style="color:#666; text-align:center; margin-top:100px;">Sélectionnez un perso et cliquez sur Profil/Fiche</p>`;
-};
-
-// Profil Complet
+// --- PROFIL (Résumé + Historique) ---
 window.openFullPerso = async function() {
-    const activeCard = document.querySelector('.char-card.active');
-    if (!activeCard) return alert("Choisis un perso !");
-    const charName = activeCard.querySelector('p').innerText;
-    const data = charactersDB[charName];
-    const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === data);
+    const active = document.querySelector('.char-card.active');
+    if(!active) return alert("Veuillez sélectionner un personnage dans la galerie.");
     
-    document.getElementById("displayArea").innerHTML = `
-        <div class="perso-info">
-            <h3>📊 Profil : ${charName}</h3>
-            <p><strong>Résumé :</strong> ${data.resume}</p>
-            <div id="perso-history-content">Chargement de l'historique...</div>
-        </div>`;
-    loadActivityHistory(allAliases);
-};
-
-// Fiche Détaillée
-window.openOriginalFiche = function() {
-    const activeCard = document.querySelector('.char-card.active');
-    if (!activeCard) return alert("Choisis un perso !");
-    const charName = activeCard.querySelector('p').innerText;
+    const charName = active.querySelector('p').innerText;
     const data = charactersDB[charName];
+    const area = document.getElementById('displayAreaPerso');
+    
+    area.innerHTML = `
+        <div class="perso-view">
+            <h2 style="border:none">📊 Profil : ${charName}</h2>
+            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
+                <h3 style="color:#ffcc00; margin-top:0;">Résumé</h3>
+                <p>${data.resume}</p>
+            </div>
+            <div id="hist-container">
+                <h3 style="color:#a777e3">⏳ Derniers RP envoyés</h3>
+                <p>Chargement de l'historique...</p>
+            </div>
+        </div>
+    `;
 
-    document.getElementById("displayArea").innerHTML = `
-        <div class="perso-fiche-originale">
-            <h2 style="color:#a777e3">${charName}</h2>
-            <div class="fiche-content">${data.complete.replace(/\n/g, '<br>')}</div>
-        </div>`;
+    // Fetch historique Firebase
+    try {
+        const q = query(collection(db, "rps_sent"), where("character", "==", charName), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        let html = '<ul style="list-style:none; padding:0;">';
+        if(snap.empty) html += '<li>Aucun historique trouvé.</li>';
+        snap.forEach(doc => {
+            const d = doc.data();
+            html += `<li style="padding:8px 0; border-bottom:1px solid #333;">📅 ${d.createdAt.toDate().toLocaleDateString()} — <strong>${d.server}</strong></li>`;
+        });
+        document.getElementById('hist-container').innerHTML = html + '</ul>';
+    } catch(e) {
+        document.getElementById('hist-container').innerHTML = '<p>Erreur lors du chargement.</p>';
+    }
 };
 
-// --- LOGIQUE DE CHARGEMENT FIREBASE ---
-async function loadActivityHistory(namesArray) {
-    const container = document.getElementById('perso-history-content');
-    try {
-        const qSent = query(collection(db, "rps_sent"), where("character", "in", namesArray), orderBy("createdAt", "desc"));
-        const snapSent = await getDocs(qSent);
-        
-        if (snapSent.empty) {
-            container.innerHTML = `<p>Aucun RP envoyé enregistré pour ce personnage.</p>`;
-            return;
-        }
+// --- FICHE (Texte complet) ---
+window.openOriginalFiche = function() {
+    const active = document.querySelector('.char-card.active');
+    if(!active) return alert("Veuillez sélectionner un personnage dans la galerie.");
+    
+    const charName = active.querySelector('p').innerText;
+    const data = charactersDB[charName];
+    const area = document.getElementById('displayAreaPerso');
 
-        let html = `<ul class="hist-list">`;
-        snapSent.forEach(doc => {
-            const d = doc.data();
-            const date = d.createdAt?.toDate().toLocaleDateString() || "Date inconnue";
-            html += `<li>📅 <b>${date}</b> — Envoi sur le serveur : <strong>${d.server}</strong></li>`;
-        });
-        html += "</ul>";
-        container.innerHTML = html;
-    } catch (e) {
-        console.error(e);
-        container.innerHTML = "<p>Erreur lors de la récupération de l'historique.</p>";
-    }
-}
+    area.innerHTML = `
+        <div class="perso-fiche-originale">
+            <h1 style="color:#a777e3; text-align:center;">${charName}</h1>
+            <div class="fiche-content">${data.complete.replace(/\n/g, '<br>')}</div>
+        </div>
+    `;
+};
+
+// --- RESET ---
+window.resetCharFilter = function() {
+    document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('displayAreaPerso').innerHTML = '<p class="empty-msg">Sélectionnez un personnage dans la galerie pour afficher ses informations.</p>';
+    if(window.loadPending) window.loadPending(); // Recharge tout si la fonction existe
+};

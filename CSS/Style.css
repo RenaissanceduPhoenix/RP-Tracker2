@@ -1,268 +1,66 @@
-/* ===================================================
-   1. BASE & DASHBOARD
-   =================================================== */
+/* BASE */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: white;
-    background: url('darkv3.jpg') no-repeat center center fixed;
+    background: #0b0b0e url('../darkv3.jpg') no-repeat center center fixed;
     background-size: cover;
-    margin: 0;
-    padding: 20px;
+    color: #f0f0f0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    margin: 0; padding: 20px;
 }
 
-.dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 1300px;
-    margin: 0 auto;
-}
-
-.row {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-}
-
-/* Force la ligne à prendre 100% (utilisé pour Galerie et Fiche) */
-.full-width-row {
-    width: 100%;
-}
+.dashboard { display: flex; flex-direction: column; gap: 20px; max-width: 1500px; margin: 0 auto; }
+.row { display: flex; gap: 20px; width: 100%; }
 
 .box {
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(10, 10, 15, 0.92);
+    border: 1px solid rgba(167, 119, 227, 0.25);
     border-radius: 12px;
     padding: 20px;
-    flex: 1;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
 }
 
-h2 {
-    margin-top: 0;
-    color: #a777e3;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid rgba(167, 119, 227, 0.3);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
+h2 { color: #a777e3; border-bottom: 1px solid rgba(167, 119, 227, 0.3); padding-bottom: 10px; margin-top: 0; font-size: 1.1rem; text-transform: uppercase; }
 
-/* ===================================================
-   2. FORMULAIRES & BOUTONS
-   =================================================== */
-input, textarea, select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
-    box-sizing: border-box;
-}
-
-button {
-    background: #a777e3;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-button:hover {
-    background: #8e54d3;
-    transform: translateY(-2px);
-    box-shadow: 0 0 10px rgba(167, 119, 227, 0.4);
-}
-
-/* ===================================================
-   3. LISTE PENDING & URGENCE
-   =================================================== */
-.rp-item {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-left: 4px solid #a777e3;
-}
-
-.rp-info strong { color: #ffcc00; }
-
-.urgency-tag {
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 8px;
-    text-transform: uppercase;
-    font-weight: bold;
-    color: white;
-}
-
-/* ===================================================
-   4. GALERIE DE PERSONNAGES (LAYOUT SCHÉMA)
-   =================================================== */
-
-
-.char-gallery {
-    display: flex;
-    gap: 20px;
-    padding: 10px;
-    overflow-x: auto;
-    width: 100%;
-    justify-content: center;
-}
-
-.char-card {
-    cursor: pointer;
-    text-align: center;
-    transition: transform 0.2s, opacity 0.2s;
-    opacity: 0.5;
-    min-width: 80px;
-}
-
-.char-card:hover { transform: scale(1.1); opacity: 1; }
-.char-card.active { opacity: 1; border-bottom: 3px solid #a777e3; }
-
-.char-card img {
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255,255,255,0.2);
-}
-
-.char-card p {
-    color: white !important;
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.char-stats-mini {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #bbb;
-    margin: 15px 0;
-}
-
-
-
-
-
-.btn-profile { background: #4a90e2; flex: 1; }
-.btn-fiche { background: #a777e3; flex: 1; }
-
-/* ===================================================
-   5. ZONE D'AFFICHAGE (FICHES & PROFILS)
-   =================================================== */
-
-/* Style Immersion Fiche Originale */
-.perso-fiche-originale {
-    color: #e0e0e0;
-    font-family: 'Georgia', serif;
-    line-height: 1.8;
-}
-
-.fiche-header-aesthetic {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px double rgba(167, 119, 227, 0.3);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-}
-
-.fiche-header-aesthetic h1 {
-    font-size: 2.2rem;
-    color: #a777e3;
-    margin: 0;
-    text-shadow: 0 0 10px rgba(167, 119, 227, 0.4);
-}
-
-.fiche-body-content {
-    font-size: 1.1rem;
-    max-height: 65vh;
-    overflow-y: auto;
-    padding-right: 15px;
-    white-space: pre-wrap;
-    text-align: justify;
-}
-
-/* ===================================================
-   6. ANIMATIONS & SCROLLBAR
-   =================================================== */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-::-webkit-scrollbar { width: 8px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-::-webkit-scrollbar-thumb { background: #a777e3; border-radius: 10px; }
-
-.btn-close-view, .btn-close-aesthetic {
-    width: auto;
-    background: #ff4d4d;
-    padding: 5px 12px;
-}
-
-/* --- Ligne Graphique Pleine Largeur --- */
-.zone-graphique-principale {
-    width: 100%;
-    flex: none;
-}
-    /* Nouveau */
-.canvas-container {
-    width: 100%;
-    height: 500px; /* Hauteur demandée */
+/* GRAPHIQUE */
+.canvas-container { 
+    height: 500px; 
+    width: 100%; 
+    background: rgba(255, 255, 255, 0.03); 
+    border-radius: 8px; 
+    margin-top: 15px;
     position: relative;
-    background: rgba(255, 255, 255, 0.02); /* Fond léger pour voir le graph */
-    padding: 10px;
-    border-radius: 8px;
 }
 
-/* --- Split 35% / 65% --- */
-.split-row {
-    display: flex;
-    gap: 20px;
-    width: 100%;
+.controls-graph { display: flex; gap: 10px; margin-bottom: 10px; }
+
+/* LAYOUT 35/65 */
+.split-row .zone-galerie { flex: 0 0 35%; display: flex; flex-direction: column; }
+.split-row .zone-affichage-perso { flex: 0 0 65%; min-height: 500px; overflow-y: auto; }
+
+/* GALERIE */
+.char-gallery { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; justify-content: center; }
+.char-card { opacity: 0.4; cursor: pointer; transition: 0.3s; text-align: center; min-width: 80px; }
+.char-card.active { opacity: 1; transform: scale(1.1); }
+.char-card img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #a777e3; object-fit: cover; }
+.char-card p { font-size: 12px; margin-top: 5px; font-weight: bold; }
+
+/* STATS ET BOUTONS */
+.char-stats-mini-box { background: rgba(167, 119, 227, 0.1); padding: 10px; border-radius: 8px; margin: 15px 0; text-align: center; border: 1px solid rgba(167, 119, 227, 0.2); }
+.char-stats-mini-box p { margin: 3px 0; color: #ffcc00; font-weight: bold; }
+
+.galerie-actions { display: flex; flex-direction: column; gap: 10px; }
+.btn-group { display: flex; gap: 10px; }
+.btn-group button { flex: 1; }
+
+button { background: #a777e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+button:hover { background: #8e54d3; transform: translateY(-2px); }
+
+input, textarea, select { 
+    background: #1a1a24; border: 1px solid #333; color: white; 
+    padding: 10px; border-radius: 6px; width: 100%; margin-bottom: 10px; box-sizing: border-box;
 }
 
-.zone-galerie {
-    flex: 0 0 35%; /* Fixe à 35% */
-    max-width: 35%;
-}
+.empty-msg { color: #555; text-align: center; margin-top: 100px; font-style: italic; }
 
-.zone-affichage-detail {
-    flex: 0 0 65%; /* Fixe à 65% */
-    max-width: 65%;
-}
-
-/* --- Correction Couleurs Graphiques (Pas de noir sur noir) --- */
-.controls-graph select, .controls-graph input {
-    background: #222;
-    color: #a777e3; /* Texte violet clair */
-    border: 1px solid #444;
-}
-
-/* --- Boutons Galerie --- */
-.galerie-actions-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.perso-buttons-group { display: flex; gap: 8px; width: 100%; }
-.perso-buttons-group button { flex: 1; }
-.btn-reset-filter { width: 100%; margin-bottom: 5px; }
-
-/* Zone d'affichage interne */
-#displayArea {
-    color: #eee;
-    line-height: 1.6;
-    overflow-y: auto;
-    max-height: 600px;
-}
+/* FICHE STYLE */
+.perso-fiche-originale { white-space: pre-wrap; line-height: 1.6; text-align: justify; font-family: 'Georgia', serif; font-size: 1.05rem; }
