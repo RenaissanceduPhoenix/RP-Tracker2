@@ -35,7 +35,7 @@ export const charactersDB = {
     "Nuage d’Anémone": fiches.anemone, // Courbe
     "Nuage d'Anémone": fiches.anemone, // Droite
     "Eclats d’Anémone": fiches.anemone,
-    "Eclats d'Anémone": fiches.anemone
+    "Eclats d'Anémone": fiches.anemone,
     // Évolutions de Sables
     "Boule de Sable": fiches.sables,
     "Nuage des Sables": fiches.sables,
