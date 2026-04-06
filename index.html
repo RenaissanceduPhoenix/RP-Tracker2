@@ -69,28 +69,22 @@
             </div>
             <div class="box zone-galerie">
     <h2>Galerie de Personnages</h2>
-    <div id="char-gallery" class="char-gallery">
-        </div>
-    <div id="char-stats-summary" class="char-stats-mini">
+    <div id="char-gallery" class="char-gallery"></div>
+    
+    <div class="char-stats-mini">
         <span id="stat-pending-count">RP en attente : -</span> | 
         <span id="stat-sent-total">Total envoyés : -</span>
     </div>
-    <button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tous les personnages</button>
-</div>
-<div class="actions-personnage">
-    <button id="btn-filtre">Filtrer</button> 
-    
-    <button id="open-details" class="btn-more">Voir la fiche détaillée</button>
-</div>
 
-<button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tous les personnages</button>
-<button class="btn-open-perso" onclick="window.openFullPerso()" style="margin-top: 10px; background: #23d160;">
-    🔍 Voir le Profil Complet
-</button>
-
-
+    <div class="galerie-actions">
+        <button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tout le monde</button>
+        
+        <div class="perso-buttons-group">
+            <button class="btn-profile" onclick="window.openFullPerso()">📊 Profil Complet</button>
+            <button class="btn-fiche" onclick="window.openOriginalFiche()">📜 Fiche Détaillée</button>
         </div>
     </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

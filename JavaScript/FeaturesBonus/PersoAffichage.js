@@ -2,80 +2,88 @@ import { db } from '../Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { charactersDB } from './CharacterData.js';
 
+// --- BOUTON 1 : VOIR LE PROFIL COMPLET (Résumé + Historique) ---
 window.openFullPerso = async function() {
-    // 1. On identifie quel perso est actuellement sélectionné dans la galerie
     const activeCard = document.querySelector('.char-card.active');
-    if (!activeCard) {
-        alert("Sélectionne d'abord un personnage dans la galerie !");
-        return;
-    }
+    if (!activeCard) return alert("Sélectionne un personnage dans la galerie !");
 
     const charName = activeCard.querySelector('p').innerText;
-    const currentFiche = charactersDB[charName];
-    // On récupère tous les noms associés (ex: Petite Lynx, Nuage de Lynx...)
-    const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === currentFiche);
+    const data = charactersDB[charName];
+    
+    // On récupère tous les noms pour l'historique
+    const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === data);
 
-    // 2. Création de la structure de la page/modale
-    const displayArea = document.getElementById("displayArea"); // On réutilise ta zone d'affichage
+    const displayArea = document.getElementById("displayArea");
     displayArea.style.display = "block";
+    
     displayArea.innerHTML = `
-        <div class="perso-full-view">
-            <div class="perso-header">
-                <h2>${charName}</h2>
-                <span class="close-perso" onclick="window.clearView()">×</span>
+        <div class="perso-view-container">
+            <div class="perso-nav-top">
+                <h2>📊 Profil : ${charName}</h2>
+                <button class="btn-close-view" onclick="window.clearView()">×</button>
             </div>
             
-            <div class="perso-content">
-                <section class="perso-bio">
-                    <h3>📜 Fiche de Personnage</h3>
-                    <pre>${currentFiche || "Aucune fiche détaillée."}</pre>
-                </section>
+            <div class="resume-section" style="margin-bottom:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:8px;">
+                <h3 style="color:#ffcc00; margin-top:0;">Résumé du personnage</h3>
+                <p style="line-height:1.5;">${data.resume}</p>
+            </div>
 
-                <div class="perso-history-grid">
-                    <section class="history-section">
-                        <h3>📤 Historique Envoyés</h3>
-                        <div id="hist-sent" class="hist-list">Chargement...</div>
-                    </section>
-                    <section class="history-section">
-                        <h3>📥 Historique Reçus (Terminés)</h3>
-                        <div id="hist-received" class="hist-list">Chargement...</div>
-                    </section>
-                </div>
+            <div id="perso-history-content">
+                <h3 style="color:#a777e3;">⏳ Historique des RP envoyés</h3>
+                <div class="loading-text">Chargement de la base de données...</div>
             </div>
         </div>
     `;
 
-    // 3. Récupération des données Firebase
-    fetchHistory(allAliases);
+    loadActivityHistory(allAliases);
 };
 
-async function fetchHistory(namesArray) {
-    const sentList = document.getElementById('hist-sent');
-    const receivedList = document.getElementById('hist-received');
+// --- BOUTON 2 : VOIR LA FICHE DÉTAILLÉE (Version ORIGINALE sans stats) ---
+window.openOriginalFiche = function() {
+    const activeCard = document.querySelector('.char-card.active');
+    if (!activeCard) return alert("Sélectionne un personnage dans la galerie !");
 
+    const charName = activeCard.querySelector('p').innerText;
+    const data = charactersDB[charName];
+
+    const displayArea = document.getElementById("displayArea");
+    displayArea.style.display = "block";
+
+    displayArea.innerHTML = `
+        <div class="perso-fiche-originale">
+            <div class="fiche-header-aesthetic">
+                <h1>${charName}</h1>
+                <button class="btn-close-aesthetic" onclick="window.clearView()">Quitter la fiche</button>
+            </div>
+            <div class="fiche-body-content">
+                ${data.complete.replace(/\n/g, '<br>')}
+            </div>
+        </div>
+    `;
+};
+
+// --- LOGIQUE DE CHARGEMENT FIREBASE ---
+async function loadActivityHistory(namesArray) {
+    const container = document.getElementById('perso-history-content');
     try {
-        // Query pour les RP envoyés
         const qSent = query(collection(db, "rps_sent"), where("character", "in", namesArray), orderBy("createdAt", "desc"));
         const snapSent = await getDocs(qSent);
         
-        sentList.innerHTML = snapSent.empty ? "Aucun RP envoyé." : "";
+        if (snapSent.empty) {
+            container.innerHTML = `<p>Aucun RP envoyé enregistré pour ce personnage.</p>`;
+            return;
+        }
+
+        let html = `<ul class="hist-list">`;
         snapSent.forEach(doc => {
             const d = doc.data();
-            sentList.innerHTML += `<div class="hist-item">📍 ${d.server} <small>(${d.createdAt?.toDate().toLocaleDateString()})</small></div>`;
+            const date = d.createdAt?.toDate().toLocaleDateString() || "Date inconnue";
+            html += `<li>📅 <b>${date}</b> — Envoi sur le serveur : <strong>${d.server}</strong></li>`;
         });
-
-        // Query pour les RP reçus/répondus
-        const qRec = query(collection(db, "rps_received"), where("character", "in", namesArray), where("status", "==", "done"), orderBy("createdAt", "desc"));
-        const snapRec = await getDocs(qRec);
-
-        receivedList.innerHTML = snapRec.empty ? "Aucun RP terminé." : "";
-        snapRec.forEach(doc => {
-            const d = doc.data();
-            receivedList.innerHTML += `<div class="hist-item">📖 <b>${d.title}</b> sur ${d.server}</div>`;
-        });
-
+        html += "</ul>";
+        container.innerHTML = html;
     } catch (e) {
-        console.error("Erreur historique:", e);
-        sentList.innerHTML = "Erreur de chargement.";
+        console.error(e);
+        container.innerHTML = "<p>Erreur lors de la récupération de l'historique.</p>";
     }
 }
