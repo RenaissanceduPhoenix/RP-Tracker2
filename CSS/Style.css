@@ -283,15 +283,26 @@ button:hover {
     object-fit: cover;
 }
 
-.char-card p { margin-top: 5px; font-weight: bold; font-size: 0.9em; color: #333; }
-
-.char-stats-mini {
-    text-align: center;
-    font-size: 0.85em;
-    margin-top: 10px;
-    color: #666;
+/* Force le nom des personnages en blanc dans la galerie */
+.char-card p {
+    color: #ffffff !important; 
+    font-weight: 600;
+    margin-top: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8); /* Optionnel : pour que ça ressorte encore mieux */
 }
 
+/* Style des statistiques sous la galerie (pour qu'elles soient lisibles aussi) */
+.char-stats-mini {
+    color: #cccccc;
+    font-size: 0.85rem;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.char-stats-mini span {
+    color: #ffffff;
+    font-weight: bold;
+}
 .btn-reset-filter {
     display: block;
     margin: 10px auto;
