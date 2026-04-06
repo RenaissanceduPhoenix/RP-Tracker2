@@ -301,3 +301,12 @@ button:hover {
     border-radius: 4px;
     cursor: pointer;
 }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+.shake-animation {
+    animation: shake 0.2s ease-in-out 0s 2;
+}

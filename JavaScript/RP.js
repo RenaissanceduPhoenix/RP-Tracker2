@@ -6,52 +6,87 @@ import { getAdvancedStats } from './DataService.js';
 
 let unsubscribePending = null;
 
-// --- FONCTIONS POUR LE HTML (Règle l'erreur addReceived is not defined) ---
+// --- SYSTÈME DE FEEDBACK VISUEL ---
 
+function showFeedback(element, isError = false, message = "") {
+    if (isError) {
+        element.style.border = "2px solid #ff4d4d";
+        element.classList.add("shake-animation");
+        setTimeout(() => {
+            element.style.border = "";
+            element.classList.remove("shake-animation");
+        }, 2000);
+    } else {
+        // Message de succès en vert
+        const feedbackMsg = document.createElement("div");
+        feedbackMsg.style.color = "#23d160";
+        feedbackMsg.style.fontWeight = "bold";
+        feedbackMsg.style.marginTop = "10px";
+        feedbackMsg.style.fontSize = "0.9rem";
+        feedbackMsg.innerText = "✅ " + message;
+        element.appendChild(feedbackMsg);
+        setTimeout(() => feedbackMsg.remove(), 3000);
+    }
+}
+
+// --- AJOUT RP ENVOYÉ ---
 window.addSent = async function() {
-    const char = document.getElementById("char_sent").value;
-    const server = document.getElementById("server_sent").value;
-    if (!char || !server) return alert("Remplis les champs !");
+    const charInput = document.getElementById("char_sent");
+    const serverInput = document.getElementById("server_sent");
+    const zone = document.querySelector(".zone-ajout");
+
+    if (!charInput.value || !serverInput.value) {
+        if (!charInput.value) showFeedback(charInput, true);
+        if (!serverInput.value) showFeedback(serverInput, true);
+        return;
+    }
 
     try {
         await addDoc(collection(db, "rps_sent"), {
-            character: char,
-            server: server,
+            character: charInput.value,
+            server: serverInput.value,
             createdAt: serverTimestamp()
         });
-        alert("Stat ajoutée !");
-        document.getElementById("char_sent").value = "";
-        document.getElementById("server_sent").value = "";
+        showFeedback(zone, false, "Stat enregistrée !");
+        charInput.value = ""; serverInput.value = "";
         window.updateStats();
     } catch (e) { console.error(e); }
 };
 
+// --- AJOUT RP PENDING ---
 window.addReceived = async function() {
-    const title = document.getElementById("title").value;
-    const char = document.getElementById("char_received").value;
-    const server = document.getElementById("server_received").value;
-    const content = document.getElementById("content").value;
+    const inputs = {
+        title: document.getElementById("title"),
+        char: document.getElementById("char_received"),
+        srv: document.getElementById("server_received"),
+        cont: document.getElementById("content")
+    };
+    const zone = document.querySelector(".zone-ajout-pending");
 
-    if (!title || !char || !server || !content) return alert("Remplis tout !");
+    let hasError = false;
+    for (let key in inputs) {
+        if (!inputs[key].value) {
+            showFeedback(inputs[key], true);
+            hasError = true;
+        }
+    }
+    if (hasError) return;
 
     try {
         await addDoc(collection(db, "rps_received"), {
-            title: title,
-            character: char,
-            server: server,
-            content: content,
+            title: inputs.title.value,
+            character: inputs.char.value,
+            server: inputs.srv.value,
+            content: inputs.cont.value,
             status: "pending",
             createdAt: serverTimestamp()
         });
-        alert("Ajouté au Pending !");
-        ["title", "char_received", "server_received", "content"].forEach(id => {
-            document.getElementById(id).value = "";
-        });
+        showFeedback(zone, false, "Ajouté au Pending !");
+        for (let key in inputs) inputs[key].value = "";
     } catch (e) { console.error(e); }
 };
 
-// --- STATISTIQUES ---
-
+// --- LE RESTE DU CODE (updateStats, loadPending, etc.) ---
 window.updateStats = async function() {
     const statsContainer = document.getElementById("statsContainer");
     if (!statsContainer) return;
@@ -64,29 +99,16 @@ window.updateStats = async function() {
                 <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount}</span></div>
                 <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer}</span></div>
             </div>`;
-    } catch (e) { 
-        console.error("Erreur Stats:", e);
-        statsContainer.innerHTML = "<small>En attente des index Firebase...</small>";
-    }
+    } catch (e) { console.error(e); }
 };
-
-// --- LISTE PENDING ---
 
 window.loadPending = function(filterNames = null) {
     let q = query(collection(db, "rps_received"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
-
     if (filterNames) {
         const namesToSearch = Array.isArray(filterNames) ? filterNames : [filterNames];
-        q = query(
-            collection(db, "rps_received"), 
-            where("status", "==", "pending"), 
-            where("character", "in", namesToSearch), 
-            orderBy("createdAt", "desc")
-        );
+        q = query(collection(db, "rps_received"), where("status", "==", "pending"), where("character", "in", namesToSearch), orderBy("createdAt", "desc"));
     }
-
     if (unsubscribePending) unsubscribePending();
-    
     const list = document.getElementById("pendingList");
     unsubscribePending = onSnapshot(q, (snapshot) => {
         if (!list) return;
@@ -106,8 +128,6 @@ window.loadPending = function(filterNames = null) {
             `;
             list.appendChild(card);
         });
-    }, (error) => { 
-        console.error("Erreur Firebase (Index ?):", error);
     });
 };
 
@@ -118,10 +138,7 @@ window.markDone = async function(id) {
 
 window.clearView = function() {
     const displayArea = document.getElementById("displayArea");
-    if (displayArea) {
-        displayArea.innerHTML = "";
-        displayArea.style.display = "none";
-    }
+    if (displayArea) { displayArea.innerHTML = ""; displayArea.style.display = "none"; }
 };
 
 window.openModal = function(content, title, meta) {
@@ -144,6 +161,5 @@ window.openModal = function(content, title, meta) {
     }
 };
 
-// --- INITIALISATION ---
 window.updateStats();
 window.loadPending();
