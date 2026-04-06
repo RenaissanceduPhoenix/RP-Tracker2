@@ -8,37 +8,58 @@ body {
 }
 
 .dashboard { display: flex; flex-direction: column; gap: 20px; max-width: 1500px; margin: 0 auto; }
-.row { display: flex; gap: 20px; width: 100%; }
-
-.box {
-    background: rgba(10, 10, 15, 0.92);
-    border: 1px solid rgba(167, 119, 227, 0.25);
-    border-radius: 12px;
-    padding: 20px;
-    backdrop-filter: blur(15px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+/* --- Correction de la structure des lignes --- */
+.row {
+    display: flex;
+    flex-direction: row; /* Force l'alignement horizontal */
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+    align-items: flex-start; /* Aligne le haut des boites */
 }
 
-h2 { color: #a777e3; border-bottom: 1px solid rgba(167, 119, 227, 0.3); padding-bottom: 10px; margin-top: 0; font-size: 1.1rem; text-transform: uppercase; }
+/* --- Ligne Graphique (Force le 100%) --- */
+.full-width-row {
+    display: block; /* On casse le flex pour être sûr que ça prend toute la ligne */
+    width: 100%;
+}
 
-/* GRAPHIQUE */
-.canvas-container { 
-    height: 500px; 
-    width: 100%; 
-    background: rgba(255, 255, 255, 0.03); 
-    border-radius: 8px; 
-    margin-top: 15px;
+.full-width-row .box {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Split 35% / 65% --- */
+.split-row {
+    display: flex;
+}
+
+.zone-galerie {
+    flex: 0 0 35%; /* Prend 35% fixe, ne rétrécit pas */
+    max-width: 35%;
+}
+
+.zone-affichage-perso {
+    flex: 1; /* Prend tout le reste (65%) */
+    min-height: 500px;
+}
+
+/* --- Correction du Graphique --- */
+.canvas-container {
+    width: 100%;
+    height: 500px;
+    background: rgba(20, 20, 25, 0.7); /* Fond légèrement plus clair pour voir les axes */
+    border-radius: 8px;
     position: relative;
 }
 
-.controls-graph { display: flex; gap: 10px; margin-bottom: 10px; }
-
-/* LAYOUT 35/65 */
-.split-row .zone-galerie { flex: 0 0 35%; display: flex; flex-direction: column; }
-.split-row .zone-affichage-perso { flex: 0 0 65%; min-height: 500px; overflow-y: auto; }
-
-/* GALERIE */
-.char-gallery { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; justify-content: center; }
+/* --- Ajustement Galerie --- */
+.char-gallery {
+    display: flex;
+    flex-wrap: wrap; /* Permet aux avatars de passer à la ligne si trop nombreux */
+    gap: 10px;
+    justify-content: center;
+}
 .char-card { opacity: 0.4; cursor: pointer; transition: 0.3s; text-align: center; min-width: 80px; }
 .char-card.active { opacity: 1; transform: scale(1.1); }
 .char-card img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #a777e3; object-fit: cover; }
