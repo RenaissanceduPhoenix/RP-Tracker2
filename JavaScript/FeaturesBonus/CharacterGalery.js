@@ -2,22 +2,22 @@ import { charactersDB } from './CharacterData.js';
 import { db } from '../Firebase.js';
 import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- CONFIGURATION DES IMAGES ---
 const nameToImage = {
     "Petite Lynx": "Lynx.png",
     "Nuage de Lynx": "Lynx.png",
     "Ardeur du Lynx": "Lynx.png",
     "Petite Anémone": "Anémone.webp",
     "Nuage d’Anémone": "Anémone.webp",
+    "Nuage d'Anémone": "Anémone.webp",
     "Eclats d’Anémone": "Anémone.webp",
+    "Eclats d'Anémone": "Anémone.webp",
     "Boule de Sable": "Sables.webp",
     "Nuage des Sables": "Sables.webp",
     "Pelage des Sables": "Sables.webp"
 };
 
 if (!localStorage.getItem("myActiveChars")) {
-    const defaultChars = ["Ardeur du Lynx", "Nuage d’Anémone", "Pelage des Sables"];
-    localStorage.setItem("myActiveChars", JSON.stringify(defaultChars));
+    localStorage.setItem("myActiveChars", JSON.stringify(["Ardeur du Lynx", "Nuage d’Anémone", "Pelage des Sables"]));
 }
 
 const getActiveChars = () => JSON.parse(localStorage.getItem("myActiveChars"));
@@ -39,12 +39,12 @@ window.initGallery = function() {
     getActiveChars().forEach(name => {
         const div = document.createElement("div");
         div.className = "char-card";
-        div.id = `card-${name.replace(/\s+/g, '')}`;
+        // On simplifie l'ID pour éviter les problèmes d'apostrophes
+        div.id = `card-${name.replace(/[^a-zA-Z0-9]/g, '')}`;
         const fileName = nameToImage[name] || "default.png";
-        const imgPath = `./JavaScript/FeaturesBonus/Assets/Avatars/${fileName}`;
         div.innerHTML = `
-            <img src="${imgPath}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-            <p style="color:black; font-size:12px; font-weight:bold; margin-top:5px;">${name}</p>
+            <img src="./JavaScript/FeaturesBonus/Assets/Avatars/${fileName}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            <p style="color:white; font-size:12px; font-weight:bold; margin-top:5px;">${name}</p>
         `;
         div.onclick = () => window.filterDashboard(name);
         container.appendChild(div);
@@ -53,30 +53,38 @@ window.initGallery = function() {
 
 window.filterDashboard = async function(charName) {
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
-    document.getElementById(`card-${charName.replace(/\s+/g, '')}`)?.classList.add('active');
+    const safeId = `card-${charName.replace(/[^a-zA-Z0-9]/g, '')}`;
+    document.getElementById(safeId)?.classList.add('active');
+
     const currentFiche = charactersDB[charName];
+    if (!currentFiche) return console.error("Fiche non trouvée pour", charName);
+
     const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === currentFiche);
+
     if (typeof window.loadPending === "function") window.loadPending(allAliases); 
-    updateCharStats(allAliases);
+    updateCharStats(allAliases); // Cette fonction doit exister juste en dessous !
 };
 
 // --- LA FONCTION QUI MANQUAIT ---
-// À mettre à la toute fin du fichier CharacterGalery.js
+async function updateCharStats(namesArray) {
+    try {
+        const qSent = query(collection(db, "rps_sent"), where("character", "in", namesArray));
+        const snapSent = await getDocs(qSent);
+        const qPending = query(collection(db, "rps_received"), where("character", "in", namesArray), where("status", "==", "pending"));
+        const snapPending = await getDocs(qPending);
+
+        const sentEl = document.getElementById('stat-sent-total');
+        const pendingEl = document.getElementById('stat-pending-count');
+        if (sentEl) sentEl.innerText = `Total envoyés : ${snapSent.size}`;
+        if (pendingEl) pendingEl.innerText = `RP en attente : ${snapPending.size}`;
+    } catch (e) { console.error("Erreur stats perso:", e); }
+}
+
 window.resetCharFilter = function() {
-    console.log("Reset du filtre activé");
-    // Retire la classe active des cartes
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
-    
-    // Recharge tous les RPs sans filtre
-    if (typeof window.loadPending === "function") {
-        window.loadPending(); 
-    }
-    
-    // Remet les compteurs à zéro
-    const pendingStat = document.getElementById('stat-pending-count');
-    const sentStat = document.getElementById('stat-sent-total');
-    if(pendingStat) pendingStat.innerText = "RP en attente : -";
-    if(sentStat) sentStat.innerText = "Total envoyés : -";
+    if (typeof window.loadPending === "function") window.loadPending(); 
+    document.getElementById('stat-pending-count').innerText = "RP en attente : -";
+    document.getElementById('stat-sent-total').innerText = "Total envoyés : -";
 };
 
 window.initGallery();
