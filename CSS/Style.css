@@ -256,3 +256,48 @@ button:hover {
     line-height: 1.5;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
 }
+
+.char-gallery {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    overflow-x: auto;
+    justify-content: center;
+}
+
+.char-card {
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s;
+    opacity: 0.6;
+}
+
+.char-card:hover { transform: scale(1.05); opacity: 1; }
+.char-card.active { opacity: 1; border-bottom: 3px solid #a777e3; }
+
+.char-card img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    object-fit: cover;
+}
+
+.char-card p { margin-top: 5px; font-weight: bold; font-size: 0.9em; color: #333; }
+
+.char-stats-mini {
+    text-align: center;
+    font-size: 0.85em;
+    margin-top: 10px;
+    color: #666;
+}
+
+.btn-reset-filter {
+    display: block;
+    margin: 10px auto;
+    background: #eee;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}

@@ -67,6 +67,16 @@
                     <canvas id="chart"></canvas>
                 </div>
             </div>
+            <div class="box zone-galerie">
+    <h2>Galerie de Personnages</h2>
+    <div id="char-gallery" class="char-gallery">
+        </div>
+    <div id="char-stats-summary" class="char-stats-mini">
+        <span id="stat-pending-count">RP en attente : -</span> | 
+        <span id="stat-sent-total">Total envoyés : -</span>
+    </div>
+    <button class="btn-reset-filter" onclick="window.resetCharFilter()">Voir tous les personnages</button>
+</div>
         </div>
     </div>
 
@@ -76,7 +86,8 @@
     <script type="module" src="./JavaScript/Firebase.js"></script>
     <script type="module" src="./JavaScript/DataService.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/UrgencyTags.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js"
+    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js"
     <script type="module" src="./JavaScript/Markdown.js"></script>
     <script type="module" src="./JavaScript/RP.js"></script>
     <script type="module" src="./JavaScript/Chart.js"></script>

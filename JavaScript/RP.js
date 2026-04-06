@@ -18,60 +18,40 @@ window.updateStats = async function() {
                 <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour}</span></div>
                 <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount}</span></div>
                 <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer}</span></div>
-                <div class="stat-card"><span class="stat-label">Top Perso</span><span class="stat-value" style="font-size:0.9rem">${s.topChar}</span></div>
             </div>`;
-    } catch (e) { console.error("Erreur Stats:", e); }
+    } catch (e) { console.error(e); }
 };
 
-// Ajouter un RP envoyé
-window.addSent = async function() {
-    const character = document.getElementById("char_sent").value;
-    const server = document.getElementById("server_sent").value;
-    if (!character || !server) return;
-    await addDoc(collection(db, "rps_sent"), { character, server, createdAt: new Date() });
-    document.getElementById("char_sent").value = "";
-    document.getElementById("server_sent").value = "";
-    window.updateStats();
-};
+// Chargement de la liste Pending (Modifié pour accepter le filtre de la galerie)
+window.loadPending = function(filterChar = null) {
+    let q = query(collection(db, "rps_received"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
 
-// Ajouter un RP reçu (Pending)
-window.addReceived = async function() {
-    const title = document.getElementById("title").value;
-    const character = document.getElementById("char_received").value;
-    const server = document.getElementById("server_received").value;
-    const content = document.getElementById("content").value;
-    if (!title || !character || !server) return;
-    await addDoc(collection(db, "rps_received"), { title, character, server, content, status: "pending", createdAt: new Date() });
-    ["title", "char_received", "server_received", "content"].forEach(id => document.getElementById(id).value = "");
-    window.updateStats();
-};
+    // Si on clique sur un perso dans la galerie, on change la requête
+    if (filterChar) {
+        q = query(collection(db, "rps_received"), 
+                  where("status", "==", "pending"), 
+                  where("character", "==", filterChar), 
+                  orderBy("createdAt", "desc"));
+    }
 
-// Charger la liste Pending avec la pastille
-window.loadPending = function() {
-    const list = document.getElementById("pendingList");
-    const q = query(collection(db, "rps_received"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
-    
     if (unsubscribePending) unsubscribePending();
-
+    
+    const list = document.getElementById("pendingList");
     unsubscribePending = onSnapshot(q, (snapshot) => {
+        if (!list) return;
         list.innerHTML = "";
-        if (snapshot.empty) {
-            list.innerHTML = "<p style='color:#666; text-align:center;'>Aucun RP en attente</p>";
-            return;
-        }
-
+        
         snapshot.forEach((docSnap) => {
             const rp = docSnap.data();
             const id = docSnap.id;
             const card = document.createElement("div");
             card.className = "rp-card";
-            
             card.onclick = () => window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
             
             card.innerHTML = `
                 <div style="flex:1;">
                     <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
-                    <small>${rp.character}</small>
+                    <small>${rp.character} — ${rp.server}</small>
                 </div>
                 <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>
             `;
@@ -79,7 +59,6 @@ window.loadPending = function() {
         });
     }, (error) => {
         console.error("Erreur Liste:", error);
-        list.innerHTML = `<p style="color:red; font-size:0.8rem;">Erreur d'index Firebase. Vérifie la console (F12).</p>`;
     });
 };
 
@@ -88,25 +67,37 @@ window.markDone = async function(id) {
     window.updateStats();
 };
 
-window.openModal = function(content, title, meta) {
-    document.getElementById("displayArea").innerHTML = `
-        <div style="padding:15px; background:#eee; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center;">
-            <div><h3 style="margin:0; color:black;">${title}</h3><small style="color:#666;">${meta}</small></div>
-            <span style="cursor:pointer; font-size:24px; color:#999;" onclick="window.clearView()">×</span>
-        </div>
-        <div class="rp-display-content">
-            ${parseRP(content)}
-        </div>
-        <div style="padding: 0 20px 20px 20px;">
-            <button class="btn-ai" onclick="window.initAiChat()">✨ Discuter avec Ia_RP</button>
-        </div>`;
-};
-
+// Fermer la vue du RP (Point 3)
 window.clearView = function() {
-    document.getElementById("displayArea").innerHTML = `<p style="color:#999; text-align:center; margin-top:50px;">(Sélectionnez un RP)</p>`;
+    const displayArea = document.getElementById("displayArea");
+    if (displayArea) {
+        displayArea.innerHTML = "";
+        displayArea.style.display = "none";
+    }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.loadPending();
-    window.updateStats();
-});
+// Ouvrir la vue du RP (Nettoyage + Croix de fermeture)
+window.openModal = function(content, title, meta) {
+    // Supprime le texte entre parenthèses pour l'affichage et pour l'IA
+    const cleanContent = content.replace(/\(.*?\)/g, "").trim();
+    const displayArea = document.getElementById("displayArea");
+    
+    if (displayArea) {
+        displayArea.style.display = "block";
+        displayArea.innerHTML = `
+            <div style="padding:15px; background:#eee; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; color:black;">${title}</h3>
+                    <small class="display-meta" style="color:#666;">${meta}</small>
+                </div>
+                <span style="cursor:pointer; font-size:24px; color:#999;" onclick="window.clearView()">×</span>
+            </div>
+            <div class="rp-display-content" style="background:white; color:black; padding:20px; overflow-y:auto; max-height:70vh;">
+                ${parseRP(cleanContent)}
+            </div>
+            <div style="padding: 10px 20px 20px 20px; background:white;">
+                <button class="btn-ai" onclick="window.initAiChat()">✨ Discuter avec Ia_RP</button>
+            </div>
+        `;
+    }
+};
