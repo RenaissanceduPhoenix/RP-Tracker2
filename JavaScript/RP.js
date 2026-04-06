@@ -1,16 +1,12 @@
 import { db } from './Firebase.js';
 import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
-import { collection, updateDoc, doc, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { parseRP } from './Markdown.js';
-import { getAdvancedStats } from './DataService.js';
-
-import { db } from './Firebase.js';
-import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
-// --- AJOUT DES FONCTIONS POUR LE HTML ---
+let unsubscribePending = null;
+
+// --- FONCTIONS POUR LE HTML (Règle l'erreur addReceived is not defined) ---
 
 window.addSent = async function() {
     const char = document.getElementById("char_sent").value;
@@ -26,7 +22,7 @@ window.addSent = async function() {
         alert("Stat ajoutée !");
         document.getElementById("char_sent").value = "";
         document.getElementById("server_sent").value = "";
-        if(window.updateStats) window.updateStats();
+        window.updateStats();
     } catch (e) { console.error(e); }
 };
 
@@ -48,12 +44,13 @@ window.addReceived = async function() {
             createdAt: serverTimestamp()
         });
         alert("Ajouté au Pending !");
-        // Reset des champs
-        ["title", "char_received", "server_received", "content"].forEach(id => document.getElementById(id).value = "");
+        ["title", "char_received", "server_received", "content"].forEach(id => {
+            document.getElementById(id).value = "";
+        });
     } catch (e) { console.error(e); }
 };
 
-let unsubscribePending = null;
+// --- STATISTIQUES ---
 
 window.updateStats = async function() {
     const statsContainer = document.getElementById("statsContainer");
@@ -67,10 +64,14 @@ window.updateStats = async function() {
                 <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount}</span></div>
                 <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer}</span></div>
             </div>`;
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Erreur Stats:", e);
+        statsContainer.innerHTML = "<small>En attente des index Firebase...</small>";
+    }
 };
 
-// Chargement de la liste (Accepte un tableau de noms pour les failles)
+// --- LISTE PENDING ---
+
 window.loadPending = function(filterNames = null) {
     let q = query(collection(db, "rps_received"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
 
@@ -101,11 +102,13 @@ window.loadPending = function(filterNames = null) {
                     <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
                     <small>${rp.character} — ${rp.server}</small>
                 </div>
-                <button class="btn-done" onclick="event.stopPropagation(); markDone('${id}')">Fait</button>
+                <button class="btn-done" onclick="event.stopPropagation(); window.markDone('${id}')">Fait</button>
             `;
             list.appendChild(card);
         });
-    }, (error) => { console.error(error); });
+    }, (error) => { 
+        console.error("Erreur Firebase (Index ?):", error);
+    });
 };
 
 window.markDone = async function(id) {
@@ -115,7 +118,10 @@ window.markDone = async function(id) {
 
 window.clearView = function() {
     const displayArea = document.getElementById("displayArea");
-    if (displayArea) { displayArea.innerHTML = ""; displayArea.style.display = "none"; }
+    if (displayArea) {
+        displayArea.innerHTML = "";
+        displayArea.style.display = "none";
+    }
 };
 
 window.openModal = function(content, title, meta) {
@@ -138,6 +144,6 @@ window.openModal = function(content, title, meta) {
     }
 };
 
-// Lancer le chargement initial
+// --- INITIALISATION ---
 window.updateStats();
 window.loadPending();
