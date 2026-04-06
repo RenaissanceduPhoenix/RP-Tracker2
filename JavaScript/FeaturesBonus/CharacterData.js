@@ -32,6 +32,7 @@ export const charactersDB = {
     "Ardeur du Lynx": fiches.lynx,
 
     // Évolutions d'Anémone
+    "Petite Anémone" : fiches.anemone,
     "Nuage d’Anémone": fiches.anemone, // Courbe
     "Nuage d'Anémone": fiches.anemone, // Droite
     "Eclats d’Anémone": fiches.anemone,
