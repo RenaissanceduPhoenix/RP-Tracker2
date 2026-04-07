@@ -1,6 +1,6 @@
 /* BASE */
 body {
-    background: #0b0b0e url('../darkv3.jpg') no-repeat center center fixed;
+    background: #0b0b0e url('darkv3.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #f0f0f0;
     font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -18,13 +18,22 @@ body {
     align-items: flex-start; /* Aligne le haut des boites */
 }
 
+.box {
+    border: 1px solid #a777e3; /* BORDURE VIOLETTE */
+    box-shadow: 0 0 15px rgba(81, 36, 136, 0.2); /* Lueur */
+    background: rgba(10, 10, 15, 0.9);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
 /* --- Ligne Graphique (Force le 100%) --- */
 .full-width-row {
     display: block; /* On casse le flex pour être sûr que ça prend toute la ligne */
     width: 100%;
 }
 
-.full-width-row .box {
+.full-width-row {
     width: 100%;
     box-sizing: border-box;
 }

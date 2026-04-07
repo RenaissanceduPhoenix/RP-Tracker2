@@ -1,6 +1,6 @@
 import { db } from '../Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { charactersDB } from '../CharacterData.js';
+import { charactersDB } from './CharacterData.js';
 
 // --- PROFIL (Résumé + Historique) ---
 window.openFullPerso = async function() {

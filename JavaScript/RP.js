@@ -4,6 +4,8 @@ import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, 
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
+let unsubscribePending = null;
+
 // Fonction d'ouverture des messages (Pending)
 window.openModal = function(content, title, meta) {
     const area = document.getElementById('displayAreaPending');
