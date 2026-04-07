@@ -121,11 +121,66 @@ window.updateStats = async function() {
 };
 
 window.loadPending = function(filterNames = null) {
-    let q = query(collection(db, "rps_received"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
-    if (filterNames) {
-        const namesToSearch = Array.isArray(filterNames) ? filterNames : [filterNames];
-        q = query(collection(db, "rps_received"), where("status", "==", "pending"), where("character", "in", namesToSearch), orderBy("createdAt", "desc"));
+    // 1. On stoppe l'écouteur précédent s'il existe pour éviter les doublons
+    if (unsubscribePending) {
+        unsubscribePending();
     }
+
+    const list = document.getElementById('pending-list');
+    if (!list) return;
+
+    // 2. Construction de la requête
+    let q;
+    if (filterNames && Array.isArray(filterNames) && filterNames.length > 0) {
+        // Si on filtre par personnage (clic galerie)
+        q = query(
+            collection(db, "rps_received"),
+            where("status", "==", "pending"),
+            where("character", "in", filterNames),
+            orderBy("createdAt", "desc")
+        );
+    } else {
+        // Chargement de TOUT le pending par défaut
+        q = query(
+            collection(db, "rps_received"),
+            where("status", "==", "pending"),
+            orderBy("createdAt", "desc")
+        );
+    }
+
+    // 3. Écoute en temps réel
+    unsubscribePending = onSnapshot(q, (snap) => {
+        list.innerHTML = "";
+        if (snap.empty) {
+            list.innerHTML = "<p style='color:#666; text-align:center; padding:10px;'>Aucun RP en attente.</p>";
+            return;
+        }
+
+        snap.forEach(doc => {
+            const d = doc.data();
+            const item = document.createElement('div');
+            item.className = "pending-item";
+            item.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="color:#a777e3;">${d.title || "Sans titre"}</strong><br>
+                        <small>${d.character} | ${d.server}</small>
+                    </div>
+                </div>
+            `;
+            item.onclick = () => window.openModal(d.content, d.title, `${d.character} sur ${d.server}`);
+            list.appendChild(item);
+        });
+    }, (error) => {
+        console.error("Erreur Firestore Pending:", error);
+    });
+};
+
+// CRUCIAL : Lancer le chargement une fois que le DOM est prêt
+document.addEventListener('DOMContentLoaded', () => {
+    // Petit délai pour laisser Firebase s'initialiser
+    setTimeout(() => window.loadPending(), 500);
+});
     if (unsubscribePending) unsubscribePending();
     const list = document.getElementById("pendingList");
     unsubscribePending = onSnapshot(q, (snapshot) => {
@@ -147,7 +202,7 @@ window.loadPending = function(filterNames = null) {
             list.appendChild(card);
         });
     });
-};
+;
 
 window.markDone = async function(id) {
     await updateDoc(doc(db, "rps_received", id), { status: "done" });

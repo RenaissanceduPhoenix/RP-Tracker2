@@ -51,18 +51,26 @@ window.initGallery = function() {
     });
 };
 
-window.filterDashboard = async function(charName) {
+window.filterDashboard = function(charName, element) {
+    // Style actif
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
-    const safeId = `card-${charName.replace(/[^a-zA-Z0-9]/g, '')}`;
-    document.getElementById(safeId)?.classList.add('active');
+    element.classList.add('active');
 
+    // Récupérer la fiche et TOUS les noms associés (ex: Nuage de Lynx, Ardeur du Lynx...)
     const currentFiche = charactersDB[charName];
-    if (!currentFiche) return console.error("Fiche non trouvée pour", charName);
+    if (!currentFiche) return;
 
     const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === currentFiche);
 
-    if (typeof window.loadPending === "function") window.loadPending(allAliases); 
-    updateCharStats(allAliases); // Cette fonction doit exister juste en dessous !
+    // Appeler la fonction globale de RP.js avec le tableau de noms
+    if (typeof window.loadPending === "function") {
+        window.loadPending(allAliases);
+    }
+    
+    // Mettre à jour les mini-stats (si tu as la fonction)
+    if (typeof updateCharStats === "function") {
+        updateCharStats(allAliases);
+    }
 };
 
 // --- LA FONCTION QUI MANQUAIT ---
