@@ -6,6 +6,44 @@ import { getAdvancedStats } from './DataService.js';
 
 let unsubscribePending = null;
 
+// --- OUVERTURE MODALE AVEC MARKDOWN ---
+window.openModal = function(content, title, meta) {
+    const area = document.getElementById('displayAreaPending');
+    if(!area) return;
+    
+    // On applique parseRP(content) pour que le Markdown fonctionne
+    area.innerHTML = `
+        <div class="rp-reader">
+            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
+                <div>
+                    <h3 style="margin:0; color:#ffcc00;">${title}</h3>
+                    <small style="color:#888;">${meta}</small>
+                </div>
+                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
+            </div>
+            <div class="rp-display-content">
+                ${parseRP(content)}
+            </div>
+        </div>
+    `;
+};
+
+// --- STATS REPARÉES ---
+window.updateStats = async function() {
+    const container = document.getElementById("statsContainer");
+    if (!container) return;
+    try {
+        const s = await getAdvancedStats();
+        container.innerHTML = `
+            <div class="stat-grid">
+                <div class="stat-card"><span class="stat-label">RP / Semaine</span><span class="stat-value">${s.totalSemaine}</span></div>
+                <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour}</span></div>
+                <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount}</span></div>
+                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer}</span></div>
+            </div>`;
+    } catch (e) { console.error(e); }
+};
+
 // --- SYSTÈME DE FEEDBACK VISUEL ---
 function showFeedback(element, isError = false, message = "") {
     if (!element) return;
@@ -86,22 +124,6 @@ window.addReceived = async function() {
     } catch (e) { console.error(e); }
 };
 
-// --- MISE À JOUR DES STATS ---
-window.updateStats = async function() {
-    const statsContainer = document.getElementById("statsContainer");
-    if (!statsContainer) return;
-    try {
-        const s = await getAdvancedStats();
-        statsContainer.innerHTML = `
-            <div class="stat-grid">
-                <div class="stat-card"><span class="stat-label">RP / Semaine</span><span class="stat-value">${s.totalSemaine}</span></div>
-                <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour}</span></div>
-                <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount}</span></div>
-                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer}</span></div>
-            </div>`;
-    } catch (e) { console.error(e); }
-};
-
 // --- CHARGEMENT DU PENDING ---
 window.loadPending = function(filterNames = null) {
     if (unsubscribePending) {
@@ -170,30 +192,7 @@ window.clearView = function() {
     if (displayAreaPending) { displayAreaPending.innerHTML = ""; }
 };
 
-window.openModal = function(content, title, meta) {
-    const area = document.getElementById('displayAreaPending');
-    if(!area) return;
-    
-    area.innerHTML = `
-        <div class="rp-reader">
-            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
-                <div>
-                    <h3 style="margin:0; color:#a777e3;">${title}</h3>
-                    <small style="color:#888;">${meta}</small>
-                </div>
-                <button onclick="window.clearView()" style="background:none; color:white; border:none; font-size:20px; cursor:pointer;">×</button>
-            </div>
-            <div class="rp-display-content" style="line-height:1.6; color:#ddd; font-style:italic;">
-                ${parseRP(content)}
-            </div>
-             <div style="margin-top:20px;">
-                <button class="btn-ai" onclick="window.initAiChat()">✨ Discuter avec Ia_RP</button>
-            </div>
-        </div>
-    `;
-};
-
-// Lancement initial
+// Lancement au démarrage
 document.addEventListener('DOMContentLoaded', () => {
     window.updateStats();
     window.loadPending();

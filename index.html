@@ -45,10 +45,10 @@
             <div class="box zone-graphique-principale">
                 <h2>Évolution de l'activité</h2>
                 <div class="controls-graph">
-                    <select id="viewType" onchange="window.loadCharts()">
-                        <option value="week">Activité Globale</option>
-                        <option value="server">Par Serveur</option>
-                        <option value="character">Par Personnage</option>
+                    <select id="viewType" onchange="loadCharts()">
+                        <option value="total">📈 Total RP</option>
+                        <option value="perso">👥 Par Personnage</option>
+                        <option value="server">🖥️ Par Serveur</option>
                     </select>
                     <input type="text" id="startDate" placeholder="Date début">
                     <input type="text" id="endDate" placeholder="Date fin">
