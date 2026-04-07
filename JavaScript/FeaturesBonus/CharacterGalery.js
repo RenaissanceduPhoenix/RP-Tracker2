@@ -39,14 +39,13 @@ window.initGallery = function() {
     getActiveChars().forEach(name => {
         const div = document.createElement("div");
         div.className = "char-card";
-        // On simplifie l'ID pour éviter les problèmes d'apostrophes
-        div.id = `card-${name.replace(/[^a-zA-Z0-9]/g, '')}`;
         const fileName = nameToImage[name] || "default.png";
         div.innerHTML = `
             <img src="./JavaScript/FeaturesBonus/Assets/Avatars/${fileName}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
             <p style="color:white; font-size:12px; font-weight:bold; margin-top:5px;">${name}</p>
         `;
-        div.onclick = () => window.filterDashboard(name);
+        // CORRECTION : On passe 'div' (l'élément) en deuxième argument
+        div.onclick = () => window.filterDashboard(name, div); 
         container.appendChild(div);
     });
 };
