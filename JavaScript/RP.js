@@ -5,25 +5,8 @@ import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
 let unsubscribePending = null;
-// Fonction d'ouverture des messages (Pending)
-window.openModal = function(content, title, meta) {
-    const area = document.getElementById('displayAreaPending');
-    if(!area) return;
-    
-    area.innerHTML = `
-        <div class="rp-reader">
-            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px;">
-                <h3 style="margin:0; color:#ffcc00;">${title}</h3>
-                <small style="color:#888;">${meta}</small>
-            </div>
-            <div style="line-height:1.6; color:#ddd; font-style:italic;">
-                ${content.replace(/\n/g, '<br>')}
-            </div>
-        </div>
-    `;
-};
 
-// --- LA FONCTION MANQUANTE ---
+// --- SYSTÈME DE FEEDBACK VISUEL ---
 function showFeedback(element, isError = false, message = "") {
     if (!element) return;
     if (isError) {
@@ -45,7 +28,6 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-// ... Reste des fonctions addSent, addReceived déjà fonctionnelles ...
 // --- AJOUT RP ENVOYÉ ---
 window.addSent = async function() {
     const charInput = document.getElementById("char_sent");
@@ -67,6 +49,7 @@ window.addSent = async function() {
         showFeedback(zone, false, "Stat enregistrée !");
         charInput.value = ""; serverInput.value = "";
         window.updateStats();
+        if(window.loadCharts) window.loadCharts();
     } catch (e) { console.error(e); }
 };
 
@@ -103,7 +86,7 @@ window.addReceived = async function() {
     } catch (e) { console.error(e); }
 };
 
-// --- LE RESTE DU CODE (updateStats, loadPending, etc.) ---
+// --- MISE À JOUR DES STATS ---
 window.updateStats = async function() {
     const statsContainer = document.getElementById("statsContainer");
     if (!statsContainer) return;
@@ -119,115 +102,99 @@ window.updateStats = async function() {
     } catch (e) { console.error(e); }
 };
 
+// --- CHARGEMENT DU PENDING ---
 window.loadPending = function(filterNames = null) {
-    // 1. On stoppe l'écouteur précédent s'il existe pour éviter les doublons
     if (unsubscribePending) {
         unsubscribePending();
+        unsubscribePending = null;
     }
 
     const list = document.getElementById('pending-list');
     if (!list) return;
 
-    // 2. Construction de la requête
-    let q;
+    let q = query(
+        collection(db, "rps_received"),
+        where("status", "==", "pending"),
+        orderBy("createdAt", "desc")
+    );
+
     if (filterNames && Array.isArray(filterNames) && filterNames.length > 0) {
-        // Si on filtre par personnage (clic galerie)
         q = query(
             collection(db, "rps_received"),
             where("status", "==", "pending"),
             where("character", "in", filterNames),
             orderBy("createdAt", "desc")
         );
-    } else {
-        // Chargement de TOUT le pending par défaut
-        q = query(
-            collection(db, "rps_received"),
-            where("status", "==", "pending"),
-            orderBy("createdAt", "desc")
-        );
     }
 
-    // 3. Écoute en temps réel
     unsubscribePending = onSnapshot(q, (snap) => {
         list.innerHTML = "";
         if (snap.empty) {
-            list.innerHTML = "<p style='color:#666; text-align:center; padding:10px;'>Aucun RP en attente.</p>";
+            list.innerHTML = "<p style='color:#666; padding:10px;'>Aucun RP en attente.</p>";
             return;
         }
 
-        snap.forEach(doc => {
-            const d = doc.data();
+        snap.forEach(docSnap => {
+            const rp = docSnap.data();
+            const id = docSnap.id;
             const item = document.createElement('div');
             item.className = "pending-item";
+            item.onclick = () => window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
             item.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div>
-                        <strong style="color:#a777e3;">${d.title || "Sans titre"}</strong><br>
-                        <small>${d.character} | ${d.server}</small>
+                        <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
+                        <small>${rp.character} — ${rp.server}</small>
                     </div>
+                    <button class="btn-done" onclick="event.stopPropagation(); window.markDone('${id}')">Fait</button>
                 </div>
             `;
-            item.onclick = () => window.openModal(d.content, d.title, `${d.character} sur ${d.server}`);
             list.appendChild(item);
         });
-    }, (error) => {
-        console.error("Erreur Firestore Pending:", error);
+    }, (err) => {
+        console.error("Erreur Firestore :", err);
     });
 };
 
-    if (unsubscribePending) unsubscribePending();
-    const list = document.getElementById("pendingList");
-    let q;
-    unsubscribePending = onSnapshot(q, (snapshot) => {
-        if (!list) return;
-        list.innerHTML = "";
-        snapshot.forEach((docSnap) => {
-            const rp = docSnap.data();
-            const id = docSnap.id;
-            const card = document.createElement("div");
-            card.className = "rp-card";
-            card.onclick = () => window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
-            card.innerHTML = `
-                <div style="flex:1;">
-                    <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
-                    <small>${rp.character} — ${rp.server}</small>
-                </div>
-                <button class="btn-done" onclick="event.stopPropagation(); window.markDone('${id}')">Fait</button>
-            `;
-            list.appendChild(card);
-        });
-    });
-;
-
+// --- ACTIONS MODALE ET LECTURE ---
 window.markDone = async function(id) {
+    if(!confirm("Marquer ce RP comme terminé ?")) return;
     await updateDoc(doc(db, "rps_received", id), { status: "done" });
     window.updateStats();
 };
 
 window.clearView = function() {
     const displayArea = document.getElementById("displayArea");
+    const displayAreaPending = document.getElementById("displayAreaPending");
     if (displayArea) { displayArea.innerHTML = ""; displayArea.style.display = "none"; }
+    if (displayAreaPending) { displayAreaPending.innerHTML = ""; }
 };
 
 window.openModal = function(content, title, meta) {
-    const cleanContent = content.replace(/\(.*?\)/g, "").trim();
-    const displayArea = document.getElementById("displayArea");
-    if (displayArea) {
-        displayArea.style.display = "block";
-        displayArea.innerHTML = `
-            <div style="padding:15px; background:#eee; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:center;">
-                <div><h3 style="margin:0; color:black;">${title}</h3><small style="color:#666;">${meta}</small></div>
-                <span style="cursor:pointer; font-size:24px; color:#999;" onclick="window.clearView()">×</span>
+    const area = document.getElementById('displayAreaPending');
+    if(!area) return;
+    
+    area.innerHTML = `
+        <div class="rp-reader">
+            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
+                <div>
+                    <h3 style="margin:0; color:#a777e3;">${title}</h3>
+                    <small style="color:#888;">${meta}</small>
+                </div>
+                <button onclick="window.clearView()" style="background:none; color:white; border:none; font-size:20px; cursor:pointer;">×</button>
             </div>
-            <div class="rp-display-content" style="background:white; color:black; padding:20px; overflow-y:auto; max-height:70vh;">
-                ${parseRP(cleanContent)}
+            <div class="rp-display-content" style="line-height:1.6; color:#ddd; font-style:italic;">
+                ${parseRP(content)}
             </div>
-            <div style="padding: 10px 20px 20px 20px; background:white;">
+             <div style="margin-top:20px;">
                 <button class="btn-ai" onclick="window.initAiChat()">✨ Discuter avec Ia_RP</button>
             </div>
-        `;
-    }
+        </div>
+    `;
 };
 
-window.updateStats();
-window.loadPending();
+// Lancement initial
+document.addEventListener('DOMContentLoaded', () => {
+    window.updateStats();
+    window.loadPending();
+});
