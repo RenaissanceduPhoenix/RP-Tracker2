@@ -1,29 +1,28 @@
 import { db } from './Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let myChartInstance = null
+// On utilise un nom unique pour ne pas entrer en conflit avec l'ID "chart" du HTML
+let rpChart = null; 
 
-// Couleurs pour les graphiques multi-courbes
-const chartColors = [
-    '#a777e3', '#ffcc00', '#2ecc71', '#e74c3c', '#3498db', 
-    '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22', '#ecf0f1'
-];
+const chartColors = ['#a777e3', '#ffcc00', '#2ecc71', '#e74c3c', '#3498db', '#f1c40f', '#9b59b6'];
 
 window.loadCharts = async function() {
     const canvas = document.getElementById('chart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const viewType = document.getElementById('viewType').value; // 'total', 'perso', 'server'
+    const viewType = document.getElementById('viewType').value;
     
-    // 1. Définition de la période (7 derniers jours par défaut)
-    const startInput = document.getElementById('startDate').value;
-    const endInput = document.getElementById('endDate').value;
+    // Récupération des dates
+    let startInput = document.getElementById('startDate').value;
+    let endInput = document.getElementById('endDate').value;
     
-    const endDate = endInput ? new Date(endInput) : new Date();
-    const startDate = startInput ? new Date(startInput) : new Date();
+    let endDate = endInput ? new Date(endInput) : new Date();
+    let startDate = startInput ? new Date(startInput) : new Date();
     if (!startInput) startDate.setDate(endDate.getDate() - 7);
 
-    // 2. Récupération des données Firebase
+    startDate.setHours(0,0,0,0);
+    endDate.setHours(23,59,59,999);
+
     const q = query(
         collection(db, "rps_sent"), 
         where("createdAt", ">=", startDate), 
@@ -33,93 +32,79 @@ window.loadCharts = async function() {
     
     const snap = await getDocs(q);
 
-    // 3. Préparation des labels (Dates de l'axe X)
+    // Axe X (les jours)
     const labels = [];
-    let cur = new Date(startDate);
-    while (cur <= endDate) {
-        labels.push(cur.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
-        cur.setDate(cur.getDate() + 1);
+    let tmp = new Date(startDate);
+    while (tmp <= endDate) {
+        labels.push(tmp.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+        tmp.setDate(tmp.getDate() + 1);
     }
 
-    // 4. Traitement des données selon le mode
     let datasets = [];
 
     if (viewType === 'total') {
-        // --- MODE TOTAL ---
         const counts = {};
         snap.forEach(doc => {
-            const date = doc.data().createdAt.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-            counts[date] = (counts[date] || 0) + 1;
+            const d = doc.data().createdAt.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+            counts[d] = (counts[d] || 0) + 1;
         });
-
         datasets.push({
             label: 'Total RP Envoyés',
             data: labels.map(l => counts[l] || 0),
             borderColor: '#a777e3',
             backgroundColor: 'rgba(167, 119, 227, 0.2)',
-            tension: 0.3,
-            fill: true
+            fill: true,
+            tension: 0.3
         });
-
     } else {
-        // --- MODE PERSO OU SERVEUR ---
         const key = (viewType === 'perso') ? 'character' : 'server';
-        const groups = {}; // { "NomPerso": { "01/04": 2, "02/04": 1 } }
+        const groups = {};
 
         snap.forEach(doc => {
             const data = doc.data();
-            const groupName = data[key] || "Inconnu";
-            const date = data.createdAt.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-
-            if (!groups[groupName]) groups[groupName] = {};
-            groups[groupName][date] = (groups[groupName][date] || 0) + 1;
+            const name = data[key] || "Inconnu";
+            const d = data.createdAt.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+            if (!groups[name]) groups[name] = {};
+            groups[name][d] = (groups[name][d] || 0) + 1;
         });
 
-        // Transformer les groupes en datasets Chart.js
-        Object.keys(groups).forEach((name, index) => {
+        Object.keys(groups).forEach((name, i) => {
             datasets.push({
                 label: name,
                 data: labels.map(l => groups[name][l] || 0),
-                borderColor: chartColors[index % chartColors.length],
+                borderColor: chartColors[i % chartColors.length],
                 backgroundColor: 'transparent',
                 tension: 0.3,
-                pointRadius: 4
+                borderWidth: 2
             });
         });
     }
 
-    // 5. Destruction de l'ancien graphique et création du nouveau
-    if (myChartInstance) chart.destroy();
+    // CORRECTION CRITIQUE : On vérifie si rpChart est bien une instance de Chart
+    if (rpChart && typeof rpChart.destroy === 'function') {
+        rpChart.destroy();
+    }
     
-    myChartInstance = new Chart(ctx, {
+    // Création du nouveau graphique
+    rpChart = new Chart(ctx, {
         type: 'line',
         data: { labels, datasets },
         options: {
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, color: '#ffffff' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                x: {
-                    ticks: { color: '#ffffff' },
-                    grid: { display: false }
-                }
+                y: { beginAtZero: true, ticks: { color: '#fff', stepSize: 1 } },
+                x: { ticks: { color: '#fff' } }
             },
             plugins: {
-                legend: { labels: { color: '#ffffff', font: { size: 11 } } },
-                tooltip: { backgroundColor: '#1a1a24', titleColor: '#a777e3', bodyColor: '#fff' }
+                legend: { labels: { color: '#fff' } }
             }
         }
     });
 };
 
-// Initialisation au chargement
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialisation Flatpickr si présent
-    if (typeof flatpickr !== "undefined") {
+    if (window.flatpickr) {
         flatpickr("#startDate", { altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d" });
         flatpickr("#endDate", { altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d" });
     }
