@@ -5,7 +5,6 @@ import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
 let unsubscribePending = null;
-let q;
 // Fonction d'ouverture des messages (Pending)
 window.openModal = function(content, title, meta) {
     const area = document.getElementById('displayAreaPending');
@@ -130,7 +129,7 @@ window.loadPending = function(filterNames = null) {
     if (!list) return;
 
     // 2. Construction de la requête
-;
+    let q;
     if (filterNames && Array.isArray(filterNames) && filterNames.length > 0) {
         // Si on filtre par personnage (clic galerie)
         q = query(
@@ -176,13 +175,9 @@ window.loadPending = function(filterNames = null) {
     });
 };
 
-// CRUCIAL : Lancer le chargement une fois que le DOM est prêt
-document.addEventListener('DOMContentLoaded', () => {
-    // Petit délai pour laisser Firebase s'initialiser
-    setTimeout(() => window.loadPending(), 500);
-});
     if (unsubscribePending) unsubscribePending();
     const list = document.getElementById("pendingList");
+    let q;
     unsubscribePending = onSnapshot(q, (snapshot) => {
         if (!list) return;
         list.innerHTML = "";
