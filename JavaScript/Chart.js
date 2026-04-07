@@ -1,6 +1,8 @@
 import { db } from './Firebase.js';
 import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+let myChartInstance = null
+
 // Couleurs pour les graphiques multi-courbes
 const chartColors = [
     '#a777e3', '#ffcc00', '#2ecc71', '#e74c3c', '#3498db', 
@@ -87,9 +89,9 @@ window.loadCharts = async function() {
     }
 
     // 5. Destruction de l'ancien graphique et création du nouveau
-    if (chart) chart.destroy();
+    if (myChartInstance) chart.destroy();
     
-    chart = new Chart(ctx, {
+    myChartInstance = new Chart(ctx, {
         type: 'line',
         data: { labels, datasets },
         options: {
