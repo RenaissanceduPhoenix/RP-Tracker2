@@ -5,7 +5,7 @@ import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 
 let unsubscribePending = null;
-
+let q;
 // Fonction d'ouverture des messages (Pending)
 window.openModal = function(content, title, meta) {
     const area = document.getElementById('displayAreaPending');
@@ -130,7 +130,7 @@ window.loadPending = function(filterNames = null) {
     if (!list) return;
 
     // 2. Construction de la requête
-    let q;
+;
     if (filterNames && Array.isArray(filterNames) && filterNames.length > 0) {
         // Si on filtre par personnage (clic galerie)
         q = query(
