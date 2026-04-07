@@ -24,6 +24,28 @@ window.openModal = function(content, title, meta) {
     `;
 };
 
+// --- LA FONCTION MANQUANTE ---
+function showFeedback(element, isError = false, message = "") {
+    if (!element) return;
+    if (isError) {
+        element.classList.add("shake-animation");
+        element.style.borderColor = "red";
+        setTimeout(() => {
+            element.classList.remove("shake-animation");
+            element.style.borderColor = "";
+        }, 1000);
+    } else {
+        const feedbackMsg = document.createElement("div");
+        feedbackMsg.className = "feedback-success";
+        feedbackMsg.style.color = "#2ecc71";
+        feedbackMsg.style.fontSize = "0.8rem";
+        feedbackMsg.style.marginTop = "5px";
+        feedbackMsg.innerText = "✅ " + message;
+        element.parentElement.appendChild(feedbackMsg);
+        setTimeout(() => feedbackMsg.remove(), 3000);
+    }
+}
+
 // ... Reste des fonctions addSent, addReceived déjà fonctionnelles ...
 // --- AJOUT RP ENVOYÉ ---
 window.addSent = async function() {
