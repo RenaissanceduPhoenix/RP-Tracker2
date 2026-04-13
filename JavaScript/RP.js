@@ -67,9 +67,11 @@ function showFeedback(element, isError = false, message = "") {
 }
 
 // --- AJOUT RP ENVOYÉ ---
+// --- AJOUT RP ENVOYÉ (Version avec XP & Contenu) ---
 window.addSent = async function() {
     const charInput = document.getElementById("char_sent");
     const serverInput = document.getElementById("server_sent");
+    const contentInput = document.getElementById("content_sent"); // Récupère le nouveau champ
     const zone = document.querySelector(".zone-ajout");
 
     if (!charInput.value || !serverInput.value) {
@@ -82,10 +84,17 @@ window.addSent = async function() {
         await addDoc(collection(db, "rps_sent"), {
             character: charInput.value,
             server: serverInput.value,
+            content: contentInput.value || "", // ON ENREGISTRE LE TEXTE ICI
             createdAt: serverTimestamp()
         });
-        showFeedback(zone, false, "Stat enregistrée !");
-        charInput.value = ""; serverInput.value = "";
+        
+        showFeedback(zone, false, "Stat et XP enregistrées !");
+        
+        // On vide les champs
+        charInput.value = ""; 
+        serverInput.value = "";
+        contentInput.value = ""; 
+        
         window.updateStats();
         if(window.loadCharts) window.loadCharts();
     } catch (e) { console.error(e); }
