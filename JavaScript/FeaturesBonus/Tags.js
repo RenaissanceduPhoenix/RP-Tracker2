@@ -1,39 +1,33 @@
-// On importe les fonctions nécessaires de Firebase pour les mises à jour
-import { db } from './Firebase.js';
+// On remonte d'un dossier (..) car Tags.js est dans FeaturesBonus et Firebase.js est dans JavaScript
+import { db } from '../Firebase.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Fabrique le code HTML des badges et du menu déroulant pour un RP donné
- * @param {string} rpId - L'ID Firebase du document RP
- * @param {Array} tagsTab - Le tableau des tags actuels du RP (ex: ['#Action', '#Important'])
- * @returns {string} Le code HTML à insérer dans la carte du Pending
  */
 export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
-    // 1. Génération des petits badges
     let badgesHTML = '';
     tagsTab.forEach(tag => {
-        // Enlève le # et met en minuscule pour correspondre aux classes du CSS (.action, .romance...)
         const classeCouleur = tag.replace('#', '').toLowerCase(); 
         badgesHTML += `<span class="badge-tag ${classeCouleur}">${tag}</span>`;
     });
 
-    // 2. Génération du menu déroulant avec les styles "cochés" si le tag est actif
     const itemFooterHTML = `
-        <div class="rp-tags-badges">${badgesHTML}</div>
-        <div class="pending-footer-tags">
+        <div class="pending-footer-tags" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; width:100%;">
+            <div class="rp-tags-badges">${badgesHTML}</div>
             <select class="select-tag-toggle" data-rpid="${rpId}">
                 <option value="">🏷️ Gérer les tags...</option>
                 <option value="#Action" ${tagsTab.includes('#Action') ? 'style="color:#ff5555; font-weight:bold;"' : ''}>
-                    ⚔️ Action ${tagsTab.includes('#Action') ? '✅' : ''}
+                    ⚔️ Action ${tagsTab.includes('#Action') ? '❌' : ''}
                 </option>
                 <option value="#Romance" ${tagsTab.includes('#Romance') ? 'style="color:#ff66b2; font-weight:bold;"' : ''}>
-                    ❤️ Romance ${tagsTab.includes('#Romance') ? '✅' : ''}
+                    ❤️ Romance ${tagsTab.includes('#Romance') ? '❌' : ''}
                 </option>
                 <option value="#Important" ${tagsTab.includes('#Important') ? 'style="color:#ffaa00; font-weight:bold;"' : ''}>
-                    🚨 Important ${tagsTab.includes('#Important') ? '✅' : ''}
+                    🚨 Important ${tagsTab.includes('#Important') ? '❌' : ''}
                 </option>
                 <option value="#Rapide" ${tagsTab.includes('#Rapide') ? 'style="color:#00bcd4; font-weight:bold;"' : ''}>
-                    ⚡ Rapide ${tagsTab.includes('#Rapide') ? '✅' : ''}
+                    ⚡ Rapide ${tagsTab.includes('#Rapide') ? '❌' : ''}
                 </option>
             </select>
         </div>
@@ -43,15 +37,14 @@ export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
 }
 
 /**
- * Initialise les écouteurs d'événements pour les boutons de filtres et les menus déroulants.
- * À exécuter UNE SEULE FOIS au chargement de la page.
+ * Initialise le filtrage dynamique au clic sur la barre d'énergie
  */
 export function initialiserFiltrageTags() {
-    
-    // --- 1. FILTRAGE AU CLIC SUR LES BOUTONS ---
+    // --- 1. FILTRAGE AU CLIC ---
     document.querySelectorAll('.btn-tag-filter').forEach(button => {
-        button.addEventListener('click', () => {
-            // Gère l'état visuel actif des boutons de la barre
+        button.addEventListener('click', (e) => {
+            e.stopPropagation(); // Évite les conflits d'événements
+            
             document.querySelectorAll('.btn-tag-filter').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
@@ -59,50 +52,52 @@ export function initialiserFiltrageTags() {
             const cards = document.querySelectorAll('.pending-item');
 
             cards.forEach(card => {
-                // On récupère les tags de la carte stockés dans son attribut 'data-tags'
                 const cardTags = card.getAttribute('data-tags') || '';
                 
                 if (tagSelectionne === 'all' || cardTags.includes(tagSelectionne)) {
-                    card.style.display = 'block'; // On affiche
+                    card.style.display = 'block';
                 } else {
-                    card.style.display = 'none';  // On cache
+                    card.style.display = 'none';
                 }
             });
         });
     });
 
-    // --- 2. GESTION DES CHANGEMENTS DANS LE SÉLECTEUR (TOGGLE FIREBASE) ---
-    document.addEventListener('change', async (e) => {
-        if (e.target.classList.contains('select-tag-toggle')) {
-            const rpId = e.target.getAttribute('data-rpid');
-            const tagChoisi = e.target.value;
-
-            if (!tagChoisi) return;
-
-            try {
-                // On pointe sur le document concerné dans la collection "pending"
-                const docRef = doc(db, "pending", rpId);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    let currentTags = docSnap.data().tags || [];
-
-                    // Système de "Toggle" : si le tag y est on l'enlève, sinon on l'ajoute
-                    if (currentTags.includes(tagChoisi)) {
-                        currentTags = currentTags.filter(t => t !== tagChoisi);
-                    } else {
-                        currentTags.push(tagChoisi);
-                    }
-
-                    // Enregistrement de la mise à jour dans Firebase
-                    await updateDoc(docRef, { tags: currentTags });
-                    
-                    // Optionnel : On rafraîchit la page pour appliquer visuellement le changement instantanément
-                    location.reload();
-                }
-            } catch (error) {
-                console.error("Erreur lors du toggle du tag dans Firebase :", error);
-            }
-        }
+    // --- 2. ENREGISTREMENT AU CHANGEMENT DU SELECTEUR ---
+    document.querySelectorAll('.select-tag-toggle').forEach(selector => {
+        // On enlève un éventuel ancien écouteur pour éviter les doublons
+        selector.removeEventListener('change', gérerChangementTag);
+        selector.addEventListener('change', gérerChangementTag);
     });
+}
+
+// Fonction isolée pour traiter le changement de tag dans Firebase
+async function gérerChangementTag(e) {
+    const rpId = e.target.getAttribute('data-rpid');
+    const tagChoisi = e.target.value;
+
+    if (!tagChoisi) return;
+
+    try {
+        // Cible la collection "rps_received" (car tes pending sont dedans !)
+        const docRef = doc(db, "rps_received", rpId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            let currentTags = docSnap.data().tags || [];
+
+            if (currentTags.includes(tagChoisi)) {
+                currentTags = currentTags.filter(t => t !== tagChoisi);
+            } else {
+                currentTags.push(tagChoisi);
+            }
+
+            await updateDoc(docRef, { tags: currentTags });
+            
+            // Rechargement léger pour mettre à jour les badges visuellement
+            if (window.loadPending) window.loadPending();
+        }
+    } catch (error) {
+        console.error("Erreur lors du toggle du tag dans Firebase :", error);
+    }
 }

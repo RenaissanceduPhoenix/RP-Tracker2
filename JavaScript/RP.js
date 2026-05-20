@@ -12,7 +12,6 @@ window.openModal = function(content, title, meta) {
     const area = document.getElementById('displayAreaPending');
     if(!area) return;
     
-    // On applique parseRP(content) pour que le Markdown fonctionne
     area.innerHTML = `
         <div class="rp-reader">
             <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
@@ -67,7 +66,7 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-// --- AJOUT RP ENVOYÉ (Version avec XP & Contenu) ---
+// --- AJOUT RP ENVOYÉ ---
 window.addSent = async function() {
     const charInput = document.getElementById("char_sent");
     const serverInput = document.getElementById("server_sent");
@@ -167,22 +166,20 @@ window.loadPending = function(filterNames = null) {
         snap.forEach(docSnap => {
             const rp = docSnap.data();
             const id = docSnap.id;
-            const tagsTab = rp.tags || []; // Récupère le tableau des tags depuis Firebase
+            const tagsTab = rp.tags || []; 
 
             const item = document.createElement('div');
             item.className = "pending-item";
             
-            // On s'assure que cliquer sur le select ou les options n'ouvre pas la grande modale de lecture
+            // Bloque l'ouverture de la liseuse si on clique sur le sélecteur ou ses options
             item.onclick = (e) => {
                 if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
                     window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
                 }
             };
             
-            // On injecte les tags sous forme de chaîne brute pour l'attribut de filtrage CSS/JS
             item.setAttribute('data-tags', tagsTab.join(','));
 
-            // On garde ta structure stricte originale en y ajoutant la fonction des badges juste en dessous !
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div style="flex-grow: 1; margin-right: 10px;">
@@ -196,7 +193,7 @@ window.loadPending = function(filterNames = null) {
             list.appendChild(item);
         });
 
-        // On ré-attache les écouteurs sur les filtres d'énergie une fois la liste générée
+        // Active les boutons de filtres et les changements de sélection
         initialiserFiltrageTags();
 
     }, (err) => {
