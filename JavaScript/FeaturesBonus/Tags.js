@@ -1,4 +1,3 @@
-// On remonte d'un dossier (..) car Tags.js est dans FeaturesBonus et Firebase.js est dans JavaScript
 import { db } from '../Firebase.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -6,10 +5,15 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.
  * Fabrique le code HTML des badges et du menu déroulant pour un RP donné
  */
 export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
+    // SÉCURITÉ : Si tagsTab n'existe pas ou est indéfini (anciens RPs), on prend un tableau vide
+    const listeTags = Array.isArray(tagsTab) ? tagsTab : [];
+    
     let badgesHTML = '';
-    tagsTab.forEach(tag => {
-        const classeCouleur = tag.replace('#', '').toLowerCase(); 
-        badgesHTML += `<span class="badge-tag ${classeCouleur}">${tag}</span>`;
+    listeTags.forEach(tag => {
+        if (tag) {
+            const classeCouleur = tag.replace('#', '').toLowerCase(); 
+            badgesHTML += `<span class="badge-tag ${classeCouleur}">${tag}</span>`;
+        }
     });
 
     const itemFooterHTML = `
@@ -17,17 +21,17 @@ export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
             <div class="rp-tags-badges">${badgesHTML}</div>
             <select class="select-tag-toggle" data-rpid="${rpId}">
                 <option value="">🏷️ Gérer les tags...</option>
-                <option value="#Action" ${tagsTab.includes('#Action') ? 'style="color:#ff5555; font-weight:bold;"' : ''}>
-                    ⚔️ Action ${tagsTab.includes('#Action') ? '❌' : ''}
+                <option value="#Action" ${listeTags.includes('#Action') ? 'selected style="color:#ff5555; font-weight:bold;"' : ''}>
+                    ⚔️ Action ${listeTags.includes('#Action') ? '✅' : ''}
                 </option>
-                <option value="#Romance" ${tagsTab.includes('#Romance') ? 'style="color:#ff66b2; font-weight:bold;"' : ''}>
-                    ❤️ Romance ${tagsTab.includes('#Romance') ? '❌' : ''}
+                <option value="#Romance" ${listeTags.includes('#Romance') ? 'selected style="color:#ff66b2; font-weight:bold;"' : ''}>
+                    ❤️ Romance ${listeTags.includes('#Romance') ? '✅' : ''}
                 </option>
-                <option value="#Important" ${tagsTab.includes('#Important') ? 'style="color:#ffaa00; font-weight:bold;"' : ''}>
-                    🚨 Important ${tagsTab.includes('#Important') ? '❌' : ''}
+                <option value="#Important" ${listeTags.includes('#Important') ? 'selected style="color:#ffaa00; font-weight:bold;"' : ''}>
+                    🚨 Important ${listeTags.includes('#Important') ? '✅' : ''}
                 </option>
-                <option value="#Rapide" ${tagsTab.includes('#Rapide') ? 'style="color:#00bcd4; font-weight:bold;"' : ''}>
-                    ⚡ Rapide ${tagsTab.includes('#Rapide') ? '❌' : ''}
+                <option value="#Rapide" ${listeTags.includes('#Rapide') ? 'selected style="color:#00bcd4; font-weight:bold;"' : ''}>
+                    ⚡ Rapide ${listeTags.includes('#Rapide') ? '✅' : ''}
                 </option>
             </select>
         </div>
@@ -40,15 +44,20 @@ export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
  * Initialise le filtrage dynamique au clic sur la barre d'énergie
  */
 export function initialiserFiltrageTags() {
-    // --- 1. FILTRAGE AU CLIC ---
+    // --- 1. FILTRAGE AU CLIC SUR LES BOUTONS ---
     document.querySelectorAll('.btn-tag-filter').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation(); // Évite les conflits d'événements
+        // On clone pour écraser les anciens écouteurs et éviter les clics fantômes / doublons
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+
+        newButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Stop la propagation totale
             
             document.querySelectorAll('.btn-tag-filter').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+            newButton.classList.add('active');
 
-            const tagSelectionne = button.getAttribute('data-tag');
+            const tagSelectionne = newButton.getAttribute('data-tag');
             const cards = document.querySelectorAll('.pending-item');
 
             cards.forEach(card => {
@@ -63,41 +72,41 @@ export function initialiserFiltrageTags() {
         });
     });
 
-    // --- 2. ENREGISTREMENT AU CHANGEMENT DU SELECTEUR ---
+    // --- 2. ATTRIBUTION DES TAGS ---
     document.querySelectorAll('.select-tag-toggle').forEach(selector => {
-        // On enlève un éventuel ancien écouteur pour éviter les doublons
-        selector.removeEventListener('change', gérerChangementTag);
-        selector.addEventListener('change', gérerChangementTag);
-    });
-}
+        selector.addEventListener('change', async (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Évite le clic fantôme sur la carte derrière !
 
-// Fonction isolée pour traiter le changement de tag dans Firebase
-async function gérerChangementTag(e) {
-    const rpId = e.target.getAttribute('data-rpid');
-    const tagChoisi = e.target.value;
+            const rpId = selector.getAttribute('data-rpid');
+            const tagChoisi = e.target.value;
 
-    if (!tagChoisi) return;
+            if (!tagChoisi) return;
 
-    try {
-        // Cible la collection "rps_received" (car tes pending sont dedans !)
-        const docRef = doc(db, "rps_received", rpId);
-        const docSnap = await getDoc(docRef);
+            try {
+                const docRef = doc(db, "rps_received", rpId);
+                const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-            let currentTags = docSnap.data().tags || [];
+                if (docSnap.exists()) {
+                    let currentTags = docSnap.data().tags || [];
 
-            if (currentTags.includes(tagChoisi)) {
-                currentTags = currentTags.filter(t => t !== tagChoisi);
-            } else {
-                currentTags.push(tagChoisi);
+                    if (currentTags.includes(tagChoisi)) {
+                        // Supprime si déjà présent
+                        currentTags = currentTags.filter(t => t !== tagChoisi);
+                    } else {
+                        // Ajoute si absent
+                        currentTags.push(tagChoisi);
+                    }
+
+                    // Envoi à Firebase
+                    await updateDoc(docRef, { tags: currentTags });
+                    
+                    // Recharge la liste en direct sans recharger toute la page web
+                    if (window.loadPending) window.loadPending();
+                }
+            } catch (error) {
+                console.error("Erreur lors du toggle du tag dans Firebase :", error);
             }
-
-            await updateDoc(docRef, { tags: currentTags });
-            
-            // Rechargement léger pour mettre à jour les badges visuellement
-            if (window.loadPending) window.loadPending();
-        }
-    } catch (error) {
-        console.error("Erreur lors du toggle du tag dans Firebase :", error);
-    }
+        });
+    });
 }

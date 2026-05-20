@@ -124,6 +124,7 @@ window.addReceived = async function() {
             server: inputs.srv.value,
             content: inputs.cont.value,
             status: "pending",
+            tags: [], // On initialise d'office un tableau vide pour éviter les bugs
             createdAt: serverTimestamp()
         });
         showFeedback(zone, false, "Ajouté au Pending !");
@@ -166,34 +167,42 @@ window.loadPending = function(filterNames = null) {
         snap.forEach(docSnap => {
             const rp = docSnap.data();
             const id = docSnap.id;
-            const tagsTab = rp.tags || []; 
+            
+            // Sécurité absolue pour les anciens RPs non-tagués
+            const tagsTab = Array.isArray(rp.tags) ? rp.tags : []; 
 
             const item = document.createElement('div');
             item.className = "pending-item";
-            
-            // Bloque l'ouverture de la liseuse si on clique sur le sélecteur ou ses options
-            item.onclick = (e) => {
-                if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
-                    window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
-                }
-            };
-            
             item.setAttribute('data-tags', tagsTab.join(','));
 
+            // Sécurisation totale des clics pour tuer le clic fantôme
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div style="flex-grow: 1; margin-right: 10px;">
+                    <div class="clickable-rp-zone" style="flex-grow: 1; margin-right: 10px; cursor: pointer;">
                         <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
                         <small>${rp.character} — ${rp.server}</small>
                     </div>
-                    <button class="btn-done" onclick="event.stopPropagation(); window.markDone('${id}')">Fait</button>
+                    <button class="btn-done" style="position: relative; z-index: 10;">Fait</button>
                 </div>
-                ${genererBadgesEtSelecteur(id, tagsTab)}
+                <div class="selectors-zone" style="position: relative; z-index: 10;">
+                    ${genererBadgesEtSelecteur(id, tagsTab)}
+                </div>
             `;
+
+            // On assigne les événements manuellement pour éviter les bulles d'événements
+            item.querySelector('.clickable-rp-zone').addEventListener('click', (e) => {
+                window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
+            });
+
+            item.querySelector('.btn-done').addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.markDone(id);
+            });
+
             list.appendChild(item);
         });
 
-        // Active les boutons de filtres et les changements de sélection
+        // Liaison des boutons de filtres
         initialiserFiltrageTags();
 
     }, (err) => {
