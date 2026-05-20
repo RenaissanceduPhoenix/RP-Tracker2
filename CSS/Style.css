@@ -150,3 +150,117 @@ input, textarea, select {
 }
 .stat-label { color: #888; font-size: 0.8rem; display: block; }
 .stat-value { color: #fff; font-size: 1.1rem; font-weight: bold; }
+
+/* --- 🏷️ INTERFACE DES TAGS D'ÉNERGIE (PENDING) --- */
+
+/* Barre contenant les boutons de filtres */
+.tags-filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: rgba(167, 119, 227, 0.03);
+    border: 1px solid rgba(167, 119, 227, 0.15);
+    border-radius: 6px;
+}
+
+.filter-label {
+    color: #8a9fc4;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+/* Boutons de filtres */
+.btn-tag-filter {
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px solid rgba(167, 119, 227, 0.3);
+    color: #e0e0e0;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-tag-filter:hover {
+    border-color: #a777e3;
+    background: rgba(167, 119, 227, 0.1);
+}
+
+.btn-tag-filter.active {
+    background: #a777e3;
+    color: #ffffff;
+    border-color: #a777e3;
+    box-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
+}
+
+/* Alignement interne pour l'item du Pending */
+.pending-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Conteneur des petits badges colorés */
+.rp-tags-badges {
+    display: flex;
+    gap: 4px;
+}
+
+/* Base des petits badges d'énergie */
+.badge-tag {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Couleurs personnalisées translucides pour pas jurer avec le violet */
+.badge-tag.action { 
+    background: rgba(255, 77, 77, 0.15); 
+    color: #ff5555; 
+    border: 1px solid rgba(255, 77, 77, 0.3);
+}
+.badge-tag.romance { 
+    background: rgba(255, 102, 178, 0.15); 
+    color: #ff66b2; 
+    border: 1px solid rgba(255, 102, 178, 0.3);
+}
+.badge-tag.important { 
+    background: rgba(255, 170, 0, 0.15); 
+    color: #ffaa00; 
+    border: 1px solid rgba(255, 170, 0, 0.3);
+}
+.badge-tag.rapide { 
+    background: rgba(0, 188, 212, 0.15); 
+    color: #00bcd4; 
+    border: 1px solid rgba(0, 188, 212, 0.3);
+}
+
+/* Alignement du sélecteur en bas de l'item */
+.pending-footer-tags {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.select-tag-toggle {
+    background: #101015;
+    color: #ccc;
+    border: 1px solid rgba(167, 119, 227, 0.4);
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-size: 11px;
+    cursor: pointer;
+    outline: none;
+}
+
+.select-tag-toggle:hover {
+    border-color: #a777e3;
+    color: #fff;
+}

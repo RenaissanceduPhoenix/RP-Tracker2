@@ -3,6 +3,7 @@ import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
+import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBonus/Tags.js';
 
 let unsubscribePending = null;
 
@@ -66,12 +67,11 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-// --- AJOUT RP ENVOYÉ ---
 // --- AJOUT RP ENVOYÉ (Version avec XP & Contenu) ---
 window.addSent = async function() {
     const charInput = document.getElementById("char_sent");
     const serverInput = document.getElementById("server_sent");
-    const contentInput = document.getElementById("content_sent"); // Récupère le nouveau champ
+    const contentInput = document.getElementById("content_sent"); 
     const zone = document.querySelector(".zone-ajout");
 
     if (!charInput.value || !serverInput.value) {
@@ -84,13 +84,12 @@ window.addSent = async function() {
         await addDoc(collection(db, "rps_sent"), {
             character: charInput.value,
             server: serverInput.value,
-            content: contentInput.value || "", // ON ENREGISTRE LE TEXTE ICI
+            content: contentInput.value || "", 
             createdAt: serverTimestamp()
         });
         
         showFeedback(zone, false, "Stat et XP enregistrées !");
         
-        // On vide les champs
         charInput.value = ""; 
         serverInput.value = "";
         contentInput.value = ""; 
@@ -168,20 +167,38 @@ window.loadPending = function(filterNames = null) {
         snap.forEach(docSnap => {
             const rp = docSnap.data();
             const id = docSnap.id;
+            const tagsTab = rp.tags || []; // Récupère le tableau des tags depuis Firebase
+
             const item = document.createElement('div');
             item.className = "pending-item";
-            item.onclick = () => window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
+            
+            // On s'assure que cliquer sur le select ou les options n'ouvre pas la grande modale de lecture
+            item.onclick = (e) => {
+                if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
+                    window.openModal(rp.content, rp.title, `${rp.character} — ${rp.server}`);
+                }
+            };
+            
+            // On injecte les tags sous forme de chaîne brute pour l'attribut de filtrage CSS/JS
+            item.setAttribute('data-tags', tagsTab.join(','));
+
+            // On garde ta structure stricte originale en y ajoutant la fonction des badges juste en dessous !
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div>
+                    <div style="flex-grow: 1; margin-right: 10px;">
                         <b>${rp.title}</b> ${getUrgencyTag(rp.createdAt)}<br>
                         <small>${rp.character} — ${rp.server}</small>
                     </div>
                     <button class="btn-done" onclick="event.stopPropagation(); window.markDone('${id}')">Fait</button>
                 </div>
+                ${genererBadgesEtSelecteur(id, tagsTab)}
             `;
             list.appendChild(item);
         });
+
+        // On ré-attache les écouteurs sur les filtres d'énergie une fois la liste générée
+        initialiserFiltrageTags();
+
     }, (err) => {
         console.error("Erreur Firestore :", err);
     });

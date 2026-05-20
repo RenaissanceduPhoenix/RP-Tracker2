@@ -30,10 +30,19 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="box" style="flex: 0 0 40%;">
-                <h2>Liste Pending</h2>
-                <div id="pending-list"></div>
+        <div class="box">
+                <h2>RP en attente (Pending)</h2>
+                
+                <div class="tags-filter-container">
+                    <span class="filter-label">Filtre :</span>
+                    <button class="btn-tag-filter active" data-tag="all">Tous</button>
+                    <button class="btn-tag-filter" data-tag="#Action">⚔️ Action</button>
+                    <button class="btn-tag-filter" data-tag="#Romance">❤️ Romance</button>
+                    <button class="btn-tag-filter" data-tag="#Important">🚨 Important</button>
+                    <button class="btn-tag-filter" data-tag="#Rapide">⚡ Rapide</button>
+                </div>
+
+                <div id="list"></div>
             </div>
             <div class="box" style="flex: 1;">
                 <h2>Lecteur de Message</h2>
