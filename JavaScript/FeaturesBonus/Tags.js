@@ -7,7 +7,6 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.
 export function genererBadgesEtSelecteur(rpId, tagsTab) {
     const listeTags = Array.isArray(tagsTab) ? tagsTab : [];
     
-    // 1. Fabrication des badges visuels
     let badgesHTML = '';
     listeTags.forEach(tag => {
         if (tag) {
@@ -16,7 +15,6 @@ export function genererBadgesEtSelecteur(rpId, tagsTab) {
         }
     });
 
-    // 2. Boutons d'action individuels (Suppression radicale du menu déroulant et du clic fantôme)
     const boutonsActionsHTML = `
         <div class="tag-actions-wrapper" style="display:flex; gap:5px; margin-top:5px;">
             <button class="btn-toggle-action ${listeTags.includes('#Action') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Action" style="font-size:11px; padding:2px 6px; cursor:pointer;">⚔️ Action</button>
@@ -38,7 +36,7 @@ export function genererBadgesEtSelecteur(rpId, tagsTab) {
  * Initialise le filtrage et les clics sur les boutons d'attribution
  */
 export function initialiserFiltrageTags() {
-    // --- 1. FILTRER LES CARTES (Barre d'énergie du haut) ---
+    // --- 1. FILTRER LES CARTES ---
     document.querySelectorAll('.btn-tag-filter').forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
@@ -64,11 +62,11 @@ export function initialiserFiltrageTags() {
         });
     });
 
-    // --- 2. ATTRIBUER LES TAGS aux documents de rps_received ---
+    // --- 2. ATTRIBUER LES TAGS (rps_received) ---
     document.querySelectorAll('.btn-toggle-action').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Bloque la transmission du clic vers le texte d'en dessous (Anti-clic fantôme)
+            e.stopPropagation(); // Bloque radicalement l'ouverture de la modale !
 
             const rpId = btn.getAttribute('data-rpid');
             const tagChoisi = btn.getAttribute('data-value');

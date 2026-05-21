@@ -7,7 +7,45 @@ import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBon
 
 let unsubscribePending = null;
 
-// --- EXPOSITION DES FONCTIONS AU WINDOW (Pour l'accès HTML direct) ---
+// --- OUVERTURE MODALE AVEC MARKDOWN ---
+window.openModal = function(content, title, meta) {
+    const area = document.getElementById('displayAreaPending');
+    if(!area) return;
+    area.innerHTML = `
+        <div class="rp-reader">
+            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
+                <div>
+                    <h3 style="margin:0; color:#ffcc00;">${title}</h3>
+                    <small style="color:#888;">${meta}</small>
+                </div>
+                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
+            </div>
+            <div class="rp-display-content">
+                ${parseRP(content)}
+            </div>
+        </div>
+    `;
+};
+
+// --- STATS AMÉLIORÉES (AVEC SÉCURITÉ DE CHARGEMENT) ---
+window.updateStats = async function() {
+    const container = document.getElementById("statsContainer");
+    if (!container) return;
+    try {
+        const s = await getAdvancedStats();
+        container.innerHTML = `
+            <div class="stat-grid">
+                <div class="stat-card"><span class="stat-label">RP / Semaine</span><span class="stat-value">${s.totalSemaine || 0}</span></div>
+                <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour || 0}</span></div>
+                <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount || 0}</span></div>
+                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer || 'N/A'}</span></div>
+            </div>`;
+    } catch (e) { 
+        console.error("Erreur lors de la récupération des stats :", e); 
+    }
+};
+
+// --- AJOUT RP ENVOYÉ ---
 window.addSent = async function() {
     const charInput = document.getElementById("char_sent");
     const serverInput = document.getElementById("server_sent");
@@ -36,6 +74,7 @@ window.addSent = async function() {
     } catch (e) { console.error(e); }
 };
 
+// --- AJOUT RP PENDING ---
 window.addReceived = async function() {
     const inputs = {
         title: document.getElementById("title"),
@@ -69,6 +108,7 @@ window.addReceived = async function() {
     } catch (e) { console.error(e); }
 };
 
+// --- CHARGEMENT DU PENDING (RPS_RECEIVED) ---
 window.loadPending = function(filterNames = null) {
     if (unsubscribePending) {
         unsubscribePending();
@@ -109,7 +149,7 @@ window.loadPending = function(filterNames = null) {
             item.className = "pending-item";
             item.setAttribute('data-tags', tagsTab.join(','));
 
-            // SEPARATION STRUCTORELLE CONTRE LE CLIC FANTOME : pas de onclick global
+            // Zone HTML segmentée anti-clic fantôme
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div class="text-click-zone" style="flex-grow: 1; margin-right:10px; cursor:pointer;">
@@ -123,11 +163,12 @@ window.loadPending = function(filterNames = null) {
                 </div>
             `;
 
-            // Greffe manuelle exclusive de la liseuse sur le texte
+            // Clic sur le texte -> Ouvre la modale
             item.querySelector('.text-click-zone').addEventListener('click', () => {
                 window.openModal(rp.content || "", rp.title || "RP", `${rp.character} — ${rp.server}`);
             });
 
+            // Clic sur Fait -> Termine le RP
             item.querySelector('.btn-done').addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -137,45 +178,12 @@ window.loadPending = function(filterNames = null) {
             list.appendChild(item);
         });
 
+        // Liaison immédiate des événements de filtrage et d'ajout de tags
         initialiserFiltrageTags();
 
     }, (err) => {
         console.error("Erreur Firestore à la lecture :", err);
     });
-};
-
-window.openModal = function(content, title, meta) {
-    const area = document.getElementById('displayAreaPending');
-    if(!area) return;
-    area.innerHTML = `
-        <div class="rp-reader">
-            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
-                <div>
-                    <h3 style="margin:0; color:#ffcc00;">${title}</h3>
-                    <small style="color:#888;">${meta}</small>
-                </div>
-                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
-            </div>
-            <div class="rp-display-content">
-                ${parseRP(content)}
-            </div>
-        </div>
-    `;
-};
-
-window.updateStats = async function() {
-    const container = document.getElementById("statsContainer");
-    if (!container) return;
-    try {
-        const s = await getAdvancedStats();
-        container.innerHTML = `
-            <div class="stat-grid">
-                <div class="stat-card"><span class="stat-label">RP / Semaine</span><span class="stat-value">${s.totalSemaine}</span></div>
-                <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour}</span></div>
-                <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount}</span></div>
-                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer}</span></div>
-            </div>`;
-    } catch (e) { console.error(e); }
 };
 
 window.markDone = async function(id) {
@@ -212,8 +220,13 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-// Lancement au chargement de la page
+// OPTIMISATION CRITIQUE DU CHARGEMENT
 document.addEventListener('DOMContentLoaded', () => {
-    window.updateStats();
+    // 1. On charge d'abord l'affichage de manière Prioritaire
     window.loadPending();
+
+    // 2. On retarde le calcul lourd des statistiques pour ne pas geler l'interface
+    setTimeout(() => {
+        window.updateStats();
+    }, 400); 
 });
