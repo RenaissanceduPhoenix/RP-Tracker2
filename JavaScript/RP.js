@@ -27,7 +27,7 @@ window.openModal = function(content, title, meta) {
     `;
 };
 
-// --- STATS AMÉLIORÉES (AVEC SÉCURITÉ DE CHARGEMENT) ---
+// --- STATS ---
 window.updateStats = async function() {
     const container = document.getElementById("statsContainer");
     if (!container) return;
@@ -38,11 +38,9 @@ window.updateStats = async function() {
                 <div class="stat-card"><span class="stat-label">RP / Semaine</span><span class="stat-value">${s.totalSemaine || 0}</span></div>
                 <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour || 0}</span></div>
                 <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount || 0}</span></div>
-                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer || 'N/A'}</span></div>
+                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer || 'Aucun'}</span></div>
             </div>`;
-    } catch (e) { 
-        console.error("Erreur lors de la récupération des stats :", e); 
-    }
+    } catch (e) { console.error(e); }
 };
 
 // --- AJOUT RP ENVOYÉ ---
@@ -74,7 +72,7 @@ window.addSent = async function() {
     } catch (e) { console.error(e); }
 };
 
-// --- AJOUT RP PENDING ---
+// --- AJOUT RP PENDING (CORRIGÉ AVEC COUPLAGE TAG INITIAL) ---
 window.addReceived = async function() {
     const inputs = {
         title: document.getElementById("title"),
@@ -82,6 +80,7 @@ window.addReceived = async function() {
         srv: document.getElementById("server_received"),
         cont: document.getElementById("content")
     };
+    const initialTagInput = document.getElementById("initial_tag");
     const zone = document.querySelector(".zone-ajout-pending");
 
     let hasError = false;
@@ -93,22 +92,27 @@ window.addReceived = async function() {
     }
     if (hasError) return;
 
+    // Détermination du tag de départ choisi dans le formulaire
+    const tagInitial = initialTagInput && initialTagInput.value ? [initialTagInput.value] : [];
+
     try {
+        // CORRECTION DE LA COLLECTION : "rps_received" au lieu de "pending"
         await addDoc(collection(db, "rps_received"), {
             title: inputs.title.value,
             character: inputs.char.value,
             server: inputs.srv.value,
             content: inputs.cont.value,
             status: "pending",
-            tags: [], 
+            tags: tagInitial, 
             createdAt: serverTimestamp()
         });
         showFeedback(zone, false, "Ajouté au Pending !");
         for (let key in inputs) { if(inputs[key]) inputs[key].value = ""; }
+        if (initialTagInput) initialTagInput.value = "";
     } catch (e) { console.error(e); }
 };
 
-// --- CHARGEMENT DU PENDING (RPS_RECEIVED) ---
+// --- CHARGEMENT DU PENDING (CORRIGÉ POUR LA BONNE COLLECTION) ---
 window.loadPending = function(filterNames = null) {
     if (unsubscribePending) {
         unsubscribePending();
@@ -118,6 +122,7 @@ window.loadPending = function(filterNames = null) {
     const list = document.getElementById('pending-list');
     if (!list) return;
 
+    // CORRECTION : Lecture dans "rps_received"
     let q = query(
         collection(db, "rps_received"),
         where("status", "==", "pending"),
@@ -149,7 +154,7 @@ window.loadPending = function(filterNames = null) {
             item.className = "pending-item";
             item.setAttribute('data-tags', tagsTab.join(','));
 
-            // Zone HTML segmentée anti-clic fantôme
+            // SÉPARATION STRICTE DES BOUTONS ET DU TEXTE CONTRE LE CLIC FANTÔME
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div class="text-click-zone" style="flex-grow: 1; margin-right:10px; cursor:pointer;">
@@ -163,12 +168,11 @@ window.loadPending = function(filterNames = null) {
                 </div>
             `;
 
-            // Clic sur le texte -> Ouvre la modale
+            // Événement d'ouverture de la liseuse uniquement relié à la zone de texte
             item.querySelector('.text-click-zone').addEventListener('click', () => {
                 window.openModal(rp.content || "", rp.title || "RP", `${rp.character} — ${rp.server}`);
             });
 
-            // Clic sur Fait -> Termine le RP
             item.querySelector('.btn-done').addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -178,7 +182,7 @@ window.loadPending = function(filterNames = null) {
             list.appendChild(item);
         });
 
-        // Liaison immédiate des événements de filtrage et d'ajout de tags
+        // Initialisation de la logique des Tags (Filtres + Attribution)
         initialiserFiltrageTags();
 
     }, (err) => {
@@ -220,13 +224,8 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-// OPTIMISATION CRITIQUE DU CHARGEMENT
+// Gestion optimisée du cycle de vie au démarrage de la page
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. On charge d'abord l'affichage de manière Prioritaire
     window.loadPending();
-
-    // 2. On retarde le calcul lourd des statistiques pour ne pas geler l'interface
-    setTimeout(() => {
-        window.updateStats();
-    }, 400); 
+    setTimeout(() => { window.updateStats(); }, 400); 
 });

@@ -7,6 +7,7 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.
 export function genererBadgesEtSelecteur(rpId, tagsTab) {
     const listeTags = Array.isArray(tagsTab) ? tagsTab : [];
     
+    // 1. Fabrication des badges visuels au-dessus du sélecteur
     let badgesHTML = '';
     listeTags.forEach(tag => {
         if (tag) {
@@ -15,28 +16,28 @@ export function genererBadgesEtSelecteur(rpId, tagsTab) {
         }
     });
 
-    const boutonsActionsHTML = `
-        <div class="tag-actions-wrapper" style="display:flex; gap:5px; margin-top:5px;">
-            <button class="btn-toggle-action ${listeTags.includes('#Action') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Action" style="font-size:11px; padding:2px 6px; cursor:pointer;">⚔️ Action</button>
-            <button class="btn-toggle-action ${listeTags.includes('#Romance') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Romance" style="font-size:11px; padding:2px 6px; cursor:pointer;">❤️ Romance</button>
-            <button class="btn-toggle-action ${listeTags.includes('#Important') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Important" style="font-size:11px; padding:2px 6px; cursor:pointer;">🚨 Important</button>
-            <button class="btn-toggle-action ${listeTags.includes('#Rapide') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Rapide" style="font-size:11px; padding:2px 6px; cursor:pointer;">⚡ Rapide</button>
+    // 2. Création d'un menu déroulant propre avec un indicateur clair d'Ajout/Retrait
+    const itemFooterHTML = `
+        <div class="pending-footer-tags" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; width:100%;">
+            <div class="rp-tags-badges">${badgesHTML}</div>
+            <select class="select-tag-toggle" data-rpid="${rpId}" style="background:#101015; color:#ccc; border:1px solid rgba(167, 119, 227, 0.4); border-radius:4px; padding:2px 5px; font-size:11px; cursor:pointer;">
+                <option value="" selected>🏷️ Gérer les tags...</option>
+                <option value="#Action" style="color:#ff5555;">${listeTags.includes('#Action') ? '❌ Retirer' : '⚔️ Ajouter'} Action</option>
+                <option value="#Romance" style="color:#ff66b2;">${listeTags.includes('#Romance') ? '❌ Retirer' : '❤️ Ajouter'} Romance</option>
+                <option value="#Important" style="color:#ffaa00;">${listeTags.includes('#Important') ? '❌ Retirer' : '🚨 Ajouter'} Important</option>
+                <option value="#Rapide" style="color:#00bcd4;">${listeTags.includes('#Rapide') ? '❌ Retirer' : '⚡ Ajouter'} Rapide</option>
+            </select>
         </div>
     `;
 
-    return `
-        <div class="tags-block-container" style="width:100%; margin-top:8px;">
-            <div class="rp-tags-badges" style="margin-bottom:5px;">${badgesHTML}</div>
-            ${boutonsActionsHTML}
-        </div>
-    `;
+    return itemFooterHTML;
 }
 
 /**
  * Initialise le filtrage et les clics sur les boutons d'attribution
  */
 export function initialiserFiltrageTags() {
-    // --- 1. FILTRER LES CARTES ---
+    // --- 1. FILTRER LES CARTES (Barre supérieure d'énergie du tableau de bord) ---
     document.querySelectorAll('.btn-tag-filter').forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
@@ -62,16 +63,19 @@ export function initialiserFiltrageTags() {
         });
     });
 
-    // --- 2. ATTRIBUER LES TAGS (rps_received) ---
-    document.querySelectorAll('.btn-toggle-action').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+    // --- 2. ATTRIBUER OU RETIRER LES TAGS (Au changement de sélection du menu déroulant) ---
+    document.querySelectorAll('.select-tag-toggle').forEach(selector => {
+        selector.addEventListener('change', async (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Bloque radicalement l'ouverture de la modale !
+            e.stopPropagation(); // ÉRADICATION DU CLIC FANTÔME : Le clic meurt ici et n'ouvre pas le texte de la carte située derrière !
 
-            const rpId = btn.getAttribute('data-rpid');
-            const tagChoisi = btn.getAttribute('data-value');
+            const rpId = selector.getAttribute('data-rpid');
+            const tagChoisi = e.target.value;
+
+            if (!tagChoisi) return;
 
             try {
+                // CORRECTION DE LA COLLECTION : Changement pour "rps_received"
                 const docRef = doc(db, "rps_received", rpId);
                 const docSnap = await getDoc(docRef);
 
@@ -85,10 +89,14 @@ export function initialiserFiltrageTags() {
                         currentTags.push(tagChoisi);
                     }
 
+                    // Écriture instantanée dans Firestore
                     await updateDoc(docRef, { tags: currentTags });
+                    
+                    // Remise à zéro immédiate de la valeur affichée du sélecteur
+                    selector.value = "";
                 }
             } catch (error) {
-                console.error("Erreur d'écriture Firestore :", error);
+                console.error("Erreur d'écriture dans rps_received :", error);
             }
         });
     });
