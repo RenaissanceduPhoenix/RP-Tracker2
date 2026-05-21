@@ -2,12 +2,12 @@ import { db } from '../Firebase.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
- * Fabrique le code HTML des badges et du menu déroulant pour un RP donné
+ * Fabrique le code HTML des badges et de la barre de gestion des tags
  */
-export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
-    // SÉCURITÉ : Si tagsTab n'existe pas ou est indéfini (anciens RPs), on prend un tableau vide
+export function genererBadgesEtSelecteur(rpId, tagsTab) {
     const listeTags = Array.isArray(tagsTab) ? tagsTab : [];
     
+    // 1. Fabrication des badges visuels
     let badgesHTML = '';
     listeTags.forEach(tag => {
         if (tag) {
@@ -16,43 +16,36 @@ export function genererBadgesEtSelecteur(rpId, tagsTab = []) {
         }
     });
 
-    const itemFooterHTML = `
-        <div class="pending-footer-tags" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; width:100%;">
-            <div class="rp-tags-badges">${badgesHTML}</div>
-            <select class="select-tag-toggle" data-rpid="${rpId}">
-                <option value="">🏷️ Gérer les tags...</option>
-                <option value="#Action" ${listeTags.includes('#Action') ? 'selected style="color:#ff5555; font-weight:bold;"' : ''}>
-                    ⚔️ Action ${listeTags.includes('#Action') ? '✅' : ''}
-                </option>
-                <option value="#Romance" ${listeTags.includes('#Romance') ? 'selected style="color:#ff66b2; font-weight:bold;"' : ''}>
-                    ❤️ Romance ${listeTags.includes('#Romance') ? '✅' : ''}
-                </option>
-                <option value="#Important" ${listeTags.includes('#Important') ? 'selected style="color:#ffaa00; font-weight:bold;"' : ''}>
-                    🚨 Important ${listeTags.includes('#Important') ? '✅' : ''}
-                </option>
-                <option value="#Rapide" ${listeTags.includes('#Rapide') ? 'selected style="color:#00bcd4; font-weight:bold;"' : ''}>
-                    ⚡ Rapide ${listeTags.includes('#Rapide') ? '✅' : ''}
-                </option>
-            </select>
+    // 2. Boutons d'action individuels (Suppression radicale du menu déroulant et du clic fantôme)
+    const boutonsActionsHTML = `
+        <div class="tag-actions-wrapper" style="display:flex; gap:5px; margin-top:5px;">
+            <button class="btn-toggle-action ${listeTags.includes('#Action') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Action" style="font-size:11px; padding:2px 6px; cursor:pointer;">⚔️ Action</button>
+            <button class="btn-toggle-action ${listeTags.includes('#Romance') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Romance" style="font-size:11px; padding:2px 6px; cursor:pointer;">❤️ Romance</button>
+            <button class="btn-toggle-action ${listeTags.includes('#Important') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Important" style="font-size:11px; padding:2px 6px; cursor:pointer;">🚨 Important</button>
+            <button class="btn-toggle-action ${listeTags.includes('#Rapide') ? 'active-tag' : ''}" data-rpid="${rpId}" data-value="#Rapide" style="font-size:11px; padding:2px 6px; cursor:pointer;">⚡ Rapide</button>
         </div>
     `;
 
-    return itemFooterHTML;
+    return `
+        <div class="tags-block-container" style="width:100%; margin-top:8px;">
+            <div class="rp-tags-badges" style="margin-bottom:5px;">${badgesHTML}</div>
+            ${boutonsActionsHTML}
+        </div>
+    `;
 }
 
 /**
- * Initialise le filtrage dynamique au clic sur la barre d'énergie
+ * Initialise le filtrage et les clics sur les boutons d'attribution
  */
 export function initialiserFiltrageTags() {
-    // --- 1. FILTRAGE AU CLIC SUR LES BOUTONS ---
+    // --- 1. FILTRER LES CARTES (Barre d'énergie du haut) ---
     document.querySelectorAll('.btn-tag-filter').forEach(button => {
-        // On clone pour écraser les anciens écouteurs et éviter les clics fantômes / doublons
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
 
         newButton.addEventListener('click', (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Stop la propagation totale
+            e.stopPropagation();
             
             document.querySelectorAll('.btn-tag-filter').forEach(btn => btn.classList.remove('active'));
             newButton.classList.add('active');
@@ -62,8 +55,7 @@ export function initialiserFiltrageTags() {
 
             cards.forEach(card => {
                 const cardTags = card.getAttribute('data-tags') || '';
-                
-                if (tagSelectionne === 'all' || cardTags.includes(tagSelectionne)) {
+                if (tagSelectionne === 'all' || cardTags.split(',').includes(tagSelectionne)) {
                     card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
@@ -72,40 +64,33 @@ export function initialiserFiltrageTags() {
         });
     });
 
-    // --- 2. ATTRIBUTION DES TAGS ---
-    document.querySelectorAll('.select-tag-toggle').forEach(selector => {
-        selector.addEventListener('change', async (e) => {
+    // --- 2. ATTRIBUER LES TAGS aux documents de rps_received ---
+    document.querySelectorAll('.btn-toggle-action').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Évite le clic fantôme sur la carte derrière !
+            e.stopPropagation(); // Bloque la transmission du clic vers le texte d'en dessous (Anti-clic fantôme)
 
-            const rpId = selector.getAttribute('data-rpid');
-            const tagChoisi = e.target.value;
-
-            if (!tagChoisi) return;
+            const rpId = btn.getAttribute('data-rpid');
+            const tagChoisi = btn.getAttribute('data-value');
 
             try {
                 const docRef = doc(db, "rps_received", rpId);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    let currentTags = docSnap.data().tags || [];
+                    let currentTags = docSnap.data().tags;
+                    if (!Array.isArray(currentTags)) currentTags = [];
 
                     if (currentTags.includes(tagChoisi)) {
-                        // Supprime si déjà présent
                         currentTags = currentTags.filter(t => t !== tagChoisi);
                     } else {
-                        // Ajoute si absent
                         currentTags.push(tagChoisi);
                     }
 
-                    // Envoi à Firebase
                     await updateDoc(docRef, { tags: currentTags });
-                    
-                    // Recharge la liste en direct sans recharger toute la page web
-                    if (window.loadPending) window.loadPending();
                 }
             } catch (error) {
-                console.error("Erreur lors du toggle du tag dans Firebase :", error);
+                console.error("Erreur d'écriture Firestore :", error);
             }
         });
     });
