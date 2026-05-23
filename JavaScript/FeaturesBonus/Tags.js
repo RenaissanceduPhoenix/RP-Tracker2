@@ -10,33 +10,34 @@ export function genererBadgesEtSelecteur(rpId, tagsTab) {
     let badgesHTML = '';
     listeTags.forEach(tag => {
         if (tag) {
-            const classeCouleur = tag.replace('#', '').toLowerCase(); 
+            // Nettoie le '#' et passe en minuscule pour correspondre aux classes CSS (.action, .romance...)
+            const classeCouleur = tag.replace('#', '').toLowerCase().trim(); 
             badgesHTML += `<span class="badge-tag ${classeCouleur}">${tag}</span>`;
         }
     });
 
-    // Retourne le sélecteur d'attribution individuel sans interaction avec le parent (zéro clic fantôme)
+    // Retourne le sélecteur d'attribution individuel (zéro clic fantôme)
     return `
         <div class="pending-footer-tags" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; width:100%;">
-            <div class="rp-tags-badges" style="display:flex; gap:4px;">${badgesHTML}</div>
+            <div class="rp-tags-badges" style="display:flex; gap:4px; flex-wrap:wrap;">${badgesHTML}</div>
             <select class="select-tag-toggle" data-rpid="${rpId}" style="background:#101015; color:#ccc; border:1px solid rgba(167, 119, 227, 0.4); border-radius:4px; padding:2px 5px; font-size:11px; cursor:pointer;">
-                <option value="" selected>🏷️ Gérer les tags...</option>
-                <option value="#Action" style="color:#ff5555;">${listeTags.includes('#Action') ? '❌ Retirer' : '⚔️ Ajouter'} Action</option>
-                <option value="#Romance" style="color:#ff66b2;">${listeTags.includes('#Romance') ? '❌ Retirer' : '❤️ Ajouter'} Romance</option>
-                <option value="#Important" style="color:#ffaa00;">${listeTags.includes('#Important') ? '❌ Retirer' : '🚨 Ajouter'} Important</option>
-                <option value="#Rapide" style="color:#00bcd4;">${listeTags.includes('#Rapide') ? '❌ Retirer' : '⚡ Ajouter'} Rapide</option>
+                <option value="">🏷️ Gérer...</option>
+                <option value="#Action">⚔️ Action</option>
+                <option value="#Romance">❤️ Romance</option>
+                <option value="#Important">🚨 Important</option>
+                <option value="#Rapide">⚡ Rapide</option>
             </select>
         </div>
     `;
 }
 
 /**
- * Initialise le filtrage dynamique des boutons supérieurs et les écouteurs de tags
+ * Initialise la logique d'écoute des filtres du haut et des changements de sélecteurs
  */
 export function initialiserFiltrageTags() {
-    // --- 1. FILTRAGE DES CARTES (Boutons supérieurs de la barre d'énergie) ---
+    // --- 1. FILTRAGE DES CARTES (Boutons supérieurs) ---
     document.querySelectorAll('.btn-tag-filter').forEach(button => {
-        // Recréation propre de l'élément pour purger les écouteurs dupliqués en mémoire
+        // Clonage pour purger les anciens écouteurs et éviter les doublons de clics
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
 
@@ -44,19 +45,27 @@ export function initialiserFiltrageTags() {
             e.preventDefault();
             e.stopPropagation();
             
+            // Gestion de la classe active visuelle
             document.querySelectorAll('.btn-tag-filter').forEach(btn => btn.classList.remove('active'));
             newButton.classList.add('active');
 
-            const tagSelectionne = newButton.getAttribute('data-tag'); // Contient "all" ou "#Action" par exemple
+            const tagSelectionne = newButton.getAttribute('data-tag'); // ex: "all", "Action", "Romance"
             const cards = document.querySelectorAll('.pending-item');
 
             cards.forEach(card => {
-                const cardTagsString = card.getAttribute('data-tags') || '';
-                // Découpage propre des tags sous forme de tableau
-                const listeTagsDeLaCarte = cardTagsString.split(',').filter(t => t.trim() !== "");
+                if (tagSelectionne === 'all') {
+                    card.style.setProperty('display', 'block', 'important');
+                    return;
+                }
 
-                // CORRECTION LOGIQUE : Si "all" on affiche, sinon on vérifie la présence du tag exact
-                if (tagSelectionne === 'all' || listeTagsDeLaCarte.includes(tagSelectionne)) {
+                // Récupère la liste des tags de la carte stockés dans l'attribut (ex: "#Action,#Important")
+                const cardTagsString = card.getAttribute('data-tags') || '';
+                const listeTagsDeLaCarte = cardTagsString.split(',').map(t => t.trim());
+
+                // HARMONISATION : Ton HTML utilise "Action", mais Firebase utilise "#Action"
+                const tagFormatte = tagSelectionne.startsWith('#') ? tagSelectionne : '#' + tagSelectionne;
+
+                if (listeTagsDeLaCarte.includes(tagFormatte)) {
                     card.style.setProperty('display', 'block', 'important');
                 } else {
                     card.style.setProperty('display', 'none', 'important');
@@ -69,12 +78,17 @@ export function initialiserFiltrageTags() {
     document.querySelectorAll('.select-tag-toggle').forEach(selector => {
         selector.addEventListener('change', async (e) => {
             e.preventDefault();
-            e.stopPropagation(); // Tue l'événement ici pour détruire le clic fantôme
+            e.stopPropagation(); // Évite l'ouverture de la modale de lecture située derrière
 
             const rpId = selector.getAttribute('data-rpid');
-            const tagChoisi = e.target.value;
+            let tagChoisi = e.target.value;
 
             if (!tagChoisi) return;
+            
+            // Sécurité : on s'assure que le tag possède le symbole '#' avant de l'envoyer dans Firebase
+            if (!tagChoisi.startsWith('#')) {
+                tagChoisi = '#' + tagChoisi;
+            }
 
             try {
                 const docRef = doc(db, "rps_received", rpId);
@@ -84,19 +98,20 @@ export function initialiserFiltrageTags() {
                     let currentTags = docSnap.data().tags;
                     if (!Array.isArray(currentTags)) currentTags = [];
 
+                    // Si le tag y est déjà, on le retire (système d'interrupteur), sinon on l'ajoute
                     if (currentTags.includes(tagChoisi)) {
                         currentTags = currentTags.filter(t => t !== tagChoisi);
                     } else {
                         currentTags.push(tagChoisi);
                     }
 
-                    // Sauvegarde instantanée sur la collection rps_received
+                    // Mise à jour temps réel sur Firestore
                     await updateDoc(docRef, { tags: currentTags });
                 }
             } catch (error) {
                 console.error("Erreur lors de la mise à jour du tag :", error);
             } finally {
-                selector.value = ""; // Remet le menu à l'état initial
+                selector.value = ""; // Réinitialise le menu déroulant de la carte
             }
         });
     });

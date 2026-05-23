@@ -12,7 +12,7 @@
 
     <div class="dashboard">
         <div class="row">
-            <div class="box">
+            <div class="box zone-ajout">
                 <h2>Ajouter un RP Envoyé</h2>
                 <input id="char_sent" placeholder="Nom du personnage">
                 <input id="server_sent" placeholder="Nom du serveur">
@@ -20,39 +20,41 @@
                 <button onclick="addSent()">Enregistrer l'envoi</button>
             </div>
 
-            <div class="box">
-    <h2>Nouveau RP en attente (Pending)</h2>
-    <input id="title" placeholder="Titre du RP">
-    <input id="char_received" placeholder="Ton personnage">
-    <input id="server_received" placeholder="Serveur">
-    <textarea id="content" placeholder="Contenu du message..."></textarea>
-    
-    <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
-        <option value="">🏷️ Choisir une énergie (Optionnel)...</option>
-        <option value="#Action">⚔️ Action</option>
-        <option value="#Romance">❤️ Romance</option>
-        <option value="#Important">🚨 Important</option>
-        <option value="#Rapide">⚡ Rapide</option>
-    </select>
-    
-    <button onclick="addReceived()">Ajouter au Pending</button>
-</div>
+            <div class="box zone-ajout-pending">
+                <h2>Nouveau RP en attente (Pending)</h2>
+                <input id="title" placeholder="Titre du RP">
+                <input id="char_received" placeholder="Ton personnage">
+                <input id="server_received" placeholder="Serveur">
+                <textarea id="content" placeholder="Contenu du message..."></textarea>
+                
+                <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
+                    <option value="">🏷️ Choisir une énergie (Optionnel)...</option>
+                    <option value="Action">⚔️ Action</option>
+                    <option value="Romance">❤️ Romance</option>
+                    <option value="Important">🚨 Important</option>
+                    <option value="Rapide">⚡ Rapide</option>
+                </select>
+                
+                <button onclick="addReceived()">Ajouter au Pending</button>
+            </div>
         </div>
 
-        <div class="box">
+        <div class="row">
+            <div class="box" style="flex: 1;">
                 <h2>RP en attente (Pending)</h2>
                 
                 <div class="tags-filter-container">
                     <span class="filter-label">Filtre :</span>
                     <button class="btn-tag-filter active" data-tag="all">Tous</button>
-                    <button class="btn-tag-filter" data-tag="#Action">⚔️ Action</button>
-                    <button class="btn-tag-filter" data-tag="#Romance">❤️ Romance</button>
-                    <button class="btn-tag-filter" data-tag="#Important">🚨 Important</button>
-                    <button class="btn-tag-filter" data-tag="#Rapide">⚡ Rapide</button>
+                    <button class="btn-tag-filter" data-tag="Action">⚔️ Action</button>
+                    <button class="btn-tag-filter" data-tag="Romance">❤️ Romance</button>
+                    <button class="btn-tag-filter" data-tag="Important">🚨 Important</button>
+                    <button class="btn-tag-filter" data-tag="Rapide">⚡ Rapide</button>
                 </div>
 
-                <div id="list"></div>
+                <div id="pending-list"></div>
             </div>
+            
             <div class="box" style="flex: 1;">
                 <h2>Lecteur de Message</h2>
                 <div id="displayAreaPending">
@@ -60,7 +62,8 @@
                 </div>
             </div>
         </div>
-<div class="row split-row">
+
+        <div class="row split-row">
             <div class="box zone-galerie">
                 <h2>Galerie</h2>
                 <div id="char-gallery" class="char-gallery"></div>
@@ -86,10 +89,9 @@
                 </div>
             </div>
         </div>
-    </div>
 
         <div class="row full-width-row">
-            <div class="box zone-graphique-principale">
+            <div class="box zone-graphique-principale" style="width: 100%;">
                 <h2>Évolution de l'activité</h2>
                 <div class="controls-graph">
                     <select id="viewType" onchange="loadCharts()">
@@ -105,8 +107,10 @@
                 </div>
             </div>
         </div>
-<div id="statsContainer" class="box">
-    <h2>Statistiques de l'Activité</h2>
+
+        <div id="statsContainer" class="box">
+            <h2>Statistiques de l'Activité</h2>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

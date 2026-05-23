@@ -178,11 +178,9 @@ window.loadPending = function(filterNames = null) {
                 e.stopPropagation();
                 window.markDone(id);
             });
-
             list.appendChild(item);
         });
 
-        // Activation instantanée de la logique des tags et des boutons de filtrage du haut
         initialiserFiltrageTags();
 
     }, (err) => {
