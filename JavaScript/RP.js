@@ -72,7 +72,7 @@ window.addSent = async function() {
     } catch (e) { console.error(e); }
 };
 
-// --- AJOUT RP PENDING (CORRIGÉ AVEC COUPLAGE TAG INITIAL) ---
+// --- AJOUT RP PENDING (INTEGRATION DU TAG INITIAL) ---
 window.addReceived = async function() {
     const inputs = {
         title: document.getElementById("title"),
@@ -92,18 +92,17 @@ window.addReceived = async function() {
     }
     if (hasError) return;
 
-    // Détermination du tag de départ choisi dans le formulaire
-    const tagInitial = initialTagInput && initialTagInput.value ? [initialTagInput.value] : [];
+    // Récupération sécurisée du tag choisi dans le menu déroulant
+    const tagChoisi = initialTagInput && initialTagInput.value ? [initialTagInput.value] : [];
 
     try {
-        // CORRECTION DE LA COLLECTION : "rps_received" au lieu de "pending"
         await addDoc(collection(db, "rps_received"), {
             title: inputs.title.value,
             character: inputs.char.value,
             server: inputs.srv.value,
             content: inputs.cont.value,
             status: "pending",
-            tags: tagInitial, 
+            tags: tagChoisi, 
             createdAt: serverTimestamp()
         });
         showFeedback(zone, false, "Ajouté au Pending !");
@@ -112,7 +111,7 @@ window.addReceived = async function() {
     } catch (e) { console.error(e); }
 };
 
-// --- CHARGEMENT DU PENDING (CORRIGÉ POUR LA BONNE COLLECTION) ---
+// --- CHARGEMENT DU PENDING ---
 window.loadPending = function(filterNames = null) {
     if (unsubscribePending) {
         unsubscribePending();
@@ -122,19 +121,17 @@ window.loadPending = function(filterNames = null) {
     const list = document.getElementById('pending-list');
     if (!list) return;
 
-    // CORRECTION : Lecture dans "rps_received"
+    // Requête simplifiée pour éviter les erreurs d'index complexes au démarrage
     let q = query(
         collection(db, "rps_received"),
-        where("status", "==", "pending"),
-        orderBy("createdAt", "desc")
+        where("status", "==", "pending")
     );
 
     if (filterNames && Array.isArray(filterNames) && filterNames.length > 0) {
         q = query(
             collection(db, "rps_received"),
             where("status", "==", "pending"),
-            where("character", "in", filterNames),
-            orderBy("createdAt", "desc")
+            where("character", "in", filterNames)
         );
     }
 
@@ -152,9 +149,11 @@ window.loadPending = function(filterNames = null) {
 
             const item = document.createElement('div');
             item.className = "pending-item";
+            
+            // Propriété essentielle lue par le script de filtrage
             item.setAttribute('data-tags', tagsTab.join(','));
 
-            // SÉPARATION STRICTE DES BOUTONS ET DU TEXTE CONTRE LE CLIC FANTÔME
+            // Structure HTML segmentée : empêche la propagation du clic vers la liseuse
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div class="text-click-zone" style="flex-grow: 1; margin-right:10px; cursor:pointer;">
@@ -168,11 +167,12 @@ window.loadPending = function(filterNames = null) {
                 </div>
             `;
 
-            // Événement d'ouverture de la liseuse uniquement relié à la zone de texte
+            // Clic sur le texte uniquement -> Ouvre la liseuse
             item.querySelector('.text-click-zone').addEventListener('click', () => {
                 window.openModal(rp.content || "", rp.title || "RP", `${rp.character} — ${rp.server}`);
             });
 
+            // Clic sur le bouton fait
             item.querySelector('.btn-done').addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -182,11 +182,11 @@ window.loadPending = function(filterNames = null) {
             list.appendChild(item);
         });
 
-        // Initialisation de la logique des Tags (Filtres + Attribution)
+        // Activation instantanée de la logique des tags et des boutons de filtrage du haut
         initialiserFiltrageTags();
 
     }, (err) => {
-        console.error("Erreur Firestore à la lecture :", err);
+        console.error("Erreur d'écoute Firestore :", err);
     });
 };
 
@@ -224,7 +224,6 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-// Gestion optimisée du cycle de vie au démarrage de la page
 document.addEventListener('DOMContentLoaded', () => {
     window.loadPending();
     setTimeout(() => { window.updateStats(); }, 400); 

@@ -21,20 +21,22 @@
             </div>
 
             <div class="box">
-                <h2>Nouveau RP en attente (Pending)</h2>
-                <input id="title" placeholder="Titre du RP">
-                <input id="char_received" placeholder="Ton personnage">
-                <input id="server_received" placeholder="Serveur">
-                <textarea id="content" placeholder="Contenu du message..."></textarea>
-                    <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
-                        <option value="">Sélectionne une catégorie...</option>
-                        <option value="#Action">⚔️ Action</option>
-                        <option value="#Romance">❤️ Romance</option>
-                        <option value="#Important">🚨 Important</option>
-                        <option value="#Rapide">⚡ Rapide</option>
-                    </select>
-                <button onclick="addReceived()">Ajouter à la liste</button>
-            </div>
+    <h2>Nouveau RP en attente (Pending)</h2>
+    <input id="title" placeholder="Titre du RP">
+    <input id="char_received" placeholder="Ton personnage">
+    <input id="server_received" placeholder="Serveur">
+    <textarea id="content" placeholder="Contenu du message..."></textarea>
+    
+    <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
+        <option value="">🏷️ Choisir une énergie (Optionnel)...</option>
+        <option value="#Action">⚔️ Action</option>
+        <option value="#Romance">❤️ Romance</option>
+        <option value="#Important">🚨 Important</option>
+        <option value="#Rapide">⚡ Rapide</option>
+    </select>
+    
+    <button onclick="addReceived()">Ajouter au Pending</button>
+</div>
         </div>
 
         <div class="box">
