@@ -17,19 +17,18 @@ const nameToImage = {
 };
 
 if (!localStorage.getItem("myActiveChars")) {
-    localStorage.setItem("myActiveChars", JSON.stringify(["Ardeur du Lynx", "Nuage d’Anémone", "Pelage des Sables"]));
+    localStorage.setItem("myActiveChars", JSON.stringify(["Ardeur du Lynx", "Nuage d'Anémone", "Pelage des Sables"]));
 }
 
 const getActiveChars = () => JSON.parse(localStorage.getItem("myActiveChars"));
 
 // --- GÉNÉRATION VISUELLE DE LA GALERIE ---
 window.afficherGaleriePersonnages = function() {
-    const conteneurGalerie = document.getElementById("character-gallery-target"); 
-    // Utilisons la bonne classe si l'ID n'est pas trouvé
-    const cible = conteneurGalerie || document.querySelector(".char-gallery");
+    // CORRECTION 1 : On cible l'ID exact de ton index.html
+    const cible = document.getElementById("char-gallery"); 
     
     if (!cible) {
-        console.error("Conteneur de la galerie introuvable.");
+        console.error("Conteneur de la galerie (char-gallery) introuvable.");
         return;
     }
 
@@ -38,12 +37,12 @@ window.afficherGaleriePersonnages = function() {
 
     listePersos.forEach(nom => {
         const imageFichier = nameToImage[nom] || "default-avatar.png";
-        
-        // CORRECTION CRITIQUE : Le bon chemin vers tes images selon ton arborescence
         const imagePath = `./JavaScript/FeaturesBonus/Assets/Avatars/${imageFichier}`; 
 
+        // CORRECTION 2 : Utilisation de data-name pour empêcher l'apostrophe de casser le JS
+        // Et on retire le nom des arguments du onclick
         html += `
-            <div class="character-avatar-card char-card" onclick="window.selectChar(this, '${nom}')" style="opacity: 0.8; cursor: pointer; transition: all 0.2s;">
+            <div class="character-avatar-card char-card" data-name="${nom.replace(/"/g, '&quot;')}" onclick="window.selectChar(this)" style="opacity: 0.8; cursor: pointer; transition: all 0.2s;">
                 <img src="${imagePath}" class="character-avatar-img" alt="${nom}" onerror="this.src='./JavaScript/FeaturesBonus/Assets/Avatars/default-avatar.png'" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #a777e3;">
                 <div class="character-avatar-name" style="font-size: 12px; margin-top: 5px; text-align: center;">${nom}</div>
             </div>
@@ -52,11 +51,11 @@ window.afficherGaleriePersonnages = function() {
 
     html += `</div>`;
     cible.innerHTML = html;
-    html += `</div>`;
-    conteneurGalerie.innerHTML = html;
 };
 
-window.selectChar = function(element, nom) {
+// CORRECTION 3 : La fonction récupère le nom directement dans le dataset
+window.selectChar = function(element) {
+    const nom = element.getAttribute('data-name');
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
     element.classList.add('active');
     

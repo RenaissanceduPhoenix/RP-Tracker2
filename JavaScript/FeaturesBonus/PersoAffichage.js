@@ -7,9 +7,15 @@ window.openFullPerso = async function() {
     const active = document.querySelector('.char-card.active');
     if(!active) return alert("Veuillez sélectionner un personnage dans la galerie.");
     
-    const charName = active.querySelector('p').innerText;
+    // CORRECTION 4 : On récupère le nom via le nouvel attribut data-name
+    const charName = active.getAttribute('data-name');
     const data = charactersDB[charName];
     const area = document.getElementById('displayAreaPerso');
+    
+    if (!data) {
+        area.innerHTML = `<p class="empty-msg" style="color:red">Données introuvables pour ce personnage.</p>`;
+        return;
+    }
     
     area.innerHTML = `
         <div class="perso-view">
@@ -27,17 +33,30 @@ window.openFullPerso = async function() {
 
     // Fetch historique Firebase
     try {
-        const q = query(collection(db, "rps_sent"), where("character", "==", charName), orderBy("createdAt", "desc"));
+        const q = query(
+            collection(db, "rps_sent"), 
+            where("character", "==", charName),
+            orderBy("createdAt", "desc")
+        );
         const snap = await getDocs(q);
-        let html = '<ul style="list-style:none; padding:0;">';
-        if(snap.empty) html += '<li>Aucun historique trouvé.</li>';
+        if(snap.empty) {
+            document.getElementById('hist-container').innerHTML += '<p>Aucun RP enregistré.</p>';
+            return;
+        }
+        let html = '<ul style="list-style:none; padding:0; margin:0;">';
+        // On limite aux 5 derniers
+        let count = 0;
         snap.forEach(doc => {
+            if(count >= 5) return;
             const d = doc.data();
-            html += `<li style="padding:8px 0; border-bottom:1px solid #333;">📅 ${d.createdAt.toDate().toLocaleDateString()} — <strong>${d.server}</strong></li>`;
+            const date = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString() : 'Date inconnue';
+            html += `<li style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1);">📅 ${date} — <strong>${d.server || 'Serveur inconnu'}</strong></li>`;
+            count++;
         });
-        document.getElementById('hist-container').innerHTML = html + '</ul>';
+        document.getElementById('hist-container').innerHTML += html + '</ul>';
     } catch(e) {
-        document.getElementById('hist-container').innerHTML = '<p>Erreur lors du chargement.</p>';
+        console.error("Erreur historique perso: ", e);
+        document.getElementById('hist-container').innerHTML += '<p style="color:red">Erreur Firestore (Index possiblement manquant).</p>';
     }
 };
 
@@ -46,9 +65,15 @@ window.openOriginalFiche = function() {
     const active = document.querySelector('.char-card.active');
     if(!active) return alert("Veuillez sélectionner un personnage dans la galerie.");
     
-    const charName = active.querySelector('p').innerText;
+    // CORRECTION 4 (suite) : Idem, on utilise data-name
+    const charName = active.getAttribute('data-name');
     const data = charactersDB[charName];
     const area = document.getElementById('displayAreaPerso');
+
+    if (!data) {
+        area.innerHTML = `<p class="empty-msg" style="color:red">Données introuvables pour ce personnage.</p>`;
+        return;
+    }
 
     area.innerHTML = `
         <div class="perso-fiche-originale">
@@ -62,5 +87,5 @@ window.openOriginalFiche = function() {
 window.resetCharFilter = function() {
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
     document.getElementById('displayAreaPerso').innerHTML = '<p class="empty-msg">Sélectionnez un personnage dans la galerie pour afficher ses informations.</p>';
-    if(window.loadPending) window.loadPending(); // Recharge tout si la fonction existe
+    if (typeof window.loadPending === "function") window.loadPending();
 };
