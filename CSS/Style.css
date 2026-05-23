@@ -1,266 +1,312 @@
-/* BASE */
+/* ==========================================================================
+   BASES & THÈME GLOBAL
+   ========================================================================== */
 body {
-    background: #0b0b0e url('darkv3.jpg') no-repeat center center fixed;
+    background: #060609 url('../darkv3.jpg') no-repeat center center fixed;
     background-size: cover;
-    color: #f0f0f0;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    margin: 0; padding: 20px;
+    color: #f5f5fa;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
 }
 
-.dashboard { display: flex; flex-direction: column; gap: 20px; max-width: 1500px; margin: 0 auto; }
-/* --- Correction de la structure des lignes --- */
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Structure des lignes (Dashboard Grid/Flex) */
 .row {
     display: flex;
-    flex-direction: row; /* Force l'alignement horizontal */
-    gap: 20px;
+    flex-direction: row;
+    gap: 24px;
     width: 100%;
-    margin-bottom: 20px;
-    align-items: flex-start; /* Aligne le haut des boites */
+    align-items: flex-start;
 }
 
+/* Boîtes principales (Glassmorphism Premium) */
 .box {
-    border: 1px solid #a777e3; /* BORDURE VIOLETTE */
-    box-shadow: 0 0 15px rgba(81, 36, 136, 0.2); /* Lueur */
-    background: rgba(10, 10, 15, 0.9);
-    border-radius: 12px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
+    background: rgba(13, 13, 20, 0.85);
+    border: 1px solid rgba(167, 119, 227, 0.25);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 15px rgba(167, 119, 227, 0.05);
+    border-radius: 16px;
+    padding: 24px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    flex: 1;
 }
 
-/* --- Ligne Graphique (Force le 100%) --- */
-.full-width-row {
-    display: block; /* On casse le flex pour être sûr que ça prend toute la ligne */
-    width: 100%;
+.box:hover {
+    border-color: rgba(167, 119, 227, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), 0 0 20px rgba(167, 119, 227, 0.1);
 }
 
-.full-width-row {
+/* Titres */
+h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    border-left: 4px solid #a777e3;
+    padding-left: 10px;
+}
+
+/* ==========================================================================
+   FORMULAIRES & SAISIES (Inputs, Textarea, Select)
+   ========================================================================== */
+input[type="text"],
+input:not([type]),
+textarea,
+select {
     width: 100%;
     box-sizing: border-box;
-}
-
-/* --- Split 35% / 65% --- */
-.split-row {
-    display: flex;
-}
-
-.zone-galerie {
-    flex: 0 0 35%; /* Prend 35% fixe, ne rétrécit pas */
-    max-width: 35%;
-}
-
-.zone-affichage-perso {
-    flex: 1; /* Prend tout le reste (65%) */
-    min-height: 500px;
-}
-
-/* --- Correction du Graphique --- */
-.canvas-container {
-    width: 100%;
-    height: 500px;
-    background: rgba(20, 20, 25, 0.7); /* Fond légèrement plus clair pour voir les axes */
+    background: rgba(20, 20, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    position: relative;
-}
-
-/* --- Ajustement Galerie --- */
-.char-gallery {
-    display: flex;
-    flex-wrap: wrap; /* Permet aux avatars de passer à la ligne si trop nombreux */
-    gap: 10px;
-    justify-content: center;
-}
-.char-card { opacity: 0.4; cursor: pointer; transition: 0.3s; text-align: center; min-width: 80px; }
-.char-card.active { opacity: 1; transform: scale(1.1); }
-.char-card img { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #a777e3; object-fit: cover; }
-.char-card p { font-size: 12px; margin-top: 5px; font-weight: bold; }
-
-/* STATS ET BOUTONS */
-.char-stats-mini-box { background: rgba(167, 119, 227, 0.1); padding: 10px; border-radius: 8px; margin: 15px 0; text-align: center; border: 1px solid rgba(167, 119, 227, 0.2); }
-.char-stats-mini-box p { margin: 3px 0; color: #ffcc00; font-weight: bold; }
-
-.galerie-actions { display: flex; flex-direction: column; gap: 10px; }
-.btn-group { display: flex; gap: 10px; }
-.btn-group button { flex: 1; }
-
-button { background: #a777e3; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-button:hover { background: #8e54d3; transform: translateY(-2px); }
-
-input, textarea, select { 
-    background: #1a1a24; border: 1px solid #333; color: white; 
-    padding: 10px; border-radius: 6px; width: 100%; margin-bottom: 10px; box-sizing: border-box;
-}
-
-.empty-msg { color: #555; text-align: center; margin-top: 100px; font-style: italic; }
-
-/* FICHE STYLE */
-.perso-fiche-originale { white-space: pre-wrap; line-height: 1.6; text-align: justify; font-family: 'Georgia', serif; font-size: 1.05rem; }
-
-/* Animation d'erreur (secousse) */
-.shake-animation {
-    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes shake {
-    10%, 90% { transform: translate3d(-1px, 0, 0); }
-    20%, 80% { transform: translate3d(2px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-    40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-
-/* Style des items Pending pour le look "Violet" */
-.pending-item {
-    background: rgba(167, 119, 227, 0.05);
-    border: 1px solid rgba(167, 119, 227, 0.2);
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    cursor: pointer;
+    color: #ffffff;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    font-family: inherit;
     transition: all 0.3s ease;
 }
 
-.pending-item:hover {
-    background: rgba(167, 119, 227, 0.15);
+input[type="text"]:focus,
+input:not([type]):focus,
+textarea:focus,
+select:focus {
+    outline: none;
     border-color: #a777e3;
-    transform: translateX(5px);
+    background: rgba(25, 25, 40, 0.9);
+    box-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
 }
 
-/* Pastilles d'urgence arrondies */
-.urgency-tag {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 20px; /* Voilà l'arrondi */
-    font-size: 0.7rem;
-    font-weight: bold;
-    color: white;
-    margin-left: 10px;
-    text-transform: uppercase;
+textarea {
+    min-height: 110px;
+    resize: vertical;
 }
 
-/* Zone des Stats (pour qu'elle soit jolie) */
-.stat-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-.stat-card {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 10px;
+/* ==========================================================================
+   BOUTONS INTERFACES
+   ========================================================================== */
+button {
+    background: linear-gradient(135deg, #a777e3 0%, #7f4fca 100%);
+    color: #ffffff;
+    border: none;
     border-radius: 8px;
-    border-left: 3px solid #a777e3;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor:pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(167, 119, 227, 0.2);
 }
-.stat-label { color: #888; font-size: 0.8rem; display: block; }
-.stat-value { color: #fff; font-size: 1.1rem; font-weight: bold; }
 
-/* --- 🏷️ INTERFACE DES TAGS D'ÉNERGIE (PENDING) --- */
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(167, 119, 227, 0.4);
+    filter: brightness(1.1);
+}
 
-/* Barre contenant les boutons de filtres */
+button:active {
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   BARRE DE FILTRAGE DES TAGS (Haut de liste)
+   ========================================================================== */
 .tags-filter-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
     align-items: center;
-    margin-bottom: 12px;
-    padding: 8px;
-    background: rgba(167, 119, 227, 0.03);
-    border: 1px solid rgba(167, 119, 227, 0.15);
-    border-radius: 6px;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
 }
 
 .filter-label {
-    color: #8a9fc4;
-    font-size: 12px;
+    font-size: 0.85rem;
+    color: #8a8a9e;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     font-weight: bold;
-    margin-right: 4px;
 }
 
-/* Boutons de filtres */
 .btn-tag-filter {
-    background: rgba(10, 10, 15, 0.8);
-    border: 1px solid rgba(167, 119, 227, 0.3);
-    color: #e0e0e0;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #b5b5c6;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+    box-shadow: none;
 }
 
 .btn-tag-filter:hover {
-    border-color: #a777e3;
-    background: rgba(167, 119, 227, 0.1);
+    background: rgba(167, 119, 227, 0.15);
+    border-color: rgba(167, 119, 227, 0.4);
+    color: #ffffff;
+    transform: none;
+    box-shadow: none;
 }
 
 .btn-tag-filter.active {
     background: #a777e3;
-    color: #ffffff;
     border-color: #a777e3;
-    box-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(167, 119, 227, 0.4);
 }
 
-/* Alignement interne pour l'item du Pending */
+/* ==========================================================================
+   CARTES DE LA LISTE DES RP (Pending Items)
+   ========================================================================== */
+#pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 550px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+/* Style de la Scrollbar pour le confort visuel */
+#pending-list::-webkit-scrollbar {
+    width: 6px;
+}
+#pending-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+#pending-list::-webkit-scrollbar-thumb {
+    background: rgba(167, 119, 227, 0.2);
+    border-radius: 4px;
+}
+#pending-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(167, 119, 227, 0.4);
+}
+
+.pending-item {
+    background: rgba(25, 25, 35, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pending-item:hover {
+    background: rgba(167, 119, 227, 0.08);
+    border-color: rgba(167, 119, 227, 0.3);
+    transform: translateX(4px);
+}
+
 .pending-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     width: 100%;
 }
 
-/* Conteneur des petits badges colorés */
+.pending-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.pending-meta {
+    font-size: 0.8rem;
+    color: #8a8a9e;
+}
+
+/* Conteneur et Badges individuels */
+.pending-footer-tags {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
 .rp-tags-badges {
     display: flex;
-    gap: 4px;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
-/* Base des petits badges d'énergie */
 .badge-tag {
-    font-size: 9px;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-weight: bold;
-    text-transform: uppercase;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 
-/* Couleurs personnalisées translucides pour pas jurer avec le violet */
+/* Variations de couleurs subtiles pour les énergies */
 .badge-tag.action { 
-    background: rgba(255, 77, 77, 0.15); 
-    color: #ff5555; 
-    border: 1px solid rgba(255, 77, 77, 0.3);
+    background: rgba(255, 77, 77, 0.12); color: #ff6b6b; border: 1px solid rgba(255, 77, 77, 0.25);
 }
 .badge-tag.romance { 
-    background: rgba(255, 102, 178, 0.15); 
-    color: #ff66b2; 
-    border: 1px solid rgba(255, 102, 178, 0.3);
+    background: rgba(255, 102, 178, 0.12); color: #ff7ebb; border: 1px solid rgba(255, 102, 178, 0.25);
 }
 .badge-tag.important { 
-    background: rgba(255, 170, 0, 0.15); 
-    color: #ffaa00; 
-    border: 1px solid rgba(255, 170, 0, 0.3);
+    background: rgba(255, 159, 67, 0.12); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.25);
 }
 .badge-tag.rapide { 
-    background: rgba(0, 188, 212, 0.15); 
-    color: #00bcd4; 
-    border: 1px solid rgba(0, 188, 212, 0.3);
+    background: rgba(9, 132, 227, 0.12); color: #74b9ff; border: 1px solid rgba(9, 132, 227, 0.25);
 }
 
-/* Alignement du sélecteur en bas de l'item */
-.pending-footer-tags {
-    margin-top: 8px;
-    display: flex;
-    justify-content: flex-end;
+/* ==========================================================================
+   LECTEUR DE MESSAGE INDIVIDUEL & DETAILS
+   ========================================================================== */
+.empty-msg {
+    color: #6c6c80;
+    text-align: center;
+    font-style: italic;
+    margin: 40px 0;
+    font-size: 0.95rem;
 }
 
-.select-tag-toggle {
-    background: #101015;
-    color: #ccc;
-    border: 1px solid rgba(167, 119, 227, 0.4);
-    border-radius: 4px;
-    padding: 1px 4px;
-    font-size: 11px;
-    cursor: pointer;
-    outline: none;
+.rp-reader {
+    background: rgba(15, 15, 25, 0.5);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.select-tag-toggle:hover {
-    border-color: #a777e3;
-    color: #fff;
+.rp-display-content {
+    font-size: 0.95rem;
+    color: #e1e1e6;
+    line-height: 1.7;
+    white-space: pre-line;
+}
+
+/* Animations de validation / erreur */
+.shake-animation {
+    animation: shake 0.4s ease-in-out;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+/* Graphique adapté */
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    margin-top: 15px;
 }
