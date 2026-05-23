@@ -28,19 +28,39 @@ window.openModal = function(content, title, meta) {
 };
 
 // --- STATS ---
+// Écrase ou complète la fonction de mise à jour des statistiques existante
 window.updateStats = async function() {
-    const container = document.getElementById("statsContainer");
-    if (!container) return;
+    const statsContainer = document.getElementById("statsContainer");
+    if (!statsContainer) return;
+
     try {
-        const s = await getAdvancedStats();
-        container.innerHTML = `
-            <div class="stat-grid">
-                <div class="stat-card"><span class="stat-label">RP / Semaine</span><span class="stat-value">${s.totalSemaine || 0}</span></div>
-                <div class="stat-card"><span class="stat-label">Moyenne / Jour</span><span class="stat-value">${s.moyenneJour || 0}</span></div>
-                <div class="stat-card"><span class="stat-label">À répondre</span><span class="stat-value" style="color:#ffcc00">${s.pendingCount || 0}</span></div>
-                <div class="stat-card"><span class="stat-label">Top Serveur</span><span class="stat-value" style="font-size:0.9rem">${s.topServer || 'Aucun'}</span></div>
-            </div>`;
-    } catch (e) { console.error(e); }
+        // Simulation / Récupération de tes données depuis DataService.js
+        const statsData = await window.getAdvancedStats(); // Assure-toi que cette promesse renvoie tes totaux
+
+        statsContainer.innerHTML = `
+            <h2>Statistiques de l'Activité</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>RP Envoyés</h3>
+                    <div class="stat-value">${statsData.totalSent || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>En Attente (Pending)</h3>
+                    <div class="stat-value" style="color: #ffcc00;">${statsData.totalPending || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Terminés (Done)</h3>
+                    <div class="stat-value" style="color: #2ecc71;">${statsData.totalDone || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Ratio d'Activité</h3>
+                    <div class="stat-value" style="color: #a777e3;">${statsData.ratio || '100'}%</div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error("Erreur d'affichage des statistiques :", error);
+    }
 };
 
 // --- AJOUT RP ENVOYÉ ---

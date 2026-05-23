@@ -2,7 +2,7 @@
    1. BASE & DISPOSITION GENERALE
    ========================================================================== */
 body {
-    background: #0b0b0e url('darkv3.jpg') no-repeat center center fixed; /* Corrigé sans ../ pour éviter le 404 */
+    background: #0b0b0e url('darkv3.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #f0f0f0;
     font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -18,32 +18,27 @@ body {
     margin: 0 auto; 
 }
 
-/* Structure des lignes */
+/* Structure des lignes horizontales */
 .row {
     display: flex;
-    flex-direction: row; 
+    flex-direction: row;
     gap: 20px;
     width: 100%;
     margin-bottom: 20px;
     align-items: flex-start;
 }
 
-/* Les conteneurs principaux */
+/* Les conteneurs principaux (Box) */
 .box {
-    border: 1px solid rgba(167, 119, 227, 0.4); 
+    border: 1px solid rgba(167, 119, 227, 0.4);
     box-shadow: 0 0 20px rgba(167, 119, 227, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.5);
-    background: rgba(13, 13, 20, 0.92); 
+    background: rgba(13, 13, 20, 0.92);
     border-radius: 12px;
     padding: 22px;
     box-sizing: border-box;
+    backdrop-filter: blur(10px);
 }
 
-/* Ligne pleine largeur pour le graphique */
-.full-width-row {
-    width: 100%;
-}
-
-/* Titres de sections */
 h2 {
     font-size: 1.15rem;
     font-weight: 600;
@@ -55,7 +50,7 @@ h2 {
 }
 
 /* ==========================================================================
-   2. ELEMENTS DE FORMULAIRES (Inputs & Textareas)
+   2. FORMULAIRES, INPUTS & BOUTONS ORIGINAL
    ========================================================================== */
 input, textarea, select {
     width: 100%;
@@ -67,24 +62,15 @@ input, textarea, select {
     border-radius: 6px;
     box-sizing: border-box;
     font-family: inherit;
-    font-size: 0.9rem;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input:focus, textarea:focus, select:focus {
     outline: none;
     border-color: #a777e3;
-    box-shadow: 0 0 8px rgba(167, 119, 227, 0.4);
+    box-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
 }
 
-textarea {
-    min-height: 90px;
-    resize: vertical;
-}
-
-/* ==========================================================================
-   3. BOUTONS GENERIQUES
-   ========================================================================== */
 button {
     background: #a777e3;
     color: white;
@@ -93,143 +79,234 @@ button {
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 0.9rem;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s;
 }
 
-button:hover {
-    background: #b88bf2;
+button:hover { 
+    background: #b88bf2; 
 }
 
-button:active {
-    transform: scale(0.98);
+/* Animation en cas d'erreur de saisie */
+.shake-animation {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+.feedback-success {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================
-   4. ZONE DE FILTRAGE DES TAGS & EN-TÊTES
+   3. GRILLE DES STATISTIQUES (Dashboard & Compteurs)
    ========================================================================== */
-.tags-filter-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+    width: 100%;
 }
 
-.filter-label {
+.stat-card {
+    background: rgba(22, 22, 32, 0.8);
+    border: 1px solid rgba(167, 119, 227, 0.25);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+}
+
+.stat-card h3 {
+    margin: 0 0 6px 0;
     font-size: 0.8rem;
     color: #a777e3;
-    font-weight: bold;
     text-transform: uppercase;
-    margin-right: 4px;
+    letter-spacing: 0.5px;
 }
 
-.btn-tag-filter {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ccc;
-    padding: 5px 12px;
-    font-size: 0.8rem;
-    border-radius: 16px;
+.stat-card .stat-value {
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
 }
 
-.btn-tag-filter:hover {
-    background: rgba(167, 119, 227, 0.2);
-    border-color: rgba(167, 119, 227, 0.4);
-    color: white;
-}
-
-.btn-tag-filter.active {
-    background: #a777e3;
-    border-color: #a777e3;
-    color: white;
-    box-shadow: 0 0 8px rgba(167, 119, 227, 0.4);
+/* Conteneur graphique Chart.js */
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
 }
 
 /* ==========================================================================
-   5. CARTES DES RP EN ATTENTE & TAGS / ENERGIES / URGENCY
+   4. PERSONNAGES & GALERIE DE PORTRAITS (Style PFP)
    ========================================================================== */
-#pending-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.character-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+    width: 100%;
 }
 
-.pending-item {
-    background: rgba(20, 20, 28, 0.7);
+.character-avatar-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: rgba(20, 20, 28, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.character-avatar-card:hover, .character-avatar-card.active {
+    transform: translateY(-3px);
+    border-color: #a777e3;
+    background: rgba(167, 119, 227, 0.08);
+}
+
+/* Rendu Photo de Profil Circulaire */
+.character-avatar-img {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(167, 119, 227, 0.6);
+    box-shadow: 0 0 10px rgba(167, 119, 227, 0.2);
+    margin-bottom: 8px;
+    background: #111;
+}
+
+.character-avatar-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+/* Zone d'affichage des détails du Personnage */
+.perso-view, .perso-fiche-originale {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.fiche-content {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
     border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   5. LISTES DES RP, PILULES D'URGENCE & BADGES D'ÉNERGIE
+   ========================================================================== */
+.pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Cartes individuelles des messages reçus */
+.pending-card {
+    background: rgba(22, 22, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     padding: 14px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
 }
 
-.pending-item:hover {
-    background: rgba(167, 119, 227, 0.08);
+.pending-card:hover {
+    background: rgba(30, 30, 42, 0.8);
     border-color: rgba(167, 119, 227, 0.3);
 }
 
 .pending-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+    align-items: flex-start;
+    width: 100%;
 }
 
-.pending-title {
-    font-size: 0.95rem;
+/* Rectification : Pilules d'urgence (Ovale parfait autonome) */
+.urgency-badge {
+    display: inline-block;
+    font-size: 0.72rem;
     font-weight: bold;
-    color: #ffffff;
-    margin: 0;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    text-align: center;
 }
+.urgency-badge.safe { background: #2ecc71; color: #fff; }
+.urgency-badge.medium { background: #e67e22; color: #fff; }
+.urgency-badge.urgent { background: #e74c3c; color: #fff; }
 
-.pending-meta {
-    font-size: 0.8rem;
-    color: #888899;
-}
-
-/* Footer interne (Badges + Sélecteur) */
-.pending-footer-tags {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
+/* Section des petits badges énergétiques hérités */
 .rp-tags-badges {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: wrap;
 }
 
-/* --- BADGES D'ENERGIE --- */
 .badge-tag {
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: 4px;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
     font-weight: bold;
-}
-.badge-tag.action { background: rgba(255, 77, 77, 0.15); color: #ff5555; border: 1px solid rgba(255, 77, 77, 0.3); }
-.badge-tag.romance { background: rgba(255, 102, 178, 0.15); color: #ff66b2; border: 1px solid rgba(255, 102, 178, 0.3); }
-.badge-tag.important { background: rgba(255, 170, 0, 0.15); color: #ffaa00; border: 1px solid rgba(255, 170, 0, 0.3); }
-.badge-tag.rapide { background: rgba(0, 184, 148, 0.15); color: #00b894; border: 1px solid rgba(0, 184, 148, 0.3); }
-
-/* --- RECTIFICATION : URGENCY TAGS ARRONDIS & PROPRES --- */
-.urgency-badge {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 3px 10px;
-    border-radius: 20px; /* Arrondi parfait en forme de pilule */
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border: 1px solid transparent;
 }
-.urgency-badge.urgent { background: #e74c3c; color: #fff; }
-.urgency-badge.medium { background: #e67e22; color: #fff; }
-.urgency-badge.safe { background: #2ecc71; color: #fff; }
+
+.badge-tag.action { 
+    background: rgba(255, 77, 77, 0.15); 
+    color: #ff5555; 
+    border-color: rgba(255, 77, 77, 0.3);
+}
+.badge-tag.romance { 
+    background: rgba(255, 102, 178, 0.15); 
+    color: #ff66b2; 
+    border-color: rgba(255, 102, 178, 0.3);
+}
+.badge-tag.important { 
+    background: rgba(255, 170, 0, 0.15); 
+    color: #ffaa00; 
+    border-color: rgba(255, 170, 0, 0.3);
+}
+.badge-tag.chill { 
+    background: rgba(0, 184, 148, 0.15); 
+    color: #00b894; 
+    border-color: rgba(0, 184, 148, 0.3);
+}
+
+/* Éléments de structure internes aux cartes */
+.pending-footer-tags {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 8px; 
+    width:100%;
+}
 
 select.select-tag-toggle {
     width: auto;
@@ -241,95 +318,17 @@ select.select-tag-toggle {
     border: 1px solid rgba(167, 119, 227, 0.4);
 }
 
-.btn-fait { background: #27ae60; padding: 4px 12px; font-size: 0.8rem; }
-.btn-fait:hover { background: #2ecc71; }
-
-/* ==========================================================================
-   6. RECTIFICATION : STATISTIQUES EN FORME (Grille de compteurs)
-   ========================================================================== */
-#statsContainer {
-    width: 100%;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-top: 15px;
-}
-
-.stat-card {
-    background: rgba(25, 25, 35, 0.7);
-    border: 1px solid rgba(167, 119, 227, 0.2);
-    border-radius: 8px;
-    padding: 16px;
-    text-align: center;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-}
-
-.stat-card h3 {
-    margin: 0 0 8px 0;
-    font-size: 0.85rem;
-    color: #a777e3;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.stat-card .stat-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(167, 119, 227, 0.4);
-}
-
-/* ==========================================================================
-   7. RECTIFICATION : GALERIE DE PERSONNAGES (Photos de Profil / Avatars)
-   ========================================================================== */
-.character-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.character-avatar-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    background: rgba(20, 20, 28, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 10px;
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.character-avatar-card:hover {
-    transform: translateY(-3px);
-    border-color: #a777e3;
-}
-
-/* Rendu en vraie photo de profil ronde */
-.character-avatar-img {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%; /* Devient un cercle parfait style PFP */
-    object-fit: cover;
-    border: 2px solid #a777e3;
-    box-shadow: 0 0 8px rgba(167, 119, 227, 0.4);
-    background: #111;
-    margin-bottom: 8px;
-}
-
-.character-avatar-name {
+.btn-fait {
+    background: #27ae60;
+    padding: 4px 12px;
     font-size: 0.8rem;
-    font-weight: bold;
-    color: #e0e0e0;
-    word-break: break-word;
+}
+.btn-fait:hover {
+    background: #2ecc71;
 }
 
 /* ==========================================================================
-   8. COIN DETAILS & LECTEUR DE MESSAGE
+   6. ZONE DE LECTURE MODALE & COIN DETAILS
    ========================================================================== */
 .empty-msg {
     color: #666;
@@ -339,29 +338,57 @@ select.select-tag-toggle {
 }
 
 .rp-reader {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 15px;
+    background: rgba(10, 10, 15, 0.98);
+    border: 1px solid #a777e3;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    animation: fadeIn 0.2s ease-out;
 }
 
 .rp-display-content {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 10px;
+    font-size: 1rem;
     line-height: 1.6;
-    font-size: 0.95rem;
     color: #e0e0e0;
 }
 
-.shake-animation {
-    animation: shake 0.4s ease-in-out;
-}
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-4px); }
-    40%, 80% { transform: translateX(4px); }
+/* ==========================================================================
+   7. INTERFACE RECOMPENSES & COMPTEUR XP / IA COACH
+   ========================================================================== */
+.xp-counter {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+    text-align: center;
+    margin: 10px 0;
 }
 
-.canvas-container {
-    position: relative;
-    width: 100%;
-    height: 300px;
+.coach-bubble {
+    background: rgba(167, 119, 227, 0.1);
+    border-left: 4px solid #a777e3;
+    padding: 12px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 15px;
+    font-style: italic;
+    font-size: 0.95rem;
+}
+
+/* Scrollbars personnalisées assombries */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(167, 119, 227, 0.3);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(167, 119, 227, 0.6);
 }

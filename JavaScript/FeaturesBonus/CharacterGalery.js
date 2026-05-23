@@ -22,57 +22,44 @@ if (!localStorage.getItem("myActiveChars")) {
 
 const getActiveChars = () => JSON.parse(localStorage.getItem("myActiveChars"));
 
-window.rankUp = function(oldName, newName) {
-    let chars = getActiveChars();
-    const index = chars.indexOf(oldName);
-    if (index !== -1) {
-        chars[index] = newName;
-        localStorage.setItem("myActiveChars", JSON.stringify(chars));
-        window.initGallery(); 
-    }
-};
+// --- GÉNÉRATION VISUELLE DE LA GALERIE ---
+window.afficherGaleriePersonnages = function() {
+    const conteneurGalerie = document.getElementById("character-gallery-target"); 
+    if (!conteneurGalerie) return;
 
-window.initGallery = function() {
-    const container = document.getElementById("char-gallery");
-    if (!container) return;
-    container.innerHTML = "";
-    getActiveChars().forEach(name => {
-        const div = document.createElement("div");
-        div.className = "char-card";
-        const fileName = nameToImage[name] || "default.png";
-        div.innerHTML = `
-            <img src="./JavaScript/FeaturesBonus/Assets/Avatars/${fileName}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-            <p style="color:white; font-size:12px; font-weight:bold; margin-top:5px;">${name}</p>
+    const listePersos = getActiveChars();
+    let html = `<div class="character-gallery">`;
+
+    listePersos.forEach(nom => {
+        const imageFichier = nameToImage[nom] || "default-avatar.png";
+        // Chemin propre vers le dossier d'images local
+        const imagePath = `./CSS/Logo/${imageFichier}`; 
+
+        html += `
+            <div class="character-avatar-card char-card" onclick="window.selectChar(this, '${nom}')">
+                <img src="${imagePath}" class="character-avatar-img" alt="${nom}" onerror="this.src='./CSS/Logo/default-avatar.png'">
+                <div class="character-avatar-name">${nom}</div>
+            </div>
         `;
-        // CORRECTION : On passe 'div' (l'élément) en deuxième argument
-        div.onclick = () => window.filterDashboard(name, div); 
-        container.appendChild(div);
     });
+
+    html += `</div>`;
+    conteneurGalerie.innerHTML = html;
 };
 
-window.filterDashboard = function(charName, element) {
-    // Style actif
+window.selectChar = function(element, nom) {
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
     element.classList.add('active');
-
-    // Récupérer la fiche et TOUS les noms associés (ex: Nuage de Lynx, Ardeur du Lynx...)
-    const currentFiche = charactersDB[charName];
-    if (!currentFiche) return;
-
-    const allAliases = Object.keys(charactersDB).filter(key => charactersDB[key] === currentFiche);
-
-    // Appeler la fonction globale de RP.js avec le tableau de noms
-    if (typeof window.loadPending === "function") {
-        window.loadPending(allAliases);
-    }
     
-    // Mettre à jour les mini-stats (si tu as la fonction)
+    // Filtrage des listes de RP s'il est actif
+    if (typeof window.loadPending === "function") {
+        window.loadPending([nom]);
+    }
     if (typeof updateCharStats === "function") {
-        updateCharStats(allAliases);
+        updateCharStats([nom]);
     }
 };
 
-// --- LA FONCTION QUI MANQUAIT ---
 async function updateCharStats(namesArray) {
     try {
         const qSent = query(collection(db, "rps_sent"), where("character", "in", namesArray));
@@ -89,9 +76,10 @@ async function updateCharStats(namesArray) {
 
 window.resetCharFilter = function() {
     document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
-    if (typeof window.loadPending === "function") window.loadPending(); 
-    document.getElementById('stat-pending-count').innerText = "RP en attente : -";
-    document.getElementById('stat-sent-total').innerText = "Total envoyés : -";
+    if (typeof window.loadPending === "function") window.loadPending();
 };
 
-window.initGallery();
+// Lancement automatique au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    window.afficherGaleriePersonnages();
+});
