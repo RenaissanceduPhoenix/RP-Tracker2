@@ -1,7 +1,6 @@
 import { db } from './Firebase.js';
 import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
-import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { parseRP } from './Markdown.js';
+import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBonus/Tags.js';
 
@@ -34,32 +33,50 @@ window.updateStats = async function() {
     if (!statsContainer) return;
 
     try {
-        // Simulation / Récupération de tes données depuis DataService.js
-        const statsData = await window.getAdvancedStats(); // Assure-toi que cette promesse renvoie tes totaux
+        let statsData = { totalSent: 0, totalPending: 0, totalDone: 0, ratio: 0 };
+        
+        // Essai avec DataService
+        if (typeof window.getAdvancedStats === 'function') {
+            statsData = await window.getAdvancedStats();
+        } else {
+            // Solution de secours : Interrogation directe de Firestore
+            const sentSnap = await getDocs(collection(db, "rps_sent"));
+            statsData.totalSent = sentSnap.size;
+
+            const pendingSnap = await getDocs(query(collection(db, "rps_received"), where("status", "==", "pending")));
+            statsData.totalPending = pendingSnap.size;
+
+            const doneSnap = await getDocs(query(collection(db, "rps_received"), where("status", "==", "done")));
+            statsData.totalDone = doneSnap.size;
+            
+            const totalReceived = statsData.totalPending + statsData.totalDone;
+            statsData.ratio = totalReceived > 0 ? Math.round((statsData.totalDone / totalReceived) * 100) : 100;
+        }
 
         statsContainer.innerHTML = `
             <h2>Statistiques de l'Activité</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>RP Envoyés</h3>
-                    <div class="stat-value">${statsData.totalSent || 0}</div>
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
+                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">RP Envoyés</h3>
+                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold;">${statsData.totalSent || 0}</div>
                 </div>
-                <div class="stat-card">
-                    <h3>En Attente (Pending)</h3>
-                    <div class="stat-value" style="color: #ffcc00;">${statsData.totalPending || 0}</div>
+                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
+                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">En Attente (Pending)</h3>
+                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold; color: #ffcc00;">${statsData.totalPending || 0}</div>
                 </div>
-                <div class="stat-card">
-                    <h3>Terminés (Done)</h3>
-                    <div class="stat-value" style="color: #2ecc71;">${statsData.totalDone || 0}</div>
+                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
+                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">Terminés (Done)</h3>
+                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold; color: #2ecc71;">${statsData.totalDone || 0}</div>
                 </div>
-                <div class="stat-card">
-                    <h3>Ratio d'Activité</h3>
-                    <div class="stat-value" style="color: #a777e3;">${statsData.ratio || '100'}%</div>
+                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
+                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">Ratio d'Activité</h3>
+                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold; color: #a777e3;">${statsData.ratio || '100'}%</div>
                 </div>
             </div>
         `;
     } catch (error) {
         console.error("Erreur d'affichage des statistiques :", error);
+        statsContainer.innerHTML = `<p style="color:red">Erreur lors du chargement des statistiques.</p>`;
     }
 };
 

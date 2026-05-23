@@ -25,24 +25,33 @@ const getActiveChars = () => JSON.parse(localStorage.getItem("myActiveChars"));
 // --- GÉNÉRATION VISUELLE DE LA GALERIE ---
 window.afficherGaleriePersonnages = function() {
     const conteneurGalerie = document.getElementById("character-gallery-target"); 
-    if (!conteneurGalerie) return;
+    // Utilisons la bonne classe si l'ID n'est pas trouvé
+    const cible = conteneurGalerie || document.querySelector(".char-gallery");
+    
+    if (!cible) {
+        console.error("Conteneur de la galerie introuvable.");
+        return;
+    }
 
     const listePersos = getActiveChars();
-    let html = `<div class="character-gallery">`;
+    let html = `<div class="character-gallery" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;">`;
 
     listePersos.forEach(nom => {
         const imageFichier = nameToImage[nom] || "default-avatar.png";
-        // Chemin propre vers le dossier d'images local
-        const imagePath = `./CSS/Logo/${imageFichier}`; 
+        
+        // CORRECTION CRITIQUE : Le bon chemin vers tes images selon ton arborescence
+        const imagePath = `./JavaScript/FeaturesBonus/Assets/Avatars/${imageFichier}`; 
 
         html += `
-            <div class="character-avatar-card char-card" onclick="window.selectChar(this, '${nom}')">
-                <img src="${imagePath}" class="character-avatar-img" alt="${nom}" onerror="this.src='./CSS/Logo/default-avatar.png'">
-                <div class="character-avatar-name">${nom}</div>
+            <div class="character-avatar-card char-card" onclick="window.selectChar(this, '${nom}')" style="opacity: 0.8; cursor: pointer; transition: all 0.2s;">
+                <img src="${imagePath}" class="character-avatar-img" alt="${nom}" onerror="this.src='./JavaScript/FeaturesBonus/Assets/Avatars/default-avatar.png'" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #a777e3;">
+                <div class="character-avatar-name" style="font-size: 12px; margin-top: 5px; text-align: center;">${nom}</div>
             </div>
         `;
     });
 
+    html += `</div>`;
+    cible.innerHTML = html;
     html += `</div>`;
     conteneurGalerie.innerHTML = html;
 };
