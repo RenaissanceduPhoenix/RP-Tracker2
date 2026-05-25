@@ -87,11 +87,19 @@ window.loadCharts = async function() {
     
     // Création du nouveau graphique
     rpChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false, 
+        transitions: {
+            active: {
+                animation: {
+                    duration: 0 // Évite les saccades au survol de la souris
+                }
+            }
+        },
             scales: {
                 y: { beginAtZero: true, ticks: { color: '#fff', stepSize: 1 } },
                 x: { ticks: { color: '#fff' } }

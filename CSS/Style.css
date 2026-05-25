@@ -145,7 +145,8 @@ button:hover {
 .canvas-container {
     position: relative;
     width: 100%;
-    height: 320px;
+    height: 300px; /* Force une hauteur fixe pour que Chart.js n'ait pas à la recalculer en boucle */
+    overflow: hidden;
 }
 
 /* ==========================================================================
