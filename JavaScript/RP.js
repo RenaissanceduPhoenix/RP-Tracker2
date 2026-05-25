@@ -127,7 +127,8 @@ window.addPending = async function() {
 // 4. ÉCOUTE EN TEMPS RÉEL DES RPs EN ATTENTE (FIRESTORE)
 // =========================================================================
 window.initPendingList = function() {
-    const container = document.getElementById("pendingContainer");
+    // CORRECTION ICI : "pendingContainer" devient "pendingList" pour matcher avec l'index.html
+    const container = document.getElementById("pendingList");
     if (!container) return;
 
     if (unsubscribePending) {
@@ -198,8 +199,7 @@ window.initPendingList = function() {
             container.appendChild(card);
         });
 
-        // RE-INITIALISATION INDISPENSABLE : Relance les écouteurs d'événements "change" sur les balises <select>
-        // maintenant que les cartes ont été injectées proprement dans l'interface.
+        // Réinitialisation indispensable des écouteurs de tags
         initialiserFiltrageTags();
     }, (err) => {
         console.error("Erreur flux temps réel pendings :", err);
