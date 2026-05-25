@@ -224,23 +224,25 @@ button:hover {
     padding-right: 5px;
 }
 
-/* Cartes individuelles des messages reçus */
-.pending-card:hover {
-    background: rgba(30, 30, 42, 0.8);
-    border-color: rgba(167, 119, 227, 0.3);
-}
-
-.pending-card {
+/* Fiches/Cartes de RP en attente (Style calqué sur l'extension) */
+.rp-card {
     background: rgba(10, 10, 15, 0.85);
     border: 1px solid rgba(167, 119, 227, 0.4);
-    border-left: 4px solid #ffcc00;
+    border-left: 4px solid #ffcc00; /* Ligne jaune distinctive */
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.pending-header {
+.rp-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(167, 119, 227, 0.2);
+}
+
+/* En-tête de la carte (Auteur / Serveur) */
+.rp-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -249,13 +251,35 @@ button:hover {
     margin-bottom: 8px;
 }
 
-.pending-title {
+/* Titre du RP */
+.rp-card-title {
     font-weight: bold;
     color: #fff;
     font-size: 0.95rem;
     margin-bottom: 6px;
 }
 
+/* Extrait ou contenu du RP */
+.rp-card-body {
+    font-size: 0.85rem;
+    color: #bbb;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+/* Base des badges d'urgence / catégories (Pills haut de gamme) */
+.urgency-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    display: inline-block;
+}
 /* Rectification : Pilules d'urgence (Ovale parfait autonome) */
 .urgency-badge {
     display: inline-block;
