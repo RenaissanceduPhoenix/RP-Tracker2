@@ -25,9 +25,8 @@ body {
     gap: 20px;
     width: 100%;
     margin-bottom: 20px;
-    align-items: flex-start;
+    align-items: stretch; /* Aligne les hauteurs automatiquement */
 }
-
 /* Les conteneurs principaux (Box) */
 .box {
     border: 1px solid rgba(167, 119, 227, 0.4);
@@ -246,10 +245,7 @@ button:hover {
 .rp-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 8px;
+    align-items: center; /* Aligne sur la flèche verte */
     width: 100%;
 }
 
@@ -346,16 +342,15 @@ button:hover {
 }
 
 select.select-tag-toggle {
-    background: #101015;
-    color: #ccc;
-    border: 1px solid rgba(167, 119, 227, 0.4);
-    border-radius: 4px;
-    padding: 3px 6px !important; 
-    font-size: 0.75rem !important; /* Texte plus petit */
+    font-size: 0.75rem !important;
+    padding: 2px 6px !important;
+    max-width: 120px !important;
+    height: 26px !important;
+    background: #101015 !important;
+    color: #ccc !important;
+    border: 1px solid rgba(167, 119, 227, 0.3) !important;
+    border-radius: 4px !important;
     cursor: pointer;
-    outline: none;
-    max-width: 110px;        
-    height: auto !important;
 }
 
 select.select-tag-toggle:focus {
@@ -435,4 +430,33 @@ select.select-tag-toggle:focus {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(167, 119, 227, 0.6);
+}
+.char-gallery-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(167, 119, 227, 0.1);
+}
+
+.controls select, .controls input {
+    background: #101015;
+    color: #fff;
+    border: 1px solid rgba(167, 119, 227, 0.3);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 140px;
+    cursor: pointer;
 }
