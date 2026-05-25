@@ -225,25 +225,35 @@ button:hover {
 }
 
 /* Cartes individuelles des messages reçus */
-.pending-card {
-    background: rgba(22, 22, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    padding: 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-
 .pending-card:hover {
     background: rgba(30, 30, 42, 0.8);
     border-color: rgba(167, 119, 227, 0.3);
 }
 
+.pending-card {
+    background: rgba(10, 10, 15, 0.85);
+    border: 1px solid rgba(167, 119, 227, 0.4);
+    border-left: 4px solid #ffcc00;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
 .pending-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    width: 100%;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.pending-title {
+    font-weight: bold;
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
 }
 
 /* Rectification : Pilules d'urgence (Ovale parfait autonome) */
