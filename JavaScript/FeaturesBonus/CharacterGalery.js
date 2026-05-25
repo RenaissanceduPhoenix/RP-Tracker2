@@ -87,6 +87,42 @@ window.resetCharFilter = function() {
     if (typeof window.loadPending === "function") window.loadPending();
 };
 
+window.openFullPerso = function() {
+    console.log("Ouverture du Profil détaillé");
+    const charName = getActiveCharacterName();
+    if (!charName) return;
+
+    // Si tu as une modale ou un panneau de profil avancé, on l'appelle ici
+    if (typeof window.afficherProfilAvance === "function") {
+        window.afficherProfilAvance(charName);
+    } else {
+        // Logique de repli : fait défiler la page jusqu'au panneau de détails
+        const detailsArea = document.getElementById("displayAreaPerso");
+        if (detailsArea) {
+            detailsArea.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+};
+
+window.openOriginalFiche = function() {
+    console.log("Ouverture de la Fiche originale");
+    const charName = getActiveCharacterName();
+    if (!charName) return;
+
+    // On va chercher les données du personnage (souvent stockées dans CharacterData)
+    if (window.DATA_PERSONNAGES && window.DATA_PERSONNAGES[charName]) {
+        const urlFiche = window.DATA_PERSONNAGES[charName].ficheUrl || window.DATA_PERSONNAGES[charName].url;
+        if (urlFiche) {
+            window.open(urlFiche, '_blank'); // Ouvre la fiche de recherche/RP dans un nouvel onglet
+        } else {
+            alert(`ℹ️ Aucune URL de fiche renseignée pour ${charName}.`);
+        }
+    } else {
+        console.warn("Base DATA_PERSONNAGES indisponible ou personnage introuvable.");
+        alert(`❌ Impossible de trouver la fiche originale de ${charName}.`);
+    }
+};
+
 // Lancement automatique au chargement
 document.addEventListener('DOMContentLoaded', () => {
     window.afficherGaleriePersonnages();
