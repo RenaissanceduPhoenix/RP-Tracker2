@@ -460,3 +460,46 @@ select.select-tag-toggle:focus {
     min-width: 140px;
     cursor: pointer;
 }
+
+.zone-galerie {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pousse les boutons vers le bas de la boîte */
+    min-height: 350px; /* Aligne la hauteur avec la zone de détails à côté */
+}
+
+.galerie-actions {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.galerie-actions .btn-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.galerie-actions button {
+    background: #101015;
+    color: #fff;
+    border: 1px solid rgba(167, 119, 227, 0.4);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.galerie-actions button:hover {
+    background: rgba(167, 119, 227, 0.2);
+    border-color: #a777e3;
+}
+
+.galerie-actions .btn-reset {
+    width: 100%;
+    background: rgba(167, 119, 227, 0.1);
+}
