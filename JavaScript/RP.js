@@ -1,8 +1,9 @@
 import { db } from './Firebase.js';
-import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
-import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";import { parseRP } from './Markdown.js';
+import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBonus/Tags.js';
+import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 
 let unsubscribePending = null;
 
@@ -12,217 +13,178 @@ window.openModal = function(content, title, meta) {
     if(!area) return;
     area.innerHTML = `
         <div class="rp-reader">
-            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
+            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;\">
                 <div>
-                    <h3 style="margin:0; color:#ffcc00;">${title}</h3>
-                    <small style="color:#888;">${meta}</small>
+                    <h3 style="margin:0; color:#ffcc00;\">${title}</h3>
+                    <small style="color:#888;\">${meta}</small>
                 </div>
-                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
+                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;\">×</button>
             </div>
-            <div class="rp-display-content">
-                ${parseRP(content)}
-            </div>
+            <div class="rp-display-content">${parseRP(content)}</div>
         </div>
     `;
 };
 
-// --- STATS ---
-// Écrase ou complète la fonction de mise à jour des statistiques existante
-window.updateStats = async function() {
-    const statsContainer = document.getElementById("statsContainer");
-    if (!statsContainer) return;
+// --- CHARGEMENT DU PENDING (REFAIT STYLE EXTENSION AVEC URGENCE) ---
+window.loadPending = function() {
+    if (unsubscribePending) unsubscribePending();
 
-    try {
-        let statsData = { totalSent: 0, totalPending: 0, totalDone: 0, ratio: 0 };
-        
-        // Essai avec DataService
-        if (typeof window.getAdvancedStats === 'function') {
-            statsData = await window.getAdvancedStats();
-        } else {
-            // Solution de secours : Interrogation directe de Firestore
-            const sentSnap = await getDocs(collection(db, "rps_sent"));
-            statsData.totalSent = sentSnap.size;
+    const q = query(
+        collection(db, "rps_received"),
+        where("status", "==", "pending"),
+        orderBy("createdAt", "desc")
+    );
 
-            const pendingSnap = await getDocs(query(collection(db, "rps_received"), where("status", "==", "pending")));
-            statsData.totalPending = pendingSnap.size;
+    const container = document.getElementById("pendingList");
+    if (!container) return;
 
-            const doneSnap = await getDocs(query(collection(db, "rps_received"), where("status", "==", "done")));
-            statsData.totalDone = doneSnap.size;
-            
-            const totalReceived = statsData.totalPending + statsData.totalDone;
-            statsData.ratio = totalReceived > 0 ? Math.round((statsData.totalDone / totalReceived) * 100) : 100;
+    unsubscribePending = onSnapshot(q, (snapshot) => {
+        container.innerHTML = "";
+
+        if (snapshot.empty) {
+            container.innerHTML = "<p class='empty-msg'>Aucun RP en attente ! 🎉</p>";
+            return;
         }
 
-        statsContainer.innerHTML = `
-            <h2>Statistiques de l'Activité</h2>
-            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
-                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
-                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">RP Envoyés</h3>
-                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold;">${statsData.totalSent || 0}</div>
+        snapshot.forEach((docSnap) => {
+            const rp = docSnap.data();
+            const id = docSnap.id;
+            const meta = `👤 ${rp.character} | 🌐 ${rp.server}`;
+
+            // 1. Génération de l'HTML des étiquettes d'urgence et du sélecteur intégré
+            const tagsFooterHTML = genererBadgesEtSelecteur(id, rp.tags || []);
+
+            // 2. Création de la carte (.rp-card) calquée sur l'extension
+            const card = document.createElement("div");
+            card.className = "rp-card";
+            card.setAttribute("data-rpid", id);
+
+            card.innerHTML = `
+                <div class="rp-card-header">
+                    <span>👤 ${rp.character}</span>
+                    <span>🌐 ${rp.server}</span>
                 </div>
-                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
-                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">En Attente (Pending)</h3>
-                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold; color: #ffcc00;">${statsData.totalPending || 0}</div>
+                <div class="rp-card-title" style="cursor:pointer; text-decoration:underline;\">${rp.title}</div>
+                <div class="rp-card-body" style="cursor:pointer;\">
+                    ${rp.content ? rp.content.substring(0, 100) + '...' : '<i>Pas de contenu...</i>'}
                 </div>
-                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
-                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">Terminés (Done)</h3>
-                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold; color: #2ecc71;">${statsData.totalDone || 0}</div>
+                ${tagsFooterHTML}
+                <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;\">
+                    <button class="action-btn" onclick="window.markDone('${id}')" style="background:#2ecc71; padding:3px 8px; font-size:0.75rem;\">Terminé</button>
+                    <button class="action-btn" onclick="window.deleteRP('${id}')" style="background:#e74c3c; padding:3px 8px; font-size:0.75rem;\">Supprimer</button>
                 </div>
-                <div class="stat-card" style="background: rgba(22, 22, 32, 0.8); border: 1px solid rgba(167, 119, 227, 0.25); border-radius: 10px; padding: 16px; text-align: center;">
-                    <h3 style="color: #a777e3; margin: 0 0 6px 0; font-size: 0.8rem;">Ratio d'Activité</h3>
-                    <div class="stat-value" style="font-size: 1.7rem; font-weight: bold; color: #a777e3;">${statsData.ratio || '100'}%</div>
-                </div>
-            </div>
-        `;
-    } catch (error) {
-        console.error("Erreur d'affichage des statistiques :", error);
-        statsContainer.innerHTML = `<p style="color:red">Erreur lors du chargement des statistiques.</p>`;
-    }
+            `;
+
+            // Rendre la zone du titre et du corps cliquable pour ouvrir la modale de lecture
+            const openAction = () => window.openModal(rp.content || "*Aucun texte*", rp.title, meta);
+            card.querySelector(".rp-card-title").addEventListener("click", openAction);
+            card.querySelector(".rp-card-body").addEventListener("click", openAction);
+
+            container.appendChild(card);
+        });
+
+        // Ré-attacher l'interrupteur des sélecteurs de tags une fois le DOM prêt
+        initialiserFiltrageTags();
+    }, (err) => {
+        console.error("Erreur flux en attente:", err);
+    });
 };
 
-// --- AJOUT RP ENVOYÉ ---
-window.addSent = async function() {
-    const charInput = document.getElementById("char_sent");
-    const serverInput = document.getElementById("server_sent");
-    const contentInput = document.getElementById("content_sent"); 
-    const zone = document.querySelector(".zone-ajout");
+// --- AJOUT D'UN RP EN ATTENTE (PENDING) ---
+window.addPending = async function() {
+    const titleEl = document.getElementById("title");
+    const charEl = document.getElementById("char_received");
+    const serverEl = document.getElementById("server_received");
+    const contentEl = document.getElementById("content");
 
-    if (!charInput || !charInput.value || !serverInput || !serverInput.value) {
-        if (charInput && !charInput.value) showFeedback(charInput, true);
-        if (serverInput && !serverInput.value) showFeedback(serverInput, true);
+    if (!titleEl || !charEl || !serverEl || !contentEl) return;
+
+    const title = titleEl.value.trim();
+    const character = charEl.value.trim();
+    const server = serverEl.value.trim();
+    const content = contentEl.value.trim();
+
+    if (!title || !character || !server) {
+        showFeedback(titleEl, true);
+        showFeedback(charEl, true);
+        showFeedback(serverEl, true);
         return;
     }
 
     try {
-        await addDoc(collection(db, "rps_sent"), {
-            character: charInput.value,
-            server: serverInput.value,
-            content: contentInput ? contentInput.value : "", 
+        await addDoc(collection(db, "rps_received"), {
+            title,
+            character,
+            server,
+            content,
+            status: "pending",
+            tags: [],
             createdAt: serverTimestamp()
         });
-        showFeedback(zone, false, "Stat et XP enregistrées !");
-        charInput.value = ""; 
-        serverInput.value = "";
-        if (contentInput) contentInput.value = ""; 
+
+        titleEl.value = "";
+        charEl.value = "";
+        serverEl.value = "";
+        contentEl.value = "";
+
+        showFeedback(document.querySelector(".zone-ajout-pending button"), false, "RP ajouté à l'extension !");
         window.updateStats();
-        if(window.loadCharts) window.loadCharts();
-    } catch (e) { console.error(e); }
+    } catch(err) {
+        console.error(err);
+    }
 };
 
-// --- AJOUT RP PENDING (INTEGRATION DU TAG INITIAL) ---
-window.addReceived = async function() {
-    const inputs = {
-        title: document.getElementById("title"),
-        char: document.getElementById("char_received"),
-        srv: document.getElementById("server_received"),
-        cont: document.getElementById("content")
-    };
-    const initialTagInput = document.getElementById("initial_tag");
-    const zone = document.querySelector(".zone-ajout-pending");
+// --- AJOUT D'UN RP ENVOYÉ (STATS / XP) ---
+window.addSent = async function() {
+    const charEl = document.getElementById("char_sent");
+    const serverEl = document.getElementById("server_sent");
+    const contentEl = document.getElementById("content_sent");
 
-    let hasError = false;
-    for (let key in inputs) {
-        if (inputs[key] && !inputs[key].value) {
-            showFeedback(inputs[key], true);
-            hasError = true;
-        }
+    if (!charEl || !serverEl || !contentEl) return;
+
+    const character = charEl.value.trim();
+    const server = serverEl.value.trim();
+    const content = contentEl.value.trim();
+
+    if (!character || !server || !content) {
+        showFeedback(charEl, true);
+        showFeedback(serverEl, true);
+        showFeedback(contentEl, true);
+        return;
     }
-    if (hasError) return;
 
-    // Récupération sécurisée du tag choisi dans le menu déroulant
-    const tagChoisi = initialTagInput && initialTagInput.value ? [initialTagInput.value] : [];
+    const words = content.split(/\s+/).filter(w => w.length > 0).length;
+    const xpGained = words; 
 
     try {
-        await addDoc(collection(db, "rps_received"), {
-            title: inputs.title.value,
-            character: inputs.char.value,
-            server: inputs.srv.value,
-            content: inputs.cont.value,
-            status: "pending",
-            tags: tagChoisi, 
+        await addDoc(collection(db, "rps_sent"), {
+            character,
+            server,
+            wordCount: words,
+            xp: xpGained,
             createdAt: serverTimestamp()
         });
-        showFeedback(zone, false, "Ajouté au Pending !");
-        for (let key in inputs) { if(inputs[key]) inputs[key].value = ""; }
-        if (initialTagInput) initialTagInput.value = "";
-    } catch (e) { console.error(e); }
+
+        charEl.value = "";
+        serverEl.value = "";
+        contentEl.value = "";
+
+        showFeedback(document.querySelector(".zone-ajout button"), false, `${words} mots enregistrés (${xpGained} XP) !`);
+        window.updateStats();
+    } catch(err) {
+        console.error(err);
+    }
 };
 
-// --- CHARGEMENT DU PENDING ---
-window.loadPending = function(filterNames = null) {
-    if (unsubscribePending) {
-        unsubscribePending();
-        unsubscribePending = null;
+// --- SUPPRESSION & ACTION TERMINÉ ---
+window.deleteRP = async function(id) {
+    if(!confirm("Supprimer définitivement ce RP ?")) return;
+    try {
+        await updateDoc(doc(db, "rps_received", id), { status: "deleted" });
+        window.updateStats();
+    } catch (err) {
+        console.error("Erreur suppression:", err);
     }
-
-    const list = document.getElementById('pending-list');
-    if (!list) return;
-
-    // Requête simplifiée pour éviter les erreurs d'index complexes au démarrage
-    let q = query(
-        collection(db, "rps_received"),
-        where("status", "==", "pending")
-    );
-
-    if (filterNames && Array.isArray(filterNames) && filterNames.length > 0) {
-        q = query(
-            collection(db, "rps_received"),
-            where("status", "==", "pending"),
-            where("character", "in", filterNames)
-        );
-    }
-
-    unsubscribePending = onSnapshot(q, (snap) => {
-        list.innerHTML = "";
-        if (snap.empty) {
-            list.innerHTML = "<p style='color:#666; padding:10px;'>Aucun RP en attente.</p>";
-            return;
-        }
-
-        snap.forEach(docSnap => {
-            const rp = docSnap.data();
-            const id = docSnap.id;
-            const tagsTab = Array.isArray(rp.tags) ? rp.tags : []; 
-
-            const item = document.createElement('div');
-            item.className = "pending-item";
-            
-            // Propriété essentielle lue par le script de filtrage
-            item.setAttribute('data-tags', tagsTab.join(','));
-
-            // Structure HTML segmentée : empêche la propagation du clic vers la liseuse
-            item.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div class="text-click-zone" style="flex-grow: 1; margin-right:10px; cursor:pointer;">
-                        <b>${rp.title || 'Sans Titre'}</b> ${getUrgencyTag(rp.createdAt)}<br>
-                        <small>${rp.character || 'Inconnu'} — ${rp.server || 'Sans Serveur'}</small>
-                    </div>
-                    <button class="btn-done" style="cursor:pointer;">Fait</button>
-                </div>
-                <div class="tags-action-zone">
-                    ${genererBadgesEtSelecteur(id, tagsTab)}
-                </div>
-            `;
-
-            // Clic sur le texte uniquement -> Ouvre la liseuse
-            item.querySelector('.text-click-zone').addEventListener('click', () => {
-                window.openModal(rp.content || "", rp.title || "RP", `${rp.character} — ${rp.server}`);
-            });
-
-            // Clic sur le bouton fait
-            item.querySelector('.btn-done').addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.markDone(id);
-            });
-            list.appendChild(item);
-        });
-
-        initialiserFiltrageTags();
-
-    }, (err) => {
-        console.error("Erreur d'écoute Firestore :", err);
-    });
 };
 
 window.markDone = async function(id) {
@@ -259,7 +221,37 @@ function showFeedback(element, isError = false, message = "") {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// --- STATS GLOBAL ---
+window.updateStats = async function() {
+    try {
+        const stats = await getAdvancedStats();
+        const container = document.getElementById("statsContainer");
+        if (!container) return;
+
+        container.innerHTML = `
+            <h2>Statistiques de l'Activité</h2>
+            <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;\">
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;\">
+                    <div style="font-size:0.9rem; color:#888;\">Total XP</div>
+                    <div class="xp-counter" style="margin:5px 0 0 0;\">${stats.totalXP}</div>
+                </div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;\">
+                    <div style="font-size:0.9rem; color:#888;\">RPs Répondus</div>
+                    <div style="font-size:1.8rem; font-weight:bold; color:#2ecc71; margin-top:5px;\">${stats.totalSent}</div>
+                </div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;\">
+                    <div style="font-size:0.9rem; color:#888;\">Mots Écrits</div>
+                    <div style="font-size:1.8rem; font-weight:bold; color:#a777e3; margin-top:5px;\">${stats.totalWords}</div>
+                </div>
+            </div>
+        `;
+    } catch(err) {
+        console.error("Erreur stats:", err);
+    }
+};
+
+// INITIALISATION DU FLUX AU CHARGEMENT
+document.addEventListener("DOMContentLoaded", () => {
     window.loadPending();
-    setTimeout(() => { window.updateStats(); }, 400); 
+    window.updateStats();
 });
