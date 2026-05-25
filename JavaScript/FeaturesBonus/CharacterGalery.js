@@ -38,9 +38,11 @@ window.afficherGaleriePersonnages = function() {
         
         const card = document.createElement("div");
         card.className = "char-card";
-        card.setAttribute("data-name", charName); // Crucial pour le lier à l'affichage et aux filtres
+        card.setAttribute("data-name", charName);
+        
+        // CORRECTION ICI : On utilise un chemin relatif propre et on supprime l'attribut onerror après le premier échec pour éviter la boucle infinie
         card.innerHTML = `
-            <img src="./CSS/Logo/${imgName}" alt="${charName}" onerror="this.src='./CSS/Logo/default.png';">
+            <img src="CSS/Logo/${imgName}" alt="${charName}" onerror="this.onerror=null; this.src='CSS/Logo/default.png';">
             <h3>${charName}</h3>
         `;
 
