@@ -298,6 +298,7 @@ button:hover {
     color: #00b894; 
     border-color: rgba(0, 184, 148, 0.3);
 }
+.badge-tag.chill { background: rgba(0, 151, 230, 0.15); color: #0097e6; border-color: rgba(0, 151, 230, 0.3); }
 
 /* Éléments de structure internes aux cartes */
 .pending-footer-tags {
