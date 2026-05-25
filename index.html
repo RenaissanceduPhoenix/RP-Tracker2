@@ -30,23 +30,32 @@
             </div>
         </div>
 
-<div class="box zone-galerie">
-    <h2>Galerie</h2>
-    <div id="char-gallery" class="char-gallery"></div>
-    
-    <div class="char-stats-mini-box">
-        <p id="stat-pending-count">Attente : --</p>
-        <p id="stat-sent-total">Total Envoyés : --</p>
-    </div>
+<div class="row">
+            <div class="box zone-galerie" style="flex: 1;">
+                <h2>Galerie</h2>
+                <div id="char-gallery" class="char-gallery"></div>
+                
+                <div class="char-stats-mini-box">
+                    <p id="stat-pending-count">Attente : --</p>
+                    <p id="stat-sent-total">Total Envoyés : --</p>
+                </div>
 
-    <div class="galerie-actions">
-        <button class="btn-reset" onclick="resetCharFilter()">Voir tous les personnages</button>
-        <div class="btn-group">
-            <button class="btn-profile" onclick="openFullPerso()">📊 Profil</button>
-            <button class="btn-fiche" onclick="openOriginalFiche()">📜 Fiche</button>
+                <div class="galerie-actions">
+                    <button class="btn-reset" onclick="resetCharFilter()">Voir tous les personnages</button>
+                    <div class="btn-group">
+                        <button class="btn-profile" onclick="openFullPerso()">📊 Profil</button>
+                        <button class="btn-fiche" onclick="openOriginalFiche()">📜 Fiche</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box zone-details-perso" style="flex: 2;">
+                <h2>Informations du Personnage</h2>
+                <div id="displayAreaPerso">
+                    <p class="empty-msg">Sélectionnez un personnage dans la galerie, puis cliquez sur 📊 Profil ou 📜 Fiche pour afficher les détails.</p>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <div class="row">
             <div class="box zone-liste-pending" style="flex: 2;">
