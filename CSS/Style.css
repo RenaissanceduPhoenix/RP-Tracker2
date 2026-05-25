@@ -431,12 +431,7 @@ select.select-tag-toggle:focus {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(167, 119, 227, 0.6);
 }
-.char-gallery-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-}
+
 
 .controls {
     display: flex;
@@ -502,4 +497,75 @@ select.select-tag-toggle:focus {
 .galerie-actions .btn-reset {
     width: 100%;
     background: rgba(167, 119, 227, 0.1);
+}
+
+/* ==========================================================================
+   MODALITÉS ET DESIGN DES PHOTOS DE PROFIL (GALERIE)
+   ========================================================================== */
+
+/* Conteneur de la galerie */
+.char-gallery {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 10px 0;
+}
+
+/* La carte du personnage */
+.char-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(167, 119, 227, 0.2);
+    border-radius: 12px;
+    padding: 12px;
+    width: 110px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Effet au survol */
+.char-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(167, 119, 227, 0.6);
+    background: rgba(167, 119, 227, 0.05);
+}
+
+/* État Sélectionné / Actif */
+.char-card.active {
+    border-color: #a777e3;
+    box-shadow: 0 0 12px rgba(167, 119, 227, 0.6);
+    background: rgba(167, 119, 227, 0.12);
+}
+
+/* STYLE PHOTO DE PROFIL (AVATAR ROND) */
+.char-card img {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;          /* Rend l'image parfaitement ronde */
+    object-fit: cover;           /* Empêche l'image d'être déformée ou écrasée */
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: border-color 0.2s ease;
+}
+
+/* Changement de la bordure de la photo si le perso est actif */
+.char-card.active img {
+    border-color: #a777e3;
+}
+
+/* Nom du personnage sous la photo */
+.char-card h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #f0f0f0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;    /* Coupe le texte proprement avec "..." s'il est trop long */
+    width: 100%;
 }
