@@ -344,13 +344,18 @@ button:hover {
 }
 
 select.select-tag-toggle {
-    width: auto;
-    max-width: 120px;
-    padding: 3px 6px;
-    margin-bottom: 0;
-    font-size: 0.75rem;
-    background: #111116;
+    background: #101015;
+    color: #ccc;
     border: 1px solid rgba(167, 119, 227, 0.4);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    outline: none;
+}
+
+select.select-tag-toggle:focus {
+    border-color: #ffcc00;
 }
 
 .btn-fait {
