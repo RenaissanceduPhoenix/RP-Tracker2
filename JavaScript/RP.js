@@ -13,19 +13,19 @@ window.openModal = function(content, title, meta) {
     if(!area) return;
     area.innerHTML = `
         <div class="rp-reader">
-            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;\">
+            <div style="border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between;">
                 <div>
-                    <h3 style="margin:0; color:#ffcc00;\">${title}</h3>
-                    <small style="color:#888;\">${meta}</small>
+                    <h3 style="margin:0; color:#ffcc00;">${title}</h3>
+                    <small style="color:#888;">${meta}</small>
                 </div>
-                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;\">×</button>
+                <button onclick="window.clearView()" style="background:none; border:none; color:white; cursor:pointer; font-size:20px;">×</button>
             </div>
             <div class="rp-display-content">${parseRP(content)}</div>
         </div>
     `;
 };
 
-// --- CHARGEMENT DU PENDING (REFAIT STYLE EXTENSION AVEC URGENCE) ---
+// --- CHARGEMENT DU PENDING ---
 window.loadPending = function() {
     if (unsubscribePending) unsubscribePending();
 
@@ -51,31 +51,30 @@ window.loadPending = function() {
             const id = docSnap.id;
             const meta = `👤 ${rp.character} | 🌐 ${rp.server}`;
 
-            // 1. Génération de l'HTML des étiquettes d'urgence et du sélecteur intégré
+            // Calcul du badge d'urgence (Récent, Attente, Relance)
+            const urgencyBadgeHTML = getUrgencyTag(rp.createdAt);
             const tagsFooterHTML = genererBadgesEtSelecteur(id, rp.tags || []);
 
-            // 2. Création de la carte (.rp-card) calquée sur l'extension
             const card = document.createElement("div");
             card.className = "rp-card";
             card.setAttribute("data-rpid", id);
 
             card.innerHTML = `
-                <div class="rp-card-header">
-                    <span>👤 ${rp.character}</span>
-                    <span>🌐 ${rp.server}</span>
+                <div class="rp-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>👤 ${rp.character} <small style="color:#666;">(${rp.server})</small></span>
+                    ${urgencyBadgeHTML}
                 </div>
-                <div class="rp-card-title" style="cursor:pointer; text-decoration:underline;\">${rp.title}</div>
-                <div class="rp-card-body" style="cursor:pointer;\">
+                <div class="rp-card-title" style="cursor:pointer; text-decoration:underline; font-weight:bold; margin-top:5px;">${rp.title}</div>
+                <div class="rp-card-body" style="cursor:pointer; color:#bbb; font-size:0.9rem; margin-top:5px;">
                     ${rp.content ? rp.content.substring(0, 100) + '...' : '<i>Pas de contenu...</i>'}
                 </div>
                 ${tagsFooterHTML}
-                <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;\">
-                    <button class="action-btn" onclick="window.markDone('${id}')" style="background:#2ecc71; padding:3px 8px; font-size:0.75rem;\">Terminé</button>
-                    <button class="action-btn" onclick="window.deleteRP('${id}')" style="background:#e74c3c; padding:3px 8px; font-size:0.75rem;\">Supprimer</button>
+                <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="action-btn" onclick="window.markDone('${id}')" style="background:#2ecc71; padding:3px 8px; font-size:0.75rem;">Terminé</button>
+                    <button class="action-btn" onclick="window.deleteRP('${id}')" style="background:#e74c3c; padding:3px 8px; font-size:0.75rem;">Supprimer</button>
                 </div>
             `;
 
-            // Rendre la zone du titre et du corps cliquable pour ouvrir la modale de lecture
             const openAction = () => window.openModal(rp.content || "*Aucun texte*", rp.title, meta);
             card.querySelector(".rp-card-title").addEventListener("click", openAction);
             card.querySelector(".rp-card-body").addEventListener("click", openAction);
@@ -83,7 +82,6 @@ window.loadPending = function() {
             container.appendChild(card);
         });
 
-        // Ré-attacher l'interrupteur des sélecteurs de tags une fois le DOM prêt
         initialiserFiltrageTags();
     }, (err) => {
         console.error("Erreur flux en attente:", err);
@@ -127,14 +125,14 @@ window.addPending = async function() {
         serverEl.value = "";
         contentEl.value = "";
 
-        showFeedback(document.querySelector(".zone-ajout-pending button"), false, "RP ajouté à l'extension !");
+        showFeedback(document.querySelector(".zone-ajout-pending button"), false, "RP ajouté !");
         window.updateStats();
     } catch(err) {
         console.error(err);
     }
 };
 
-// --- AJOUT D'UN RP ENVOYÉ (STATS / XP) ---
+// --- AJOUT D'UN RP ENVOYÉ ---
 window.addSent = async function() {
     const charEl = document.getElementById("char_sent");
     const serverEl = document.getElementById("server_sent");
@@ -230,18 +228,18 @@ window.updateStats = async function() {
 
         container.innerHTML = `
             <h2>Statistiques de l'Activité</h2>
-            <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;\">
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;\">
-                    <div style="font-size:0.9rem; color:#888;\">Total XP</div>
-                    <div class="xp-counter" style="margin:5px 0 0 0;\">${stats.totalXP}</div>
+            <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;">
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;">
+                    <div style="font-size:0.9rem; color:#888;">Total XP</div>
+                    <div class="xp-counter" style="margin:5px 0 0 0;">${stats.totalXP || 0}</div>
                 </div>
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;\">
-                    <div style="font-size:0.9rem; color:#888;\">RPs Répondus</div>
-                    <div style="font-size:1.8rem; font-weight:bold; color:#2ecc71; margin-top:5px;\">${stats.totalSent}</div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;">
+                    <div style="font-size:0.9rem; color:#888;">RPs Répondus</div>
+                    <div style="font-size:1.8rem; font-weight:bold; color:#2ecc71; margin-top:5px;">${stats.totalSent || 0}</div>
                 </div>
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;\">
-                    <div style="font-size:0.9rem; color:#888;\">Mots Écrits</div>
-                    <div style="font-size:1.8rem; font-weight:bold; color:#a777e3; margin-top:5px;\">${stats.totalWords}</div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;">
+                    <div style="font-size:0.9rem; color:#888;">Mots Écrits</div>
+                    <div style="font-size:1.8rem; font-weight:bold; color:#a777e3; margin-top:5px;">${stats.totalWords || 0}</div>
                 </div>
             </div>
         `;
@@ -250,7 +248,7 @@ window.updateStats = async function() {
     }
 };
 
-// INITIALISATION DU FLUX AU CHARGEMENT
+// INITIALISATION DU FLUX
 document.addEventListener("DOMContentLoaded", () => {
     window.loadPending();
     window.updateStats();
