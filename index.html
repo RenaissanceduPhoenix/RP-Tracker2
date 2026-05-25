@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RP Tracker PRO - Renaissance du Phoenix</title>
-    <link rel="stylesheet" href="./CSS/Style.css?v=2.1">
+    <link rel="stylesheet" href="./CSS/Style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="icon" type="image/ico" href="./CSS/Logo/Favicon-32.ico">
 </head>
 <body>
 
     <div class="dashboard">
-        <div class="row">
+        <div class="row animate-fade-in">
             <div class="box zone-ajout">
                 <h2>Ajouter un RP Envoyé</h2>
                 <input id="char_sent" placeholder="Nom du personnage">
@@ -26,48 +26,36 @@
                 <input id="char_received" placeholder="Ton personnage">
                 <input id="server_received" placeholder="Serveur">
                 <textarea id="content" placeholder="Contenu du message..." style="margin-top: 10px;"></textarea>
-                <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
-                    <option value="">🏷️ Choisir une énergie (Optionnel)...</option>
-                    <option value="Action">⚔️ Action</option>
-                    <option value="Romance">❤️ Romance</option>
-                    <option value="Important">🚨 Important</option>
-                    <option value="Rapide">⚡ Rapide</option>
-                </select>
                 <button onclick="addPending()">Ajouter aux pendings</button>
             </div>
         </div>
 
-        <div class="row">
-    <div class="box zone-liste-pending" style="flex: 1;">
-        <h2>Mes RPs en Attente</h2>
-        <div class="tags-filter-container">
-            <span class="filter-label">Filtre :</span>
-                <button class="btn-tag-filter active" data-tag="all">Tous</button>
-                <button class="btn-tag-filter" data-tag="Action">⚔️ Action</button>
-                <button class="btn-tag-filter" data-tag="Romance">❤️ Romance</button>
-                <button class="btn-tag-filter" data-tag="Important">🚨 Important</button>
-                <button class="btn-tag-filter" data-tag="Rapide">⚡ Rapide</button>
+<div class="box zone-galerie">
+            <h2>Galerie des Personnages</h2>
+            <div id="char-gallery" class="char-gallery-container"></div>
         </div>
-            <div id="pendingList" class="cards-container">
-            </div>
-    <div id="displayAreaPending"></div>
     </div>
-</div>
+
+        <div class="row">
+            <div class="box zone-liste-pending" style="flex: 2;">
+                <h2>Mes RPs en Attente</h2>
+                <div id="pendingList" class="cards-container"></div>
+                <div id="displayAreaPending"></div>
+            </div>
 
             <div class="box zone-graphique" style="flex: 3;">
                 <h2>Évolution de l'Activité</h2>
                 <div class="controls" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <select id="filterCharacter">
-                        <option value="">Tous les personnages</option>
-                    </select>
-                    <select id="filterServer">
-                        <option value="">Tous les serveurs</option>
+                    <select id="viewType" onchange="loadCharts()">
+    <option value="total">📈 Total RP</option>
+    <option value="perso">👥 Par Personnage</option>
+    <option value="server">🖥️ Par Serveur</option>
                     </select>
                     <input type="text" id="startDate" placeholder="Date début">
                     <input type="text" id="endDate" placeholder="Date fin">
                 </div>
                 <div class="canvas-container">
-                    <canvas id=\"chart\"></canvas>
+                    <canvas id="chart"></canvas>
                 </div>
             </div>
         </div>
@@ -75,7 +63,6 @@
         <div id="statsContainer" class="box">
             <h2>Statistiques de l'Activité</h2>
         </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -83,7 +70,7 @@
     <script type="module" src="./JavaScript/Firebase.js"></script>
     <script type="module" src="./JavaScript/DataService.js"></script>
     <script type="module" src="./JavaScript/Markdown.js"></script>
-    <script type="module" src="./JavaScript/RP.js?v=2"></script>
+    <script type="module" src="./JavaScript/RP.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/UrgencyTags.js"></script>
     <script type="module" src="./JavaScript/Chart.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/Tags.js"></script>
