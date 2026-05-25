@@ -2,15 +2,16 @@ import { charactersDB } from './CharacterData.js';
 import { db } from '../Firebase.js';
 import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Mapping avec le sous-dossier exact et correction des accents pour la sécurité du serveur
 const nameToImage = {
     "Petite Lynx": "Lynx.png",
     "Nuage de Lynx": "Lynx.png",
     "Ardeur du Lynx": "Lynx.png",
-    "Petite Anémone": "Anémone.webp",
-    "Nuage d’Anémone": "Anémone.webp",
-    "Nuage d'Anémone": "Anémone.webp",
-    "Eclats d’Anémone": "Anémone.webp",
-    "Eclats d'Anémone": "Anémone.webp",
+    "Petite Anémone": "Anemone.webp",  // Sans accent sur le fichier pour la sécurité
+    "Nuage d’Anémone": "Anemone.webp",
+    "Nuage d'Anémone": "Anemone.webp",
+    "Eclats d’Anémone": "Anemone.webp",
+    "Eclats d'Anémone": "Anemone.webp",
     "Boule de Sable": "Sables.webp",
     "Nuage des Sables": "Sables.webp",
     "Pelage des Sables": "Sables.webp"
@@ -34,33 +35,35 @@ window.afficherGaleriePersonnages = function() {
     const activeChars = getActiveChars();
 
     activeChars.forEach(charName => {
-        const imgName = nameToImage[charName] || "default.png";
+        const imgName = nameToImage[charName] || "Lynx.png"; // Fallback sur Lynx si non trouvé
         
+        // CORRECTION DU CHEMIN : On utilise le dossier exact de ton arborescence
+        const basePath = "./JavaScript/FeaturesBonus/Assets/Avatars/";
+
         const card = document.createElement("div");
         card.className = "char-card";
-        card.setAttribute("data-name", charName);
+        card.setAttribute("data-name", charName); // Crucial pour le lier à l'affichage et aux filtres
         
-        // CORRECTION ICI : On utilise un chemin relatif propre et on supprime l'attribut onerror après le premier échec pour éviter la boucle infinie
         card.innerHTML = `
-            <img src="CSS/Logo/${imgName}" alt="${charName}" onerror="this.onerror=null; this.src='CSS/Logo/default.png';">
+            <img src="${basePath}${imgName}" alt="${charName}" onerror="this.onerror=null; this.src='${basePath}Lynx.png';">
             <h3>${charName}</h3>
         `;
 
-        // LOGIQUE D'ACTIVATION DU FILTRE AU CLIC SUR LE PERSONNAGE
+        // LOGIQUE DES FILTRES ET ENCLENCHEMENT DU FILTRE GLOBAL
         card.addEventListener("click", function() {
-            // 1. Gestion de la classe active sur les avatars
+            // 1. Gestion de la classe active (visuelle)
             document.querySelectorAll(".char-card").forEach(c => c.classList.remove("active"));
             card.classList.add("active");
 
-            // 2. Application du filtre sur le sélecteur lié au graphique & aux listes
+            // 2. Application du filtre sur le sélecteur lié au graphique & aux listes (RP.js et Chart.js)
             const filterSelect = document.getElementById("filterCharacter");
             if (filterSelect) {
                 filterSelect.value = charName;
-                // Déclenche l'événement global 'change' pour forcer Chart.js et RP.js à filtrer
+                // Déclenche l'événement global 'change' pour forcer le graphique et les listes à s'actualiser
                 filterSelect.dispatchEvent(new Event("change"));
             }
 
-            // 3. Actualiser automatiquement les mini-statistiques Firestore en bas
+            // 3. Actualiser les mini-statistiques Firestore en bas de la galerie
             if (typeof window.mettreAJourMiniStats === "function") {
                 window.mettreAJourMiniStats(charName);
             }
