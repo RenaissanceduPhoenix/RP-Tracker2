@@ -21,39 +21,39 @@
             </div>
 
             <div class="box zone-ajout-pending">
-                <h2>Nouveau RP en attente (Pending)</h2>
-                <input id="title" placeholder="Titre du RP">
-                <input id="char_received" placeholder="Ton personnage">
-                <input id="server_received" placeholder="Serveur">
-                <textarea id="content" placeholder="Contenu du message..."></textarea>
-                
-                <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
+    <h2>Nouveau RP en attente (Pending)</h2>
+    <input id="title" placeholder="Titre du RP">
+    <input id="char_received" placeholder="Ton personnage">
+    <input id="server_received" placeholder="Serveur">
+    <textarea id="content" placeholder="Contenu du message..." style="margin-top: 10px;"></textarea>
+    <select id="initial_tag" style="width: 100%; margin-top: 10px; background: #101015; color: #fff; border: 1px solid #a777e3; padding: 8px; border-radius: 4px;">
                     <option value="">🏷️ Choisir une énergie (Optionnel)...</option>
                     <option value="Action">⚔️ Action</option>
                     <option value="Romance">❤️ Romance</option>
                     <option value="Important">🚨 Important</option>
                     <option value="Rapide">⚡ Rapide</option>
                 </select>
-                
-                <button onclick="addPending()">Ajouter aux pendings</button>
-            </div>
+    <button onclick="addPending()">Ajouter aux pendings</button>
+</div>
+</div>
+
+<div class="row">
+    <div class="box zone-liste-pending" style="flex: 1;">
+        <h2>Mes RPs en Attente</h2>
+        <div class="tags-filter-container">
+            <span class="filter-label">Filtre :</span>
+                <button class="btn-tag-filter active" data-tag="all">Tous</button>
+                <button class="btn-tag-filter" data-tag="Action">⚔️ Action</button>
+                <button class="btn-tag-filter" data-tag="Romance">❤️ Romance</button>
+                <button class="btn-tag-filter" data-tag="Important">🚨 Important</button>
+                <button class="btn-tag-filter" data-tag="Rapide">⚡ Rapide</button>
         </div>
-
-        <div class="row">
-            <div class="box" style="flex: 1;">
-                <h2>RP en attente (Pending)</h2>
-                
-                <div class="tags-filter-container">
-                    <span class="filter-label">Filtre :</span>
-                    <button class="btn-tag-filter active" data-tag="all">Tous</button>
-                    <button class="btn-tag-filter" data-tag="Action">⚔️ Action</button>
-                    <button class="btn-tag-filter" data-tag="Romance">❤️ Romance</button>
-                    <button class="btn-tag-filter" data-tag="Important">🚨 Important</button>
-                    <button class="btn-tag-filter" data-tag="Rapide">⚡ Rapide</button>
-                </div>
-
-                <div id="pending-list"></div>
+            <div id="pendingList" class="cards-container">
             </div>
+    <div id="displayAreaPending"></div>
+    </div>
+</div>
+
             
             <div class="box" style="flex: 1;">
                 <h2>Lecteur de Message</h2>

@@ -127,9 +127,11 @@ window.addPending = async function() {
 // 4. ÉCOUTE EN TEMPS RÉEL DES RPs EN ATTENTE (FIRESTORE)
 // =========================================================================
 window.initPendingList = function() {
-    // CORRECTION ICI : "pendingContainer" devient "pendingList" pour matcher avec l'index.html
     const container = document.getElementById("pendingList");
-    if (!container) return;
+    if (!container) {
+        console.warn("⚠️ Conteneur 'pendingList' introuvable dans le DOM.");
+        return;
+    }
 
     if (unsubscribePending) {
         unsubscribePending();
@@ -159,12 +161,8 @@ window.initPendingList = function() {
             const content = rp.content || "";
             const tags = rp.tags || [];
 
-            // Calculer la pastille d'urgence temporelle (Vert / Orange / Rouge)
             const urgencyBadge = getUrgencyTag(rp.createdAt);
-
-            // Génération dynamique des badges d'énergie (#Action, #Romance...) et de leur sélecteur
             const tagsHTML = genererBadgesEtSelecteur(id, tags);
-
             const metaText = `Perso : ${character} | Serveur : ${server}`;
 
             const card = document.createElement("div");
@@ -186,12 +184,10 @@ window.initPendingList = function() {
                 </div>
             `;
 
-            // Événement de lecture
             card.querySelector(".btn-read").addEventListener("click", () => {
                 window.openModal(content, title, metaText);
             });
 
-            // Événement de validation (marquer comme fait)
             card.querySelector(".btn-done").addEventListener("click", () => {
                 window.markDone(id);
             });
@@ -199,7 +195,6 @@ window.initPendingList = function() {
             container.appendChild(card);
         });
 
-        // Réinitialisation indispensable des écouteurs de tags
         initialiserFiltrageTags();
     }, (err) => {
         console.error("Erreur flux temps réel pendings :", err);
@@ -216,7 +211,7 @@ window.markDone = async function(id) {
         await updateDoc(doc(db, "rps_received", id), { status: "done" });
         window.updateStats();
     } catch (err) {
-        console.error("Erreur lors de la clôture du RP :", err);
+        console.error("Erreur lors de l'clôture du RP :", err);
     }
 };
 
@@ -276,18 +271,13 @@ function showFeedback(element, isError = false, message = "") {
 }
 
 // =========================================================================
-// 8. INITIALISATION AUTOMATIQUE DES SERVICES (SÉCURISÉE)
+// 8. INITIALISATION AUTOMATIQUE SECURISEE (ANTI-ASYNCHRONISME)
 // =========================================================================
 function lancerInitialisation() {
-    if (typeof window.initPendingList === "function") {
-        window.initPendingList();
-    }
-    if (typeof window.updateStats === "function") {
-        window.updateStats();
-    }
+    if (typeof window.initPendingList === "function") window.initPendingList();
+    if (typeof window.updateStats === "function") window.updateStats();
 }
 
-// Si le DOM est déjà prêt, on lance immédiatement, sinon on attend l'événement
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", lancerInitialisation);
 } else {
