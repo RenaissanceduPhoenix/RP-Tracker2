@@ -276,9 +276,20 @@ function showFeedback(element, isError = false, message = "") {
 }
 
 // =========================================================================
-// 8. INITIALISATION AUTOMATIQUE DES SERVICES AU CHARGEMENT DU DOM
+// 8. INITIALISATION AUTOMATIQUE DES SERVICES (SÉCURISÉE)
 // =========================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    window.initPendingList();
-    window.updateStats();
-});
+function lancerInitialisation() {
+    if (typeof window.initPendingList === "function") {
+        window.initPendingList();
+    }
+    if (typeof window.updateStats === "function") {
+        window.updateStats();
+    }
+}
+
+// Si le DOM est déjà prêt, on lance immédiatement, sinon on attend l'événement
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", lancerInitialisation);
+} else {
+    lancerInitialisation();
+}
