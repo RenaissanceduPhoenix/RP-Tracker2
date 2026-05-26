@@ -193,10 +193,74 @@ Chart.prototype.update = function(...args) {
     }
 };
 
+// --- INITIALISATION & ÉCOUTEURS D'ÉVÉNEMENTS ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialisation de Flatpickr pour la sélection des dates
     if (window.flatpickr) {
-        flatpickr("#startDate", { altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d" });
-        flatpickr("#endDate", { altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d" });
+        // Configuration du champ Date Début
+        flatpickr("#startDate", { 
+            altInput: true, 
+            altFormat: "d/m/Y", 
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                // Relance le graphique dès que la date de début change
+                if (typeof window.loadCharts === "function") window.loadCharts();
+            }
+        });
+
+        // Configuration du champ Date Fin
+        flatpickr("#endDate", { 
+            altInput: true, 
+            altFormat: "d/m/Y", 
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                // Relance le graphique dès que la date de fin change
+                if (typeof window.loadCharts === "function") window.loadCharts();
+            }
+        });
     }
-    window.loadCharts();
+
+    // 2. Écouteur pour le type de vue (Jour / Semaine / Mois)
+    const viewTypeSelect = document.getElementById('viewType');
+    if (viewTypeSelect) {
+        viewTypeSelect.addEventListener('change', () => {
+            if (typeof window.loadCharts === "function") window.loadCharts();
+        });
+    }
+
+    // 3. Écouteur pour le filtre de Personnage caché (si géré par le select global)
+    const filterCharacterSelect = document.getElementById('filterCharacter');
+    if (filterCharacterSelect) {
+        filterCharacterSelect.addEventListener('change', () => {
+            if (typeof window.loadCharts === "function") window.loadCharts();
+        });
+    }
+
+    // 4. Gestion de la modale de zoom (Code existant du bouton zoom)
+    const btnZoom = document.getElementById("btnZoomChart");
+    const btnClose = document.querySelector(".chart-modal-close");
+    const modal = document.getElementById("chartModal");
+
+    if (btnZoom) btnZoom.addEventListener("click", openChartModal);
+    if (btnClose) btnClose.addEventListener("click", closeChartModal);
+
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeChartModal();
+        });
+    }
+
+    // Premier chargement initial des graphiques au démarrage de la page
+    if (typeof window.loadCharts === "function") {
+        window.loadCharts();
+    }
 });
+
+// Interception pour synchroniser automatiquement la modale si elle est ouverte
+const originalUpdate = Chart.prototype.update;
+Chart.prototype.update = function(...args) {
+    originalUpdate.apply(this, args);
+    if (this.canvas && this.canvas.id === "chart" && document.getElementById("chartModal")?.style.display === "flex") {
+        setTimeout(openChartModal, 50);
+    }
+};
