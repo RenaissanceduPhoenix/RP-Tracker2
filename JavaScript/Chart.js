@@ -165,56 +165,24 @@ function closeChartModal() {
     }
 }
 
-// --- ÉCOUTEURS D'ÉVÉNEMENTS (Une fois le DOM chargé) ---
-document.addEventListener("DOMContentLoaded", () => {
-    const btnZoom = document.getElementById("btnZoomChart");
-    const btnClose = document.querySelector(".chart-modal-close");
-    const modal = document.getElementById("chartModal");
-
-    if (btnZoom) btnZoom.addEventListener("click", openChartModal);
-    if (btnClose) btnClose.addEventListener("click", closeChartModal);
-
-    // Fermer si on clique en dehors du cadre de la modale
-    if (modal) {
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeChartModal();
-        });
-    }
-});
-
-// ASTUCE POUR L'ACTUALISATION : Si tes filtres mettent à jour le graphique principal alors que la modale est ouverte
-// On intercepte la mise à jour pour rafraîchir la modale si elle est visible.
-const originalUpdate = Chart.prototype.update;
-Chart.prototype.update = function(...args) {
-    originalUpdate.apply(this, args);
-    // Si le graphique principal s'actualise et que la modale est ouverte, on la rafraîchit
-    if (this.canvas && this.canvas.id === "chart" && document.getElementById("chartModal")?.style.display === "flex") {
-        setTimeout(openChartModal, 50); // Petit délai pour laisser le graphique principal finir sa mise à jour
-    }
-};
-
-// --- INITIALISATION & ÉCOUTEURS D'ÉVÉNEMENTS ---
+// --- INITIALISATION UNIQUE & ÉCOUTEURS D'ÉVÉNEMENTS ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialisation de Flatpickr pour la sélection des dates
     if (window.flatpickr) {
-        // Configuration du champ Date Début
         flatpickr("#startDate", { 
             altInput: true, 
             altFormat: "d/m/Y", 
             dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr, instance) {
-                // Relance le graphique dès que la date de début change
+            onChange: function() {
                 if (typeof window.loadCharts === "function") window.loadCharts();
             }
         });
 
-        // Configuration du champ Date Fin
         flatpickr("#endDate", { 
             altInput: true, 
             altFormat: "d/m/Y", 
             dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr, instance) {
-                // Relance le graphique dès que la date de fin change
+            onChange: function() {
                 if (typeof window.loadCharts === "function") window.loadCharts();
             }
         });
@@ -228,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Écouteur pour le filtre de Personnage caché (si géré par le select global)
+    // 3. Écouteur pour le filtre de Personnage lié au graphique
     const filterCharacterSelect = document.getElementById('filterCharacter');
     if (filterCharacterSelect) {
         filterCharacterSelect.addEventListener('change', () => {
@@ -236,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Gestion de la modale de zoom (Code existant du bouton zoom)
+    // 4. Gestion de la modale de zoom
     const btnZoom = document.getElementById("btnZoomChart");
     const btnClose = document.querySelector(".chart-modal-close");
     const modal = document.getElementById("chartModal");
@@ -250,13 +218,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Premier chargement initial des graphiques au démarrage de la page
+    // Premier chargement initial du graphique au démarrage
     if (typeof window.loadCharts === "function") {
         window.loadCharts();
     }
 });
 
-// Interception pour synchroniser automatiquement la modale si elle est ouverte
+// Interception globale pour synchroniser automatiquement la modale si elle est ouverte
 const originalUpdate = Chart.prototype.update;
 Chart.prototype.update = function(...args) {
     originalUpdate.apply(this, args);
