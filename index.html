@@ -66,6 +66,7 @@
 
             <div class="box zone-graphique" style="flex: 3;">
                 <h2>Évolution de l'Activité</h2>
+                    <button id="btnZoomChart" title="Agrandir le graphique" style="background: none; border: none; color: #a777e3; cursor: pointer; font-size: 1.2rem; padding: 5px;">🔍</button>
                 <div class="controls" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <select id="viewType" onchange="loadCharts()">
     <option value="total">📈 Total RP</option>
@@ -99,5 +100,18 @@
     <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js"></script>
+
+
+<div id="chartModal" class="chart-modal" style="display: none;">
+    <div class="chart-modal-content">
+        <span class="chart-modal-close">&times;</span>
+        <h2 id="modalChartTitle" style="color: #fff; margin-top: 0; text-align: center;">Graphique Agrandi</h2>
+        <div class="modal-canvas-container" style="position: relative; height: 70vh; width: 100%;">
+            <canvas id="modalChart"></canvas>
+        </div>
+    </div>
+</div>
+
+
 </body>
 </html>

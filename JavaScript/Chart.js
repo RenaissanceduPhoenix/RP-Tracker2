@@ -111,6 +111,88 @@ window.loadCharts = async function() {
     });
 };
 
+let modalChart = null; // Contiendra l'instance du graphique en grand
+
+// Fonction pour ouvrir la modale et générer le gros graphique
+function openChartModal() {
+    const modal = document.getElementById("chartModal");
+    const mainCanvas = document.getElementById("chart");
+    const modalCanvas = document.getElementById("modalChart");
+
+    if (!modal || !mainCanvas || !modalCanvas) return;
+
+    // Récupérer l'instance Chart.js du graphique principal
+    const mainChartInstance = Chart.getChart(mainCanvas);
+    if (!mainChartInstance) return;
+
+    // Afficher la modale
+    modal.style.display = "flex";
+
+    // Si un graphique de modale existe déjà, on le détruit proprement pour le récréer
+    if (modalChart) {
+        modalChart.destroy();
+    }
+
+    // On clone la configuration du graphique principal (données, filtres actifs, etc.)
+    const mainConfig = mainChartInstance.config;
+
+    // Création du graphique géant
+    modalChart = new Chart(modalCanvas, {
+        type: mainConfig.type,
+        data: JSON.parse(JSON.stringify(mainConfig.data)), // Copie profonde des données actuelles filtrées
+        options: {
+            ...mainConfig.options,
+            responsive: true,
+            maintainAspectRatio: false, // Permet de prendre toute la hauteur de la modale
+            plugins: {
+                ...mainConfig.options.plugins,
+                legend: {
+                    ...mainConfig.options.plugins?.legend,
+                    labels: { font: { size: 14 } } // Optionnel : agrandit les textes de légende
+                }
+            }
+        }
+    });
+}
+
+// Fonction pour fermer la modale
+function closeChartModal() {
+    const modal = document.getElementById("chartModal");
+    if (modal) modal.style.display = "none";
+    if (modalChart) {
+        modalChart.destroy();
+        modalChart = null;
+    }
+}
+
+// --- ÉCOUTEURS D'ÉVÉNEMENTS (Une fois le DOM chargé) ---
+document.addEventListener("DOMContentLoaded", () => {
+    const btnZoom = document.getElementById("btnZoomChart");
+    const btnClose = document.querySelector(".chart-modal-close");
+    const modal = document.getElementById("chartModal");
+
+    if (btnZoom) btnZoom.addEventListener("click", openChartModal);
+    if (btnClose) btnClose.addEventListener("click", closeChartModal);
+
+    // Fermer si on clique en dehors du cadre de la modale
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeChartModal();
+        });
+    }
+});
+
+// ASTUCE POUR L'ACTUALISATION : Si tes filtres mettent à jour le graphique principal alors que la modale est ouverte
+// On intercepte la mise à jour pour rafraîchir la modale si elle est visible.
+const originalUpdate = Chart.prototype.update;
+Chart.prototype.update = function(...args) {
+    originalUpdate.apply(this, args);
+    // Si le graphique principal s'actualise et que la modale est ouverte, on la rafraîchit
+    if (this.canvas && this.canvas.id === "chart" && document.getElementById("chartModal")?.style.display === "flex") {
+        setTimeout(openChartModal, 50); // Petit délai pour laisser le graphique principal finir sa mise à jour
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.flatpickr) {
         flatpickr("#startDate", { altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d" });
