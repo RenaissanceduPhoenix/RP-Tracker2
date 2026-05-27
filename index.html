@@ -112,6 +112,36 @@
     </div>
 </div>
 
+<div id="coWriteModal" class="chart-modal" style="display: none;">
+    <div class="chart-modal-content" style="max-width: 800px; width: 90%;">
+        <span class="chart-modal-close" onclick="closeCoWriteModal()">&times;</span>
+        <h2 id="coWriteModalTitle" style="color: #a777e3; margin-top: 0;">🖋️ Salon de Co-Écriture</h2>
+        
+        <p style="margin: 0; color: #aaa; font-size: 0.85rem;">Historique du RP (Firestore) :</p>
+        <div id="rpHistoryLog" style="background: #101015; border: 1px solid #2c2c35; border-radius: 6px; padding: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem;">
+            </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label style="color: #aaa; font-size: 0.85rem;">Qui a écrit ce texte ?</label>
+                <input id="coWriteSenderName" placeholder="Ex: Nuage de Lynx, Partenaire, Châtaigne..." style="background: #1c1c24; border: 1px solid #2c2c35; color: #fff; padding: 5px; border-radius: 4px; font-size: 0.85rem; flex: 1;">
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 90px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none;"></textarea>
+                <div style="display: flex; flex-direction: column; gap: 5px; justify-content: center;">
+                    <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">💾 Enregistrer au RP</button>
+                    <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap;">🤖 Faire rédiger l'IA</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="coWriteAiOutput" style="font-style: italic; color: #aaa; font-size: 0.85rem; min-height: 40px;">
+            En attente d'une action...
+        </div>
+    </div>
+</div>
+
 
 </body>
 </html>
