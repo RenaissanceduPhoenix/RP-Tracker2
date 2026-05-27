@@ -199,133 +199,202 @@ Faits Importants connus du clan : Sa grande timidité est le plus grands connus 
 Crédits :
        `
     },
-    sables: {
-        resume: "Pelage des Sables est une guerrière de 25 lunes du Clan de l'Aube. Petite et peu robuste, elle compense par une stabilité mentale et une détermination sans faille. Son pelage est sable avec des marques brunes.",
-        complete:
-        `➞ Joué par :Phoenix = renaissanceduphoenix = @/Phoenix
+    
+		racine: {
+			resume: "Grand guerrier combattant de 50 lunes au pelage crème et paré de cicatrices, fier et arrogant en surface mais guidé par une loyauté profonde et la peur de la solitude, qui persévère face à la froideur de Ciel Enflammé.",
+			complete: `
+			**╭─━━━━━━━━━━━━━━─╯
+     FICHE RP DE <@1438157204816400426>
+╰─━━━━━━━━━━━━━━─╮**
 
-┌────── •✧✧• ───────┐ 
-Ⅰ. INFORMATIONS GÉNÉRALES 
-└────── •✧✧• ───────┘
+*Daichi ni nezashi, taiyō o miageru shishi no gotoki kokoro.*
+-# Un cœur de lion enraciné dans la terre, tourné vers le soleil.
 
-➞ Noms : 
-	- Boule de Sable
-	- Nuage des Sables
-	- Pelage des Sables
-➞ Âge : 25 lunes le 03.11.2025
-➞ Sexe : Femelle
-➞ Clan : Clan de l’Aube
-➞ Rang : Guerrière
-➞ Nomenclature : Quand elle fût jeune Pelages des Sables, fût nommé par ses parents Boule des Sables en l’honneur aux couleurs qui constellent son pelage de chaton. Puis sa Cheffe à choisi Pelage sans raison particulière pour son nom de Guerrier.
+**. • ✦ __INFORMATIONS GENERALES__ ✦ • .** 
+*Kuraun no hokori wa, ketsui no naka ni aru.*
+-# La fierté du Clan réside dans la détermination.
 
-┌─ •✧✧• ─┐ 
-Ⅱ. PHYSIQUE 
-└─ •✧✧• ─┘
+◆ **Noms :**
+    - __Petit Pissenlits__
+    - __Patte de Pissenlits__
+    - __Racine de Pissenlit__
+◆ **Signification du nom :**
+    Le préfixe **Racine** symbolise la profondeur de sa loyauté envers son Clan. Son suffixe, **Pissenlit**, a été choisi pour rappeler la nuance crème de son pelage, mais évoque également la complexité de ses émotions, faisant écho à la symbolique de la jalousie.
+◆ **Sexe :** C’est un mâle.
+◆ **Âge :** Il est âgé d'environ **50 lunes**.
+◆ **Clan :** Il est un membre très fier du **Clan de la Lueur**.
+◆ **Grade :** C’est un **guerrier combattant**.
+◆ **Attirances :** Il est **hétérosexuel**.
 
-➞ Aspect :  De petite taille (21 cm au garrot), Pelage des Sables arbore une fourrure épaisse et en panache qui lui a valu son nom ; c'est en effet la base claire et sable de sa robe, accentuée par une collerette fournie, qui contraste violemment avec les marques brun foncé héritées de sa mère, le tout étant souligné par des yeux ambre vifs. Elle a hérité de tout le physique de sa mère
-➞ Aptitudes physiques : Tandis que le cœur de Pelage des Sables bat avec toute la force et la vitesse qui la distinguent, son endurance est stable, mais sa faible robustesse et absence d’agilité lui interdisent de devenir une combattante parfaite, quelque chose qu’elle peut payer lourdement pendant le combat.
+**. • ✦ __DESCRIPTION PHYSIQUE__ ✦ • .** 
+*Kyodaina karada wa, tsuchi no chikara o yadosu.*
+-# Un corps imposant abrite la force de la terre.
 
+◆ **Physique :** __Racine de Pissenlit__ fait partie des membres les plus grands du clan, du haut de ses **38 centimètres** pour un poids de **8kg**. Il en impose par une **carrure lourde** et **athlétique**, soutenue par des **épaules larges** taillées pour l'affrontement. Cette stature brute contraste avec son **pelage mi-long**, une toison vaporeuse **beige sable** qui s'éclaircit en **crème** sur le poitrail. Son apparence est marquée par des motifs **colourpoint** d'un **brun chocolat** profond qui teintent son museau ainsi que le bas de ses pattes. Ces mêmes teintes sombres dessinent d’épaisses marbrures en spirales sur ses flancs et annellent sa queue.
+◆ **Yeux :** Ses yeux sont **grands** et **arrondis**, affichant une teinte **ambre chaude** rappelant le miel. Ce regard **lumineux** et très expressif tranche nettement avec les marquages sombres qui encadrent son visage.
+◆ **Atouts et Faiblesses physiques :** 
+**Force** = ★ ★ ★ ★ ★ 
+**Endurance** = ★ ★ ★ ★ ☆ 
+**Robustesse** = ★ ☆ ☆ ☆ ☆ 
+**Vitesse** = ★ ★ ★ ☆ ☆
+**Agilité** = ★ ★ ☆ ☆ ☆
 
-Forte
-		- Vitesse
-		- Force
-	Neutre
-		- Endurance
-	Faible
-		- Robustesse
-		- Agilité
+**. • ✦ __DESCRIPTION MENTALE__ ✦ • .** 
+*Tanpopo no ne wa, kogane no hikari to fukai yami no ikari o daku.*
+-# La racine du pissenlit embrasse une lueur dorée et une colère d'une obscurité profonde.
 
-➞ Aptitudes sensorielles: Les yeux et les oreilles de Pelage des Sables sont ses meilleurs atouts, son nez la sert honorablement, mais elle se montre peu réceptive aux signaux du toucher et la fadeur du goût lui échappe souvent.
-
-	Forte
-		- Vision
-		- Ouïe
-	Neutre
-		- Odorat
-	Faible
-		- Toucher
-		- Goût
-➞ Autre : Dans Aspect, j’ai rien d’autre à dire car l’image n’est pas contractuelle de son âge.
+◆ **Qualités :** Sa **Sagesse** lui confère un esprit dynamique qui guide ses décisions avec clairvoyance. Sa **Loyauté** et son **Intégrité** font de lui un chat de confiance possédant un fort sens moral, agissant avec une **Responsabilité** exemplaire. Cette droiture est complétée par une **Perspicacité** et une intelligence qui lui permettent de rester **Bienveillant** et **Protecteur**, tel un véritable rayon de soleil pour les siens.
+◆ **Défauts :** Cependant, son **Outrecuidance** et son **Arrogance** peuvent le rendre méprisant envers ceux qu'il juge moins disciplinés. Cette même suffisance le pousse à vouloir prouver sa supériorité en s'imposant des défis complexes, notamment en cherchant à obtenir l'estime de ceux qui le rejettent. Sa **Colère** et son **Impatience** se manifestent par un tempérament féroce, le transformant en un guerrier **Impulsif** dès que ses principes sont bousculés. Enfin, sa **Rancune** l'entraîne dans une obstination inflexible, le rendant par instants aussi froid qu'une nuit glacial. Racine peut parfois se montrer **Méritocratique**, mais ceux très rarement.
 
 
-┌── •✧✧• ──┐ 
-Ⅲ. CARACTÈRE 
-└── •✧✧• ──┘
+◆ **Ce qu'il aime :** L'odeur de la **terre humide** après l'orage, les séances d'**entraînement intensives**, la sensation de la **chaleur du soleil** sur son pelage beige et le **silence respectueux** lors des veillées de clan.
+◆ **Ce qu'il n'aime pas :** La **paresse injustifiée**, le **manque de respect** envers les traditions, les **mâles trop familiers** qui manquent de tenue et l'**odeur de la charogne**.
 
-➞ Goûts : Pelage des Sables est fascinée par la beauté nocturne de la Toison Argentée, la Chasse et l'ambiance du Clan sont ses moteurs, tandis que l'autorité et la figure de sa Cheffe sont un modèle pour elle. Cependant, elle déteste être sous-estimée, les intrus et les chatons trop turbulents.
+◆ **Hantise :** Sa plus grande peur réside dans le vide laissé par le silence du **Clan des Étoiles**, une angoisse qui alimente sa crainte profonde de la **solitude**. Ce sentiment est exacerbé par la menace d'une **trahison interne**, redoutant qu'un effondrement de la loyauté de ses pairs ne le mène à l'exil.
 
-	Aime
-		- La beauté de la Toison Argentée
-		- La Nuit
-		- La Chasse/Combat
-		- L’ambiance au sein du Clan
-	Aime pas
-		- Les chatons trop turbulents
-		- Les intrus
-		- Le réveil
-		- Qu’on la prenne pour une larbaine 
-	Admire
-		- Sa cheffe
+**. • ✦ __RELATIONS__ ✦ • .** 
+*Kizuna wa, ai to itami no aida de yureru.*
+-# Les liens oscillent entre l'amour et la douleur.
 
-➞ Caractère : D'une nature profondément loyale et protectrice, Pelage des Sables, qui se révèle aussi très dragueuse, montre une fiabilité qui est mise à l'épreuve par son côté calculateur et égocentrique. Trop honnête au point de dire ses vérités à quiconque, elle n'hésite pas à être désobéissante et à enfreindre le Code si elle estime qu'un ordre est injuste.
-
-	Qualités
-		- Loyale
-		- Fiable
-		- Protectrice
-		- Honnête 
-	Défauts
-		- Egocentrique
-		- Calculatrice
-		- Impatiente
-		- Désobéissante
-		- Dragueuse
-➞ Autre : Pelage des Sables, peut-être trop honnête, du style que si un camarade la fait chier elle hésiterait pas à lui dire. Fiable/Désobéissante: Elle peut être fiable quand elle estime les ordres juste, mais peut parfois enfreindre les ordres voir le Saint Code d’Honneur.
-
-┌────── •✧✧• ──────┐ 
-Ⅳ. FAMILLES ET RELATIONS 
-└────── •✧✧• ──────┘
-
-➞ Mère : Fleur Rouge 
-➞ Père : Griffe de Granite
-➞ Frère(s) : Roc Vif [ 26 Lunes | Vivant | Joué par @/grumpytomy_ | CdA ]
-➞ Soeur(s) : 
-➞ Chaton(s) : Peut être
-
-➞ Compagnon/Compagne : A suivre InRP
-➞ Mentor : 
-➞ Apprenti(s) : A venir
-➞ Autre :
+◆ **Père :** __Racine de Pissenlit__ entretient avec __Serpent de Blé__ une relation empreinte de **respect mutuel** et de **sérénité**. S'il ne recherche pas l'approbation paternelle, il trouve en lui un **pilier rassurant** et une présence patiente sur laquelle il sait pouvoir compter.
+◆ **Mère :** Entre __Racine de Pissenlit__ et __Kyrielle de Pétales__ subsiste un lien **fusionnel** que même ses accès d'arrogance ne sauraient ternir. Fidèle à l'enfance insouciante qu'elle a bâtie, il puise dans son **amour inconditionnel** une confiance inébranlable ; elle reste l'une des seules capables de canaliser son tempérament fier pour laisser transparaître la compassion qu'elle a cherché à lui transmettre.
+◆ **Crush/Partenaire :** Face à __Ciel Enflammé__, il se heurte à un mur de **dédain** et de **froideur**. Conscient de son passé, il s'efforce de briser sa méfiance par une **persévérance inhabituelle**, acceptant ses rebuffades sans rendre les coups. C'est une relation de défi où son côté **Méritocratique** le pousse à vouloir prouver qu'il est l'exception à la règle, s'obstinant à démontrer sa valeur pour fissurer l'armure de cette guerrière qui le repousse pourtant sans ménagement.
 
 
 
 
-┌──────── •✧✧• ────────┐ 
-Ⅴ. ÉLÉMENTS COMPLÉMENTAIRES 
-└──────── •✧✧• ────────┘
-
-➞ Crédits : Line de PastelPlagues puis coloration de Nougathyn
+*Shi to deshi no aida ni wa, gankuna tsunagari ga aru.*
+-# Entre le maître et l'élève, il existe un lien d'obstination.
 
 
+◆ **Mentor :** Entre __Racine de Pissenlit__ et __Mugissement du Torrent__, la relation s'est bâtie sur une discipline de fer et un défi permanent. Si le jeune guerrier a parfois buté contre l'autorité de son mentor à cause de son **Arrogance**, il a appris à canaliser sa **Colère** sous les conseils de ce guerrier expérimenté. Aujourd'hui, il garde pour lui une estime silencieuse, reconnaissant que c'est la rigueur de cet apprentissage qui a fait de lui le colosse fier et **Intègre** qu'il est devenu.
 
 
-Candidats possible en tant que compagnon:
-	-Esquive de la Loutre : • Discord | #esquive-de-la-loutre | Fiches des Terres Oubliées 29,3 Lunes le 16.11.25`
-        
-        
-    }
+**. • ✦ __RECIT HISTORIQUE__ ✦ • .** 
+*Kako no ashiato wa, mirai o tsumugu.*
+-# Les traces de pas du passé tissent l'avenir.
+
+◆ **Histoire :** *À venir au fil de ses aventures...*
+
+**. • ✦ __ILLUSTRATIONS__ ✦ • .** 
+Première Image: Nougathin, adopt avec mon compte dont j’ai pu les accès, Retour aux Sources.
+Seconde Image: hiyoyooko_, adopt avec ce compte, ancienne membre de LTO.
+
+
+`
+		},
+	
+		etincelle: {
+			resume: "Guerrière athlétique de 31 lunes au pelage roux cuivré parsemé de rosettes sombres, diplomate énergique surnommée « la maman du clan », secrètement amoureuse de son complice d'enfance Ombre Audacieuse depuis six lunes.",
+			complete: `
+			
+Pseudo du joueur : @renaissanceduphoenix
+✦ INFORMATIONS PRINCIPALES
+— Noms : Petite Étincelle - Nuage d'Étincelle - Étincelle de Vie
+— Âge : 31 lunes le 16/05/26
+— Sexe : Femelle
+— Sexualité : Hétérosexuelle | Hétéroromantique
+— Origine : 100% Clan de la Canopée
+— Clan : Clan de la Canopée
+— Rôle : Guerrière
+— Allégeance : Loyale envers son Clan et la famille qu’elle fondera.
+— Alignement : Loyale Bonne
+Mauvais ▰▰▰▰▰▰▰▱▱▱ Bon
+— Autre : 
+Étincelle lui a été donnée à la naissance pour son énergie et son hyper-activité lors de la tétée jouant des coudes avec sa fratrie;  Vie pour sa capacité à insuffler de l'espoir et du mouvement même dans les moments les plus sombres.
+✦ PHYSIQUE ET CAPACITÉS
+— Description physique :
+Au premier regard, Étincelle de Vie dégage une impression de vitalité contagieuse. C’est une femelle à l'allure athlétique, dont la silhouette, sculptée par les ascensions quotidiennes dans la Canopée, allie une force nerveuse à une souplesse féline remarquable. Son pelage est une véritable parure de feu : un roux vibrant, presque cuivré sous les rayons du soleil, parsemé de rosettes sombres et harmonieuses qui rappellent l'élégance sauvage du léopard. Ce manteau de fourrure est illuminé par des panachures blanc crème qui viennent adoucir son museau, habiller son poitrail d'un plastron de lumière et ganter l'extrémité de ses pattes.
+
+Mais ce qui captive immédiatement, c’est l’intensité de son regard. Ses yeux, d’un jaune ambré profond, brillent comme deux éclats de soleil capturés sous ses arcades sourcilières. Cette teinte dorée lui confère une expression à la fois ardente et chaleureuse, renforçant son aura de bienveillance. Son regard ne se contente pas de voir, il semble sonder les cœurs avec une acuité vibrante. Il y a dans sa démarche une assurance naturelle, un port de tête altier qui trahit son orgueil, toujours tempéré par la douceur d'un ronronnement presque constant. Ses oreilles, larges et toujours en alerte, captent le moindre souffle de vent. Chaque mouvement d’Étincelle est empreint d'une grâce diplomate : elle occupe l'espace avec une présence solaire qui invite au contact, tout en gardant cette tension de guerrière prête à bondir, faisant d'elle une figure aussi rassurante qu'imposante au sein du Clan.
+— Mensurations : 35 cm au garrot.
+— Capacités physiques : (35 points répartis)
+• Force ▰▰▰▱▱▱▱▱ (3)
+• Endurance ▰▰▰▰▱▱▱▱ (4)
+• Rapidité ▰▰▰▰▱▱▱▱ (4)
+• Agilité ▰▰▰▰▰▰▰▱ (7)
+• Constitution ▰▰▰▱▱▱▱▱ (3)
+• Discrétion ▰▰▰▰▱▱▱▱ (4)
+• Vue ▰▰▰▰▱▱▱▱ (4)
+• Odorat ▰▰▰▱▱▱▱▱ (3)
+• Ouïe ▰▰▰▱▱▱▱▱ (3)
+— Voix : Claire, mélodieuse et assurée.
+— Démarche : Légère et bondissante, très à l'aise dans les hauteurs.
+— Odeur : Sève de pin chauffée au soleil et mousse fraîche.
+
+
+
+✦ CARACTÈRE DU PERSONNAGE
+— Caractère :
+• Résumé du Caractère : Solaire - Intuitive - Indulgente - Résiliente - Diplomate - Loyale - Protectrice - Maternelle // Naïve - Impatiente - Taquine - Orgueilleuse - Étourdie - Envahissante - Rancunière.
+• Développement du Caractère :
+Étincelle de Vie porte bien son nom ; c'est une chatte solaire qui semble posséder une réserve inépuisable d'optimisme. C’est une véritable force résiliente : elle a cette capacité rare de se relever après chaque coup dur avec une volonté intacte. Très intuitive, elle perçoit les non-dits et les changements d'humeur chez ses proches avant même qu'ils ne s'en rendent compte, ce qui, allié à son sens de la diplomatie, lui permet de désamorcer les conflits avec une aisance naturelle. Elle est animée d'une loyauté sans faille et d'une fibre protectrice qui la pousse à se dresser comme un rempart devant ceux qu'elle aime.
+Son côté maternel est déjà profondément ancré en elle, bien qu'il ne s'exprime pour l'instant qu'à travers sa dévotion pour ses camarades de clan. C'est une vocation silencieuse, une manière de "veiller sur la vie" qui se traduit par des gestes instinctifs : elle est celle qui apporte une proie à un ancien fatigué, qui toilette l'oreille d'un apprenti stressé ou qui reste éveillée pour tenir compagnie à un blessé. Elle possède cette douceur qui transforme n'importe quel recoin de forêt en un foyer sécurisant. Elle rêve secrètement de fonder une lignée, voyant dans la transmission et l'éducation l'aboutissement ultime d’une union parfaite et durable dans le temps. Face à un chat comme Ombre, ce trait agit comme un aimant : elle perçoit ses blessures et, sans même être en couple avec lui, elle ne peut s'empêcher de vouloir "prendre soin" de son âme, lui offrant une chaleur et une écoute qui préfigurent la reine dévouée qu'elle deviendra. Elle fait preuve d'une grande indulgence envers les failles d'autrui, préférant chercher la raison d'une blessure plutôt que de condamner un comportement.
+
+
+Cependant, son désir de voir le beau partout la rend parfois naïve, l'aveuglant sur les intentions réelles de certains chats. Étincelle est aussi une chatte impatiente qui supporte mal l'inertie ; quand elle a une idée, elle veut la voir se réaliser immédiatement. Elle possède un esprit orgueilleux qui lui rend difficile l'aveu de ses propres faiblesses ou de ses échecs, préférant s'acharner seule plutôt que d'appeler à l'aide. Son humour est marqué par une nature taquine qui, bien que souvent bienveillante, peut s'avérer agaçante lors de moments sérieux. Elle est parfois étourdie, son esprit s'évadant dans ses propres réflexions au point d'oublier des détails concrets de son environnement. Sa présence peut devenir envahissante, car elle ne sait pas toujours s'arrêter quand elle veut aider, s'immisçant parfois trop loin dans l'intimité des autres par pur excès de zèle. Enfin, elle est aussi rancunière : une trahison envers sa confiance ou sa loyauté laisse une cicatrice profonde qu'elle mettra des lunes à oublier, rendant son pardon difficile à regagner une fois le lien brisé.
+— Préférences :
+• Goût & Peurs : Ce qu'Étincelle kiffe par-dessus tout, c'est l'action et cette pure sensation de liberté quand elle grimpe tout en haut de la Canopée, là où le vent souffle fort. Les défis d'agilité, la chasse acrobatique dans les hauteurs et sentir ses muscles bosser à fond sous le soleil lors des patrouilles, c'est son vrai moteur de guerrière. Elle adore aussi ces moments de bienveillance pure où elle peut reboiser le moral d'un camarade ou veiller sur un blessé de retour au camp, tout comme les longues discussions sincères au coin du feu qui durent des heures.
+À l'inverse, elle a une sainte horreur de l'inertie : les chats mous qui passent leur journée à glander ou à se plaindre au lieu d'aller chasser, ça la rend dingue. Elle ne supporte pas l'hypocrisie, les messes basses et les non-dits, préférant mille fois un bon clash honnête. En bonne chatte impatiente, elle déteste les tâches trop répétitives ou statiques comme trier des réserves ou monter la garde sans bouger, qui la coupent dans son élan. Par-dessus tout, qu'on lui balance de "rester à sa place" ou de ne pas se mêler de ce qui ne la regarde pas quand elle essaie d'aider.
+Sa plus grande hantise, c'est de finir inutile pour son Clan. Elle a une peur bleue de la trahison, car sous son écorce solaire, elle se sait bien trop rancunière pour réussir à pardonner. Elle craint l'immobilité émotionnelle, cette peur de rester bloquée dans une vie sans projet, et elle garde en elle la peur sourde de voir ses rêves de famille s'effondrer ou de ne jamais trouver le pilier solide capable de supporter son énergie sans finir par s'enfuir.
+
+✦ FAMILLE ET AUTRES RELATIONS
+— Parents : 
+	Belle de Jour [ Clan de la Canopé - Femelle - Guerrière - PNJ - Vivante ]
+	Branche d’Arbre [ Clan de la Canopé - Mâle - Veilleur - PNJ - Vivant ]
+— Fratrie :
+	Petit Flamboyant [ Clan de la Canopé - Mâle - Chaton - PJ par @dreamysky0 - Vivant ]
+	Petite Brebis [ Clan de le Canopé - Femelle - Chaton - PJ par @charlie_aka - Vivante ]
+— Mentor : 
+Départ de Flamme [ Clan de la Canopé - Femelle - Guerrière - PNJ - Vivante ]
+— Autre : 
+(Racine Jumelle -> si staff ok) et son Crush:
+	Ombre Audacieuse [ Clan de la Canopé - Mâle - Guerrier - PJ par @coeurdelouve - Vivant ]
+
+
+
+✦ HISTOIRE
+Étincelle est née en pleine saison des Neiges, et le moins qu'on puisse dire, c'est qu'elle a pris de la place dès la première seconde. C'était une boule d'énergie épuisante, même pour sa mère : lors de la tétée, elle était ultra active, jouant des coudes et ne laissant que très peu de place à ses frères et sœurs pour accéder au lait. Ce côté envahissant  était déjà là. En pouponnière, elle ne tenait pas en place, grimpant sur tout ce qui dépassait. Mais ce qui a vraiment marqué ses premières lunes, c'est sa rencontre avec Ombre Audacieuse nommé Petite Ombre à l’époque, né juste une semaine après elle. Pour combattre le froid mordant de leur saison de naissance, ils passaient des journées entières blottis l'un contre l'autre. Ce contact permanent a créé un lien indéfectible ; elle a tout de suite développé ce côté protecteur, veillant sur lui comme si c'était sa mission personnelle.
+
+Devenue Nuage d'Étincelle, elle a rapidement montré des prédispositions pour la vie dans les hauteurs. Elle a excellé dans les arbres grâce à son agilité, même si son impatience légendaire lui a valu pas mal de recadrages de la part de son mentor. Elle a fait tout son parcours d'apprentie en parallèle avec Ombre. Alors que beaucoup de chats s'arrêtaient à sa façade parfois grinçante, l'intuition d'Étincelle lui a permis de voir plus loin. Elle a vite compris que son sarcasme n'était réservé qu'à ceux qu'il n'appréciait pas. Elle a surtout décelé chez lui un côté protecteur et une empathie profonde qui compensaient largement ses défauts. C'est cette facette cachée qui l'a fait craquer. Elle a commencé à s'attacher à lui d'une manière différente, essayant de percer sa carapace avec sa nature taquine, quitte à se montrer parfois beaucoup trop maternelle ou intrusive.
+
+Aujourd'hui, Étincelle de Vie est une guerrière un peu respectée, connue pour sa diplomatie et sa capacité à ramener le calme. Mais son jardin secret est encombré par un sentiment qui ne cesse de grandir : ça fait maintenant six lunes qu'elle est raide dingue d'Ombre Audacieuse. Comme ils sont nés presque en même temps, elle connaît ses failles par cœur, mais elle admire surtout la force tranquille et le soutien qu'il sait apporter quand les choses tournent mal. Elle crève d'envie de lui avouer qu'elle veut partager ses jours avec lui et fonder une famille à l’avenir avec lui, mais la peur de briser cette complicité unique la bloque. Elle reste son épaule loyale, son ancrage solaire, attendant le moment où il comprendra - ou qu’elle lui avouera - enfin qu'elle ne veut plus seulement être sa compagne de chambrée, mais la partenaire de toute sa vie.
+
+✦ ÉLÉMENTS COMPLÉMENTAIRES
+— Faits connus du clan : On raconte qu'elle est la seule capable de transformer un grognement d'Ombre Audacieuse en ronronnement en moins de deux minutes. On l'appelle souvent "la maman du clan" (même si ça l'agace un peu parfois quand on en abuse).
+— Crédits : 
+	- Design principal --> @Felidaze_
+	- Futur MoodBoard --> @renaissanceduphoenix
+
+
+`
+		}
+
+
 };
 
 export const charactersDB = {
+    // Liens Lynx
     "Petite Lynx": fiches.lynx,
     "Nuage de Lynx": fiches.lynx,
     "Frasques du Lynx": fiches.lynx,
+
+    // Liens Anémone (On double pour sécuriser les types d'apostrophes)
     "Petite Anémone": fiches.anemone,
     "Nuage d’Anémone": fiches.anemone,
     "Nuage d'Anémone": fiches.anemone,
     "Eclats d’Anémone": fiches.anemone,
     "Eclats d'Anémone": fiches.anemone,
-    "Boule de Sable": fiches.sables,
-    "Nuage des Sables": fiches.sables,
-    "Pelage des Sables": fiches.sables
+
+    // Liens Étincelle (Sécurise l'accent sur le É !)
+    "Etincelle de Vie": fiches.etincelle,
+    "Étincelle de Vie": fiches.etincelle,
+    "Petite Étincelle": fiches.etincelle,
+    "Nuage d'Étincelle": fiches.etincelle,
+    "Nuage d’Étincelle": fiches.etincelle,
+
+    // Liens Racine
+    "Racine de Pissenlit": fiches.racine,
+    "Petit Pissenlit": fiches.racine,
+    "Patte de Pissenlit": fiches.racine
 };

@@ -6,20 +6,20 @@ import { collection, query, where, getDocs } from "https://www.gstatic.com/fireb
 const nameToImage = {
     "Petite Lynx": "Lynx.png",
     "Nuage de Lynx": "Lynx.png",
-    "Ardeur du Lynx": "Lynx.png",
+    "Frasques du Lynx": "Lynx.png",
     "Petite Anémone": "Anemone.webp",  // Sans accent sur le fichier pour la sécurité
     "Nuage d’Anémone": "Anemone.webp",
     "Nuage d'Anémone": "Anemone.webp",
     "Eclats d’Anémone": "Anemone.webp",
     "Eclats d'Anémone": "Anemone.webp",
-    "Boule de Sable": "Sables.webp",
-    "Nuage des Sables": "Sables.webp",
-    "Pelage des Sables": "Sables.webp"
+    "Etincelle de Vie": "Etincelle.png",
+    "Racine de Pissenlit": "Racine.webp"
 };
 
-if (!localStorage.getItem("myActiveChars")) {
-    localStorage.setItem("myActiveChars", JSON.stringify(["Ardeur du Lynx", "Nuage d'Anémone", "Pelage des Sables"]));
-}
+// Liste par défaut mise à jour (Sans Sables, avec les bons noms de Lynx, Racine et Étincelle)
+// FORCE la mise à jour de la liste pour nettoyer l'ancien cache (Sables, Ardeur du Lynx...)
+const MaNouvelleListe = ["Frasques du Lynx", "Nuage d'Anémone", "Etincelle de Vie", "Racine de Pissenlit"];
+localStorage.setItem("myActiveChars", JSON.stringify(MaNouvelleListe));
 
 const getActiveChars = () => JSON.parse(localStorage.getItem("myActiveChars"));
 
@@ -35,40 +35,35 @@ window.afficherGaleriePersonnages = function() {
     const activeChars = getActiveChars();
 
     activeChars.forEach(charName => {
-        const imgName = nameToImage[charName] || "Lynx.png"; // Fallback sur Lynx si non trouvé
-        
-        // CORRECTION DU CHEMIN : On utilise le dossier exact de ton arborescence
+        // SÉCURITÉ : Si un vieux nom traîne encore, on passe au suivant sans cracher
+        if (charName === "Pelage des Sables" || charName === "Ardeur du Lynx") return;
+
+        const imgName = nameToImage[charName] || "Lynx.png"; 
         const basePath = "./JavaScript/FeaturesBonus/Assets/Avatars/";
 
         const card = document.createElement("div");
         card.className = "char-card";
-        card.setAttribute("data-name", charName); // Crucial pour le lier à l'affichage et aux filtres
+        card.setAttribute("data-name", charName); 
         
         card.innerHTML = `
             <img src="${basePath}${imgName}" alt="${charName}" onerror="this.onerror=null; this.src='${basePath}Lynx.png';">
             <h3>${charName}</h3>
         `;
 
-        // LOGIQUE DES FILTRES ET ENCLENCHEMENT DU FILTRE GLOBAL
         card.addEventListener("click", function() {
-            // 1. Gestion de la classe active (visuelle)
             document.querySelectorAll(".char-card").forEach(c => c.classList.remove("active"));
             card.classList.add("active");
 
-            // 2. Application du filtre sur le sélecteur lié au graphique & aux listes (RP.js et Chart.js)
             const filterSelect = document.getElementById("filterCharacter");
             if (filterSelect) {
                 filterSelect.value = charName;
-                // Déclenche l'événement global 'change' pour forcer le graphique et les listes à s'actualiser
                 filterSelect.dispatchEvent(new Event("change"));
             }
 
-            // 3. Actualiser les mini-statistiques Firestore en bas de la galerie
             if (typeof window.mettreAJourMiniStats === "function") {
                 window.mettreAJourMiniStats(charName);
             }
             
-            // 4. Charger directement le profil dans la boîte d'infos de droite
             if (typeof window.openFullPerso === "function") {
                 window.openFullPerso();
             }
