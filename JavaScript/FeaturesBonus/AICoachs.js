@@ -3,7 +3,7 @@ import { db } from '../Firebase.js';
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ⚠️ METS TA CLÉ API MISTRAL (console.mistral.ai) ICI - PLAN EXPERIMENT 100% GRATUIT
-const MISTRAL_API_KEY = "TON_API_KEY_MISTRAL_ICI"; 
+const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
 let currentActiveRpId = null;
