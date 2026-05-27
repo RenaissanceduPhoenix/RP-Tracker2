@@ -1,6 +1,6 @@
-const fiches = {
+export const fiches = {
     lynx: {
-        resume: "Ardeur du Lynx est une apprentie de 15 lunes du Clan de la Canopée. Chaotique Bon, elle est hantée par la disparition d'Attrape Rêve et rejette la hiérarchie. Elle est bâtie en force et possède une peur viscérale de l'attachement.",
+        resume: "Frasques du Lynx est une apprentie de 15 lunes du Clan de la Canopée. Chaotique Bon, elle est hantée par la disparition d'Attrape Rêve et rejette la hiérarchie. Elle est bâtie en force et possède une peur viscérale de l'attachement.",
         complete: `
         Pseudo du joueur : @renaissanceduphoenix
 
@@ -8,7 +8,7 @@ const fiches = {
 Kaze o oi, kizuna o tachi, tada hitori no ashiato o kizamu. 
 Chasser le vent, trancher les liens, et graver seule ses propres empreintes.
 ✦ INFORMATIONS PRINCIPALES
-— Noms : Petite Lynx ➔ Nuage de Lynx ➔ Ardeur du Lynx. 
+— Noms : Petite Lynx ➔ Nuage de Lynx ➔ Frasques du Lynx. 
 — Âge : 15 lunes 29/03/26. 
 — Sexe & Sexualité : Femelle bisexuelle. Elle est très fermée : il faudra ramer pour la draguer car elle a une peur viscérale de s'attacher. Elle juge aux actes, pas aux paroles. 
 — Nomenclature :
@@ -319,7 +319,7 @@ Candidats possible en tant que compagnon:
 export const charactersDB = {
     "Petite Lynx": fiches.lynx,
     "Nuage de Lynx": fiches.lynx,
-    "Ardeur du Lynx": fiches.lynx,
+    "Frasques du Lynx": fiches.lynx,
     "Petite Anémone": fiches.anemone,
     "Nuage d’Anémone": fiches.anemone,
     "Nuage d'Anémone": fiches.anemone,

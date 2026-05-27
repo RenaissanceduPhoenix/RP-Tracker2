@@ -6,10 +6,8 @@ import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBon
 import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 
 let unsubscribePending = null;
+let rpsActifsCache = []; // Stocke les RPs (actifs et répondus) pour l'auto-remplissage et les transitions de statut
 
-// =========================================================================
-// 1. GESTION DE LA MODALE DE LECTURE (MARKDOWN)
-// =========================================================================
 window.openModal = function(content, title, meta) {
     const area = document.getElementById('displayAreaPending');
     if(!area) return;
@@ -34,57 +32,26 @@ window.clearView = function() {
     if (displayAreaPending) { displayAreaPending.innerHTML = ""; }
 };
 
-// =========================================================================
-// 2. AJOUT D'UN RP ENVOYÉ (FORMULAIRE PRINCIPAL)
-// =========================================================================
-window.addSent = async function() {
-    const charInput = document.getElementById("char_sent");
-    const serverInput = document.getElementById("server_sent");
-    const contentInput = document.getElementById("content_sent");
+// FONCTION AUTOMATIQUE : Remplit les persos si le titre est connu
+window.autoRemplirParticipants = function(titreSaisi) {
+    const charInput = document.getElementById("char_received");
+    const partInput = document.getElementById("rp_participants");
+    const serverInput = document.getElementById("server_received");
 
-    if (!charInput || !serverInput || !contentInput) return;
-
-    const character = charInput.value.trim();
-    const server = serverInput.value.trim();
-    const content = contentInput.value.trim();
-
-    if (!character || !server || !content) {
-        alert("❌ Tous les champs de l'envoi sont obligatoires !");
-        return;
-    }
-
-    try {
-        const wordCount = content.split(/\s+/).filter(Boolean).length;
-        const xpGained = Math.floor(wordCount * 0.1);
-
-        await addDoc(collection(db, "rps_sent"), {
-            character: character,
-            server: server,
-            content: content,
-            wordCount: wordCount,
-            xp: xpGained,
-            createdAt: serverTimestamp()
-        });
-
-        showFeedback(contentInput, false, `Enregistré ! +${xpGained} XP (${wordCount} mots)`);
-        
-        charInput.value = "";
-        serverInput.value = "";
-        contentInput.value = "";
-
-        window.updateStats();
-    } catch (err) {
-        console.error("Erreur lors de l'ajout du RP envoyé :", err);
-        showFeedback(contentInput, true);
+    const rpTrouve = rpsActifsCache.find(rp => rp.title.toLowerCase() === titreSaisi.toLowerCase().trim());
+    
+    if (rpTrouve) {
+        if (charInput) charInput.value = rpTrouve.character || "";
+        if (partInput) partInput.value = (rpTrouve.participants || []).join(", ");
+        if (serverInput) serverInput.value = rpTrouve.server || "";
     }
 };
 
-// =========================================================================
-// 3. AJOUT D'UN NOUVEAU RP EN ATTENTE (PENDING)
-// =========================================================================
+// AJOUT OU MISE À JOUR D'UN PENDING
 window.addPending = async function() {
     const titleInput = document.getElementById("title");
     const charInput = document.getElementById("char_received");
+    const partInput = document.getElementById("rp_participants");
     const serverInput = document.getElementById("server_received");
     const contentInput = document.getElementById("content");
 
@@ -93,194 +60,230 @@ window.addPending = async function() {
     const title = titleInput.value.trim();
     const character = charInput.value.trim();
     const server = serverInput.value.trim();
-    const content = contentInput.value.trim();
+    const content = contentInput.value.trim() || "";
+    
+    const participantsRaw = partInput ? partInput.value.trim() : "";
+    const participantsArray = participantsRaw ? participantsRaw.split(",").map(p => p.trim()).filter(Boolean) : [];
 
     if (!title || !character || !server) {
         alert("❌ Le titre, le personnage et le serveur sont obligatoires !");
         return;
     }
 
-    try {
-        await addDoc(collection(db, "rps_received"), {
-            title: title,
-            character: character,
-            server: server,
-            content: content,
-            status: "pending",
-            tags: [],
-            createdAt: serverTimestamp()
-        });
+    const rpExistant = rpsActifsCache.find(rp => rp.title.toLowerCase() === title.toLowerCase());
 
-        showFeedback(contentInput, false, "Ajouté aux pendings !");
+    try {
+        if (rpExistant) {
+            const updateData = {
+                character: character,
+                participants: participantsArray,
+                server: server,
+                status: "pending", 
+                updatedAt: serverTimestamp()
+            };
+            
+            if (content !== "") {
+                updateData.content = content;
+            }
+
+            await updateDoc(doc(db, "rps_received", rpExistant.id), updateData);
+            showFeedback(contentInput, false, "Le RP est de retour en attente !");
+        } else {
+            await addDoc(collection(db, "rps_received"), {
+                title: title,
+                character: character,
+                participants: participantsArray, 
+                server: server,
+                content: content,
+                status: "pending",
+                tags: [],
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+            showFeedback(contentInput, false, "Nouveau RP ajouté aux pendings !");
+        }
 
         titleInput.value = "";
         charInput.value = "";
+        if(partInput) partInput.value = "";
         serverInput.value = "";
         contentInput.value = "";
     } catch (err) {
-        console.error("Erreur lors de l'ajout du RP reçu :", err);
+        console.error("Erreur lors de la sauvegarde du pending :", err);
         showFeedback(contentInput, true);
     }
 };
 
-// =========================================================================
-// 4. ÉCOUTE EN TEMPS RÉEL DES RPs EN ATTENTE (FIRESTORE)
-// =========================================================================
+// ÉCOUTE ET SYNCHRONISATION
 window.initPendingList = function() {
     const container = document.getElementById("pendingList");
-    if (!container) {
-        console.warn("⚠️ Conteneur 'pendingList' introuvable dans le DOM.");
-        return;
-    }
+    const datalist = document.getElementById("titresExistants");
+    if (!container) return;
 
-    if (unsubscribePending) {
-        unsubscribePending();
-    }
+    if (unsubscribePending) unsubscribePending();
 
-    const q = query(
-        collection(db, "rps_received"),
-        where("status", "==", "pending"),
-        orderBy("createdAt", "desc")
-    );
-
-    unsubscribePending = onSnapshot(q, (snapshot) => {
+    unsubscribePending = onSnapshot(collection(db, "rps_received"), (snapshot) => {
         container.innerHTML = "";
+        if (datalist) datalist.innerHTML = ""; 
+        rpsActifsCache = []; 
 
-        if (snapshot.empty) {
+        const titresUniques = new Set();
+        let listeRpsAfficher = [];
+
+        snapshot.forEach((docSnap) => {
+            const rp = docSnap.data();
+            rp.id = docSnap.id;
+            
+            if (rp.status !== "done") {
+                rpsActifsCache.push(rp);
+                
+                const title = rp.title || "Sans titre";
+                if (!titresUniques.has(title.toLowerCase())) {
+                    titresUniques.add(title.toLowerCase());
+                    if (datalist) {
+                        const option = document.createElement("option");
+                        option.value = title;
+                        datalist.appendChild(option);
+                    }
+                }
+            }
+
+            if (rp.status === "pending") {
+                listeRpsAfficher.push(rp);
+            }
+        });
+
+        if (listeRpsAfficher.length === 0) {
             container.innerHTML = `<p class="empty-msg">Aucun RP en attente. À vous de jouer !</p>`;
             return;
         }
 
-        snapshot.forEach((docSnap) => {
-            const rp = docSnap.data();
-            const id = docSnap.id;
+        // TRI CHRONOLOGIQUE
+        listeRpsAfficher.sort((a, b) => {
+            const dateA = (a.updatedAt || a.createdAt)?.toMillis() || 0;
+            const dateB = (b.updatedAt || b.createdAt)?.toMillis() || 0;
+            return dateA - dateB;
+        });
 
+        // Génération visuelle des cartes
+        listeRpsAfficher.forEach((rp) => {
+            const id = rp.id;
             const title = rp.title || "Sans titre";
             const character = rp.character || "Inconnu";
             const server = rp.server || "Inconnu";
             const content = rp.content || "";
             const tags = rp.tags || [];
 
-            const urgencyBadge = getUrgencyTag(rp.createdAt);
+            // Récupère la structure HTML du badge (géré dynamiquement par UrgencyTags.js)
+            const urgencyBadge = getUrgencyTag(rp.updatedAt || rp.createdAt);
+
             const tagsHTML = genererBadgesEtSelecteur(id, tags);
             const metaText = `Perso : ${character} | Serveur : ${server}`;
 
             const card = document.createElement("div");
             card.className = "rp-card animate-fade-in";
+
+            // Structure avec alignement Flexbox pour jeter le badge à droite
             card.innerHTML = `
-                <div class="rp-card-header">
-                    <div>
-                        <span class="rp-card-title">${title}</span>
-                        <div class="rp-card-meta">${metaText}</div>
+                <div class="rp-card-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:20px;">
+                    <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px;">
+                            <span class="rp-card-title" style="margin: 0; word-break: break-word;">${title}</span>
+                            <div style="flex-shrink: 0; display: flex; align-items: center;">${urgencyBadge}</div>
+                        </div>
+                        <div class="rp-card-meta" style="display:flex; flex-direction:column; gap:2px; margin-top: 2px;">
+                            <div style="font-size:0.85rem; font-weight:600; color:#cbd5e1;">
+                                🎭 Perso : ${character}
+                            </div>
+                            <div style="font-size:0.78rem; color:#78716c; font-style:italic; padding-left:2px;">
+                                🌐 Serveur : ${server}
+                            </div>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        ${urgencyBadge}
+                    <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
                         <button class="btn-action btn-read" title="Lire le RP">📖</button>
-                        <button class="btn-action btn-done" title="Marquer comme répondu">✅</button>
-                        <button class="btn-pending" onclick="window.openCoWriteModal('${id}', '${character.replace(/'/g, "\\'")}')" title="Co-Écriture avec l'IA" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px;">🖋️</button>
+                        <button class="btn-action btn-done" title="Marquer comme Répondu (Faire Disparaître)" style="background:#27ae60;">✅</button>
+                        <button class="btn-action btn-archive" title="Terminer le RP (Archiver)" style="background:#c0392b;">🛑</button>
+                        <button class="btn-pending" onclick="window.openCoWriteModal('${id}', '${character.replace(/'/g, "\\'")}')" title="Co-Écriture" style="background: none; border: none; font-size: 1.1rem; cursor: pointer;">🖋️</button>
                     </div>
                 </div>
-                <div class="rp-card-tags-area">
-                    ${tagsHTML}
-                </div>
+                <div class="rp-card-tags-area" style="margin-top: 8px;">${tagsHTML}</div>
             `;
 
-            card.querySelector(".btn-read").addEventListener("click", () => {
-                window.openModal(content, title, metaText);
-            });
-
-            card.querySelector(".btn-done").addEventListener("click", () => {
-                window.markDone(id);
-            });
+            card.querySelector(".btn-read").addEventListener("click", () => window.openModal(content, title, metaText));
+            card.querySelector(".btn-done").addEventListener("click", () => window.markStatus(id, "repondu"));
+            card.querySelector(".btn-archive").addEventListener("click", () => window.markStatus(id, "done"));
 
             container.appendChild(card);
         });
 
         initialiserFiltrageTags();
-    }, (err) => {
-        console.error("Erreur flux temps réel pendings :", err);
-        container.innerHTML = `<p class="error-msg">Erreur de chargement : ${err.message}</p>`;
-    });
+    }, (err) => { console.error(err); });
 };
 
-// =========================================================================
-// 5. CLÔTURE D'UN RP EN ATTENTE
-// =========================================================================
-window.markDone = async function(id) {
-    if(!confirm("Voulez-vous marquer ce RP comme terminé ?")) return;
+window.markStatus = async function(id, newStatus) {
     try {
-        await updateDoc(doc(db, "rps_received", id), { status: "done" });
+        await updateDoc(doc(db, "rps_received", id), { 
+            status: newStatus,
+            updatedAt: serverTimestamp() 
+        });
+        if (document.getElementById("coWriteModal").style.display === "flex") {
+            document.getElementById("coWriteModal").style.display = "none";
+        }
         window.updateStats();
-    } catch (err) {
-        console.error("Erreur lors de l'clôture du RP :", err);
-    }
+    } catch (err) { console.error(err); }
 };
 
-// =========================================================================
-// 6. CALCUL ET AFFICHAGE EN TEMPS RÉEL DES STATISTIQUES
-// =========================================================================
+window.addSent = async function() {
+    const charInput = document.getElementById("char_sent");
+    const serverInput = document.getElementById("server_sent");
+    const contentInput = document.getElementById("content_sent");
+    if (!charInput || !serverInput || !contentInput) return;
+    const character = charInput.value.trim();
+    const server = serverInput.value.trim();
+    const content = contentInput.value.trim();
+    if (!character || !server || !content) { alert("❌ Champs requis !"); return; }
+    try {
+        const wordCount = content.split(/\s+/).filter(Boolean).length;
+        const xpGained = Math.floor(wordCount * 0.1);
+        await addDoc(collection(db, "rps_sent"), { character, server, content, wordCount, xp: xpGained, createdAt: serverTimestamp() });
+        showFeedback(contentInput, false, `Enregistré ! +${xpGained} XP`);
+        charInput.value = ""; serverInput.value = ""; contentInput.value = "";
+        window.updateStats();
+    } catch (err) { showFeedback(contentInput, true); }
+};
+
 window.updateStats = async function() {
     const statsContainer = document.getElementById("statsContainer");
     if (!statsContainer) return;
-
     try {
         const stats = await getAdvancedStats();
         statsContainer.innerHTML = `
-            <h2>Statistiques de l'Activité</h2>
+            <h2>Statistiques</h2>
             <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;">
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;">
-                    <div style="font-size:0.9rem; color:#888;">Total XP</div>
-                    <div class="xp-counter" style="margin:5px 0 0 0;">${stats.totalXP || 0}</div>
-                </div>
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;">
-                    <div style="font-size:0.9rem; color:#888;">RPs Répondus</div>
-                    <div style="font-size:1.8rem; font-weight:bold; color:#2ecc71; margin-top:5px;">${stats.totalSent || 0}</div>
-                </div>
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:6px; text-align:center;">
-                    <div style="font-size:0.9rem; color:#888;">Mots Écrits</div>
-                    <div style="font-size:1.8rem; font-weight:bold; color:#3498db; margin-top:5px;">${stats.totalWords || 0}</div>
-                </div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; text-align:center;"><div>Total XP</div><div class="xp-counter">${stats.totalXP || 0}</div></div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; text-align:center;"><div>RPs Archivés</div><div style="font-size:1.8rem; color:#2ecc71;">${stats.totalSent || 0}</div></div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; text-align:center;"><div>Mots Écrits</div><div style="font-size:1.8rem; color:#3498db;">${stats.totalWords || 0}</div></div>
             </div>
         `;
-    } catch (err) {
-        console.error("Erreur lors du calcul des statistiques :", err);
-    }
+    } catch (e) {}
 };
 
-// =========================================================================
-// 7. RETROACTIONS VISUELLES (FEEDBACKS SUCCÈS/ERREUR)
-// =========================================================================
 function showFeedback(element, isError = false, message = "") {
     if (!element) return;
     if (isError) {
-        element.classList.add("shake-animation");
-        element.style.borderColor = "red";
-        setTimeout(() => {
-            element.classList.remove("shake-animation");
-            element.style.borderColor = "";
-        }, 1000);
+        element.classList.add("shake-animation"); element.style.borderColor = "red";
+        setTimeout(() => { element.classList.remove("shake-animation"); element.style.borderColor = ""; }, 1000);
     } else {
         const feedbackMsg = document.createElement("div");
-        feedbackMsg.className = "feedback-success";
-        feedbackMsg.style.color = "#2ecc71";
-        feedbackMsg.style.fontSize = "0.8rem";
-        feedbackMsg.style.marginTop = "5px";
-        feedbackMsg.innerText = "✅ " + message;
-        element.parentElement.appendChild(feedbackMsg);
+        feedbackMsg.style.color = "#2ecc71"; feedbackMsg.style.fontSize = "0.8rem"; feedbackMsg.style.marginTop = "5px";
+        feedbackMsg.innerText = "✅ " + message; element.parentElement.appendChild(feedbackMsg);
         setTimeout(() => feedbackMsg.remove(), 4000);
     }
 }
 
-// =========================================================================
-// 8. INITIALISATION AUTOMATIQUE SECURISEE (ANTI-ASYNCHRONISME)
-// =========================================================================
 function lancerInitialisation() {
     if (typeof window.initPendingList === "function") window.initPendingList();
     if (typeof window.updateStats === "function") window.updateStats();
 }
-
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", lancerInitialisation);
-} else {
-    lancerInitialisation();
-}
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", lancerInitialisation); } else { lancerInitialisation(); }

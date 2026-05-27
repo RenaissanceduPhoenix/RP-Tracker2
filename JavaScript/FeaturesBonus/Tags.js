@@ -26,6 +26,7 @@ export function genererBadgesEtSelecteur(rpId, tagsTab) {
                 <option value="#Romance">❤️ Romance</option>
                 <option value="#Important">🚨 Important</option>
                 <option value="#Rapide">⚡ Rapide</option>
+                <option value="#Chill"> Chill</option>
             </select>
         </div>
     `;

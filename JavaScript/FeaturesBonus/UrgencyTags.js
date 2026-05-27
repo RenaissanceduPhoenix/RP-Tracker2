@@ -10,19 +10,14 @@ export function getUrgencyTag(createdAt) {
     const diffInMs = now - dateRP;
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-    let urgencyClass = "safe"; // Vert par défaut (Récent)
-    let label = "Récent";
-
-    if (diffInDays >= 3 && diffInDays < 6) {
-        urgencyClass = "medium"; // Orange (En attente)
-        label = "Attente";
-    } else if (diffInDays >= 6) {
-        urgencyClass = "urgent"; // Rouge (Urgent)
-        label = "Relance !";
+    // 1. Plus de 6 jours : Relance (Rouge)
+    if (diffInDays >= 6) {
+        return `<span class="urgency-badge urgent" title="Reçu il y a ${diffInDays} jours">Relance !</span>`;
     }
-
-    // Application de la classe globale pour gérer l'arrondi parfait via le CSS
-    return `<span class="urgency-badge ${urgencyClass}" title="Reçu il y a ${diffInDays} jours">
-                ${label}
-            </span>`;
+    // 2. Entre 3 et 5 jours : Attente (Orange)
+    if (diffInDays >= 3) {
+         return `<span class="urgency-badge medium" title="Reçu il y a ${diffInDays} jours">En attente</span>`;
+    }
+    // 3. Moins de 3 jours : Récent (Vert)
+    return `<span class="urgency-badge safe" title="Reçu il y a ${diffInDays} jours">Récent</span>`;
 }

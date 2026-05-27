@@ -21,13 +21,17 @@
             </div>
 
             <div class="box zone-ajout-pending">
-                <h2>Nouveau RP en attente (Pending)</h2>
-                <input id="title" placeholder="Titre du RP">
-                <input id="char_received" placeholder="Ton personnage">
-                <input id="server_received" placeholder="Serveur">
-                <textarea id="content" placeholder="Contenu du message..." style="margin-top: 10px;"></textarea>
-                <button onclick="addPending()">Ajouter aux pendings</button>
-            </div>
+    <h2>Nouveau RP en attente (Pending)</h2>
+    <input id="title" placeholder="Titre du RP" list="titresExistants" oninput="window.autoRemplirParticipants(this.value)">
+    <datalist id="titresExistants">
+        </datalist>
+    
+    <input id="char_received" placeholder="Ton personnage">
+    <input id="rp_participants" placeholder="Autres persos (ex: Étoile de Feu, Plume Grise)">
+    <input id="server_received" placeholder="Serveur">
+    <textarea id="content" placeholder="Colle le texte reçu..."></textarea>
+    <button onclick="addPending()">Ajouter aux pendings</button>
+</div>
         </div>
 
 <div class="row">
@@ -122,10 +126,11 @@
             </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <label style="color: #aaa; font-size: 0.85rem;">Qui a écrit ce texte ?</label>
-                <input id="coWriteSenderName" placeholder="Ex: Nuage de Lynx, Partenaire, Châtaigne..." style="background: #1c1c24; border: 1px solid #2c2c35; color: #fff; padding: 5px; border-radius: 4px; font-size: 0.85rem; flex: 1;">
-            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
+    <label style="color: #aaa; font-size: 0.85rem;">Auteur de la réplique :</label>
+    <select id="coWriteSenderName" style="background: #1c1c24; border: 1px solid #2c2c35; color: #fff; padding: 5px; border-radius: 4px; font-size: 0.85rem; width: 200px;">
+        </select>
+</div>
             
             <div style="display: flex; gap: 10px;">
                 <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 90px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none;"></textarea>
