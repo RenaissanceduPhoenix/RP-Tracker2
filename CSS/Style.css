@@ -614,3 +614,24 @@ select.select-tag-toggle:focus {
 .chart-modal-close:hover {
     color: #a777e3;
 }
+
+/* Style spécifique pour le contenu de la modale de co-écriture */
+#coWriteModal .chart-modal-content {
+    background: #111116;
+    border: 1px solid #a777e3;
+    box-shadow: 0 0 30px rgba(167, 119, 227, 0.2);
+    color: #f0f0f0;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+#coWriteModal textarea, #coWriteModal input {
+    border: 1px solid rgba(167, 119, 227, 0.4);
+    transition: border-color 0.2s ease;
+}
+
+#coWriteModal textarea:focus, #coWriteModal input:focus {
+    outline: none;
+    border-color: #a777e3;
+    box-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
+}

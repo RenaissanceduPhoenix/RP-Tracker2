@@ -349,3 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Rend les fonctions accessibles depuis le HTML global
+window.openCoWriteModal = openCoWriteModal;
+window.closeCoWriteModal = closeCoWriteModal;

@@ -177,6 +177,7 @@ window.initPendingList = function() {
                         ${urgencyBadge}
                         <button class="btn-action btn-read" title="Lire le RP">📖</button>
                         <button class="btn-action btn-done" title="Marquer comme répondu">✅</button>
+                        <button class="btn-pending" onclick="window.openCoWriteModal('${id}', '${character.replace(/'/g, "\\'")}')" title="Co-Écriture avec l'IA" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px;">🖋️</button>
                     </div>
                 </div>
                 <div class="rp-card-tags-area">
