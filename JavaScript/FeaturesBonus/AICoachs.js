@@ -184,6 +184,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const textInput = document.getElementById("coWriteContext");
             if (!outputDiv || !currentActiveRpId) return;
 
+            // 🎯 RÉCUPÉRATION DE LA CONSIGNE D'AIGUILLAGE
+            const aiInstructionsElement = document.getElementById("coWriteAiInstructions");
+            const instructions = aiInstructionsElement ? aiInstructionsElement.value.trim() : "";
+
             outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA étudie la fiche et l'historique complet...</p>`;
 
             let maFicheDetaillee = "Pas de fiche spécifique trouvée. Respecte le tempérament de base.";
@@ -196,17 +200,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            let systemPrompt = `Tu es un auteur d'élite de RP textuel. Écris de façon très humaine, fluide et immersive.
-Tu dois rédiger la suite du RP en incarnant EXCLUSIVEMENT le personnage du joueur : "${currentActiveCharName}".
+// ============================================================================
+// MODIFICATION POUR SOUDER LES DIRECTIVES ET LES RÈGLES DE RP ENSEMBLE
+// ============================================================================
 
-Consignes narratives absolues :
+            let systemPrompt = `Tu es un auteur d'élite de RP textuel. Écris de façon très humaine, fluide et immersive.
+Tu dois rédiger la suite du RP en incarnant EXCLUSIVEMENT le personnage du joueur : "${currentActiveCharName}".\n\n`;
+
+            if (instructions) {
+                // Ici, on demande à l'IA d'intégrer l'ordre TOUT EN respectant les règles communautaires
+                systemPrompt += `👉 DIRECTIVE DE SCÉNARIO ET DE STYLE :
+Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cette demande de l'utilisateur : "${instructions}"
+Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage, la personne grammaticale et l'identité du personnage décrits ci-dessous. Fusionne cette demande avec les règles du RP.\n\n`;
+            }
+
+            systemPrompt += `Consignes narratives absolues :
 1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
 2. LIMITE DU RÔLE : Tu joues UNIQUEMENT "${currentActiveCharName}". Tu ne dois JAMAIS faire parler, agir, réagir ou penser les personnages des autres partenaires. Reste centré sur mon personnage.
 3. FORMATAGE TEXTE : Utilise intelligemment le formatage Markdown standard du RP (par exemple, des astérisques pour l'italique lors des actions, du texte brut ou des guillemets pour les paroles) si cela correspond aux habitudes de l'historique.
 4. RESPECT DE LA FICHE : Tu dois scrupuleusement respecter l'âge, le caractère, le ton et l'historique de la fiche de mon personnage :
 ${maFicheDetaillee}
 `;
-
             let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
             try {
                 const messagesRef = collection(db, "rps_pending", currentActiveRpId, "messages");
@@ -222,13 +236,13 @@ ${maFicheDetaillee}
                 historiqueContext += `[Note ou action contextuelle récente] : ${textInput.value.trim()}\n`;
             }
 
-            historiqueContext += `\nRédige la réplique ou l'action suivante pour mon personnage "${currentActiveCharName}" à la 3ème personne en restant cohérent avec l'historique. Sors directement le texte RP, sans blabla méta.`;
+            historiqueContext += `\nRédige la réplique ou l'action suivante pour mon personnage "${currentActiveCharName}". Applique la directive demandée tout en respectant scrupuleusement les contraintes de mise en page RP (3ème personne, style, Markdown). Ne fais aucun commentaire hors-RP avant ou après le texte généré.`;
 
             try {
                 const response = await fetch(MISTRAL_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
-                    body: JSON.stringify({ model: "mistral-large-latest", messages: [{role:"system", content:systemPrompt}, {role:"user", content:historiqueContext}], temperature: 0.75 })
+                    body: JSON.stringify({ model: "mistral-large-latest", messages: [{role:"system", content:systemPrompt}, {role:"user", content:historiqueContext}], temperature: 0.90 })
                 });
                 
                 const data = await response.json();
