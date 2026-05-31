@@ -48,6 +48,14 @@ h2 {
     padding-left: 10px;
 }
 
+.zone-liste-pending {
+    flex: 2; /* Prend environ 50% */
+    max-height: 680px; /* Aligné sur la hauteur maximale des formulaires de gauche */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
 /* ==========================================================================
    2. FORMULAIRES, INPUTS & BOUTONS ORIGINAL
    ========================================================================== */
@@ -289,9 +297,9 @@ button:hover {
 }
 
 .badge-tag {
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 3px;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
     font-weight: bold;
     text-transform: uppercase;
     border: 1px solid transparent;
@@ -701,4 +709,53 @@ select.select-tag-toggle:focus {
     background-color: #2ecc71 !important;
     color: #fff !important;
     box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+}
+
+/* ==========================================================================
+   SCROLL SÉCURISÉ POUR LES RP EN ATTENTE (ANTI-COUPURE) - VERSION FINALE
+   ========================================================================== */
+
+/* 1. Le conteneur réel du scroll : on active le magnétisme vertical */
+#pendingList {
+    flex: 1;
+    overflow-y: auto; /* Active le scroll uniquement si nécessaire */
+    padding-right: 6px;
+    scroll-behavior: smooth;
+    
+    /* 🌟 FORCE L'AIMANT VERTICAL SUR LE BON CONTENEUR */
+    scroll-snap-type: y mandatory; 
+}
+
+/* 2. Les cartes : alignement strict sur le bord supérieur du conteneur */
+#pendingList .rp-card {
+    /* 🌟 ALIGNE LE HAUT DE LA CARTE PARFAITEMENT SUR LE HAUT DU SCROLL */
+    scroll-snap-align: start; 
+    
+    /* Empêche le navigateur de s'arrêter au milieu d'une carte */
+    scroll-snap-stop: normal; 
+    
+    /* Petite marge pour décoller proprement la carte du bord haut de la boîte */
+    scroll-margin-top: 8px; 
+}
+
+/* Barre de défilement stylisée et ultra-discrète aux couleurs du site */
+#pendingList::-webkit-scrollbar {
+    width: 6px;
+}
+#pendingList::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+#pendingList::-webkit-scrollbar-thumb {
+    background: rgba(167, 119, 227, 0.3);
+    border-radius: 4px;
+}
+#pendingList::-webkit-scrollbar-thumb:hover {
+    background: rgba(167, 119, 227, 0.6);
+}
+
+/* Compatibilité de la barre pour Firefox */
+#pendingList {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(167, 119, 227, 0.3) rgba(0, 0, 0, 0.1);
 }
