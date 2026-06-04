@@ -204,6 +204,7 @@ window.initPendingList = function() {
                         <button class="btn-action btn-read" title="Lire le RP">📖</button>
                         <button class="btn-action btn-done" title="Marquer comme Répondu (Faire Disparaître)" style="background:#27ae60;">✅</button>
                         <button class="btn-action btn-archive" title="Terminer le RP (Archiver)" style="background:#c0392b;">🛑</button>
+                        <button class="btn-action btn-clean-ai" title="🧹 Forcer le nettoyage de la mémoire IA" style="background:#34495e;">🧹</button>
                         <button class="btn-pending" onclick="window.openCoWriteModal('${id}', '${character.replace(/'/g, "\\'")}')" title="Co-Écriture" style="background: none; border: none; font-size: 1.1rem; cursor: pointer;">🖋️</button>
                     </div>
                 </div>
@@ -214,6 +215,18 @@ window.initPendingList = function() {
             card.querySelector(".btn-done").addEventListener("click", () => window.markStatus(id, "repondu"));
             card.querySelector(".btn-archive").addEventListener("click", () => window.markStatus(id, "done"));
 
+            card.querySelector(".btn-clean-ai").addEventListener("click", async function() {
+    if (confirm(`Voulez-vous vider la mémoire IA du RP "${title}" pour corriger les bugs ?`)) {
+        if (typeof window.clearAiHistory === "function") {
+            this.innerText = "⏳";
+            await window.clearAiHistory(id);
+            this.innerText = "✨";
+            this.style.background = "#2ecc71";
+            setTimeout(() => { this.innerText = "🧹"; this.style.background = "#34495e"; }, 2000);
+        }
+    }
+});
+
             container.appendChild(card);
         });
 
@@ -221,12 +234,23 @@ window.initPendingList = function() {
     }, (err) => { console.error(err); });
 };
 
-window.markStatus = async function(id, newStatus) {
+window.markStatus = async function(id, newStatus, characterName = null) {
     try {
         await updateDoc(doc(db, "rps_received", id), { 
             status: newStatus,
             updatedAt: serverTimestamp() 
         });
+        
+        // 🌟 CONDITION EXCLUSIVE : On nettoie l'IA SEULEMENT si le statut passe à "repondu" 
+        // ET que le personnage de la carte correspond bien à ton personnage actif !
+        if (newStatus === "repondu" && characterName && window.currentActiveCharName) {
+            if (characterName.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
+                if (typeof window.clearAiHistory === "function") {
+                    await window.clearAiHistory(id);
+                }
+            }
+        }
+
         if (document.getElementById("coWriteModal").style.display === "flex") {
             document.getElementById("coWriteModal").style.display = "none";
         }

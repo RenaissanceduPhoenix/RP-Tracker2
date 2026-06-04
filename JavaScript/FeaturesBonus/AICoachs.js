@@ -1,15 +1,15 @@
 import { charactersDB, fiches } from './CharacterData.js';
 import { catBehaviorKnowledge } from './CatBehaviorData.js';
 import { db } from '../Firebase.js';
-import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
 
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
-let currentActiveRpId = null;
-let currentActiveCharName = null;
+window.currentActiveRpId = null;
+window.currentActiveCharName = null;
 
 /**
  * ============================================================================
@@ -17,8 +17,8 @@ let currentActiveCharName = null;
  * ============================================================================
  */
 window.openCoWriteModal = async function(rpId, charName) {
-    currentActiveRpId = rpId;
-    currentActiveCharName = charName;
+    window.currentActiveRpId = rpId;
+    window.currentActiveCharName = charName;
     
     const modal = document.getElementById("coWriteModal");
     const title = document.getElementById("coWriteModalTitle");
@@ -95,9 +95,13 @@ async function loadOrCreateRpHistory(rpId, charName) {
         const q = query(messagesRef, orderBy("createdAt", "asc"));
         let snap = await getDocs(q);
 
+        // 🌟 LE CONSOLE.LOG DE CONTRÔLE ICI :
+        console.log(`%c📖 [Vérification] Collection 'messages' chargée : ${snap.size} réplique(s) de jeu récupérée(s) pour le RP [${rpId}].`, "color: #ffcc00; font-weight: bold;");
+
         if (snap.empty) {
             const pendingDocRef = doc(db, "rps_received", rpId);
             const pendingSnap = await getDoc(pendingDocRef);
+            // ... reste de ton code initial ...
 
             if (pendingSnap.exists()) {
                 const pendingData = pendingSnap.data();
@@ -160,20 +164,31 @@ document.addEventListener("DOMContentLoaded", () => {
             const textInput = document.getElementById("coWriteContext");
             const senderSelect = document.getElementById("coWriteSenderName");
             
-            if (!textInput || !textInput.value.trim() || !senderSelect || !senderSelect.value || !currentActiveRpId) {
+            if (!textInput || !textInput.value.trim() || !senderSelect || !senderSelect.value || !window.currentActiveRpId) {
                 alert("Erreur : Remplis correctement le texte !");
                 return;
             }
 
             try {
-                const messagesRef = collection(db, "rps_pending", currentActiveRpId, "messages");
+                const auteurDuMessage = senderSelect.value; // Le personnage sélectionné dans la liste déroulante
+
+                const messagesRef = collection(db, "rps_pending", window.currentActiveRpId, "messages");
                 await addDoc(messagesRef, {
-                    sender: senderSelect.value, 
+                    sender: auteurDuMessage, 
                     text: textInput.value.trim(),
                     createdAt: serverTimestamp()
                 });
+                
+                // 🌟 CONDITION EXCLUSIVE DE SÉCURITÉ :
+                // On nettoie la mémoire IA UNIQUEMENT si l'auteur du message est TOI (ton perso actif)
+                if (auteurDuMessage.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
+                    if (typeof window.clearAiHistory === "function") {
+                        await window.clearAiHistory(window.currentActiveRpId);
+                    }
+                }
+
                 textInput.value = "";
-                await loadOrCreateRpHistory(currentActiveRpId, currentActiveCharName);
+                await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
             } catch (err) { console.error(err); }
         });
     }
@@ -404,3 +419,27 @@ ${maFicheDetaillee}
         });
     }
 });
+/**
+ * ============================================================================
+ * 5. 🔥 SÉCURITÉ : NETTOYAGE STRATÉGIQUE DE LA MÉMOIRE IA
+ * Déclenché uniquement quand le RP avance (statut changé ou pavé archivé) !
+ * ============================================================================
+ */
+window.clearAiHistory = async function(rpId) {
+    if (!rpId) return;
+    try {
+        const aiHistoryRef = collection(db, "rps_pending", rpId, "ai_history");
+        // 🌟 Correction ici : On récupère tous les documents directement de la référence
+        const snap = await getDocs(aiHistoryRef);
+        
+        if (!snap.empty) {
+            const deletePromises = snap.docs.map(docSnap => deleteDoc(docSnap.ref));
+            await Promise.all(deletePromises);
+            console.log(`%c🧹 [Sécurité IA] L'historique 'ai_history' du RP [${rpId}] a été nettoyé avec succès !`, "color: #2ecc71; font-weight: bold;");
+        } else {
+            console.log(`ℹ️ [Sécurité IA] L'historique 'ai_history' du RP [${rpId}] était déjà vide.`);
+        }
+    } catch (error) {
+        console.error("❌ Erreur lors du nettoyage automatique de l'historique IA :", error);
+    }
+};
