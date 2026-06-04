@@ -621,6 +621,7 @@ select.select-tag-toggle:focus {
     
     /* 🛠️ CORRECTIF SCROLL : Limite stricte de la boîte blanche/sombre */
     max-height: 85vh;           /* Reste sous la barre des 90% de l'écran */
+    width: calc(100vw - 400px);
     display: flex;
     flex-direction: column;     /* Permet de structurer l'intérieur verticalement */
     overflow-y: auto;           /* Force l'apparition du scroll global de la modale */
@@ -670,9 +671,9 @@ select.select-tag-toggle:focus {
 #coWriteAiOutput {
     font-style: italic;
     color: #aaa;
-    font-size: 0.85rem;
-    min-height: 40px;
-    max-height: 150px;
+    font-size: 1.25rem !important;
+    min-height: 250px;
+    max-height: 450px;
     overflow-y: auto;           /* Si l'IA écrit un pavé, la modale ne s'agrandit plus */
     margin-top: 10px;
 }

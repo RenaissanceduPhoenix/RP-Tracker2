@@ -145,7 +145,6 @@ async function loadOrCreateRpHistory(rpId, charName) {
         historyLog.innerHTML = "<span style='color: #e74c3c;'>Erreur de traitement de l'historique.</span>";
     }
 }
-
 /**
  * ============================================================================
  * 4. INITIALISATION DES ACTIONS BOUTONS ET ENVOI DE PROMPT À L'IA
@@ -188,8 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const aiInstructionsElement = document.getElementById("coWriteAiInstructions");
             const instructions = aiInstructionsElement ? aiInstructionsElement.value.trim() : "";
 
-            outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA étudie la fiche et l'historique complet...</p>`;
+            outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
 
+            // 1. Récupération de la fiche du personnage
             let maFicheDetaillee = "Pas de fiche spécifique trouvée. Respecte le tempérament de base.";
             if (fiches) {
                 for (const key in fiches) {
@@ -200,27 +200,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-// ============================================================================
-// MODIFICATION POUR SOUDER LES DIRECTIVES ET LES RÈGLES DE RP ENSEMBLE
-// ============================================================================
-
+            // 2. Construction du System Prompt de base
+            // 2. Construction du System Prompt de base (Optimisé pour l'écriture organique/humaine)
             let systemPrompt = `Tu es un auteur d'élite de RP textuel. Écris de façon très humaine, fluide et immersive.
 Tu dois rédiger la suite du RP en incarnant EXCLUSIVEMENT le personnage du joueur : "${currentActiveCharName}".\n\n`;
 
             if (instructions) {
-                // Ici, on demande à l'IA d'intégrer l'ordre TOUT EN respectant les règles communautaires
                 systemPrompt += `👉 DIRECTIVE DE SCÉNARIO ET DE STYLE :
 Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cette demande de l'utilisateur : "${instructions}"
 Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage, la personne grammaticale et l'identité du personnage décrits ci-dessous. Fusionne cette demande avec les règles du RP.\n\n`;
             }
 
-            systemPrompt += `Consignes narratives absolues :
+            systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) :
 1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
 2. LIMITE DU RÔLE : Tu joues UNIQUEMENT "${currentActiveCharName}". Tu ne dois JAMAIS faire parler, agir, réagir ou penser les personnages des autres partenaires. Reste centré sur mon personnage.
-3. FORMATAGE TEXTE : Utilise intelligemment le formatage Markdown standard du RP (par exemple, des astérisques pour l'italique lors des actions, du texte brut ou des guillemets pour les paroles) si cela correspond aux habitudes de l'historique.
-4. RESPECT DE LA FICHE : Tu dois scrupuleusement respecter l'âge, le caractère, le ton et l'historique de la fiche de mon personnage :
+3. FORMATAGE TEXTE : Utilise intelligemment le formatage Markdown standard du RP (des astérisques pour l'italique lors des actions, du texte brut ou des guillemets pour les paroles).
+4. RESPECT DE LA FICHE : Respecte scrupuleusement l'âge, le caractère, le ton et l'historique de la fiche de mon personnage :
 ${maFicheDetaillee}
-`;
+
+5. MÉTRIQUES D'ÉCRITURE HUMAINE (BURSTINESS & PERPLEXITY) :
+- VARIABILITÉ DU RYTHME : Alterne brutalement la structure et la longueur de tes phrases. Fais de longues descriptions poétiques, suivies immédiatement d'une phrase ultra-courte de deux ou trois mots pour marquer un impact, une hésitation ou une rupture. Ne garde JAMAIS le même rythme d'un paragraphe à l'autre.
+- DÉVIATION DE PROBABILITÉ : Évite les structures de transition trop parfaites et répétitives au début de tes paragraphes (bannit les listes de "Puis, d'un geste...", "Soudain...", "Un frisson..."). Entre directement dans l'action, la pensée brute ou la sensation physique.
+- IMPERFECTIONS NATURELLES : Incorpore des tics de langage corporel réalistes et parfois abrupts propres à l'univers félin (un miaulement étouffé, un coup de langue nerveux, un silence lourd, une hésitation dans le dialogue). Le texte ne doit pas ressembler à une notice littéraire figée, mais au flux de pensée d'un joueur en train de taper sur son clavier.
+- CONCLUSION ORGANIQUE : Ne cherche pas à faire une "belle phrase de fin de chapitre" clichée ou à répéter la même action de clôture. Termine sur un geste suspendu, un regard, ou une réplique directe pour laisser de la place au partenaire.\n\n`;
+
+            // 3. Récupération du contexte général du RP (les répliques du jeu)
             let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
             try {
                 const messagesRef = collection(db, "rps_pending", currentActiveRpId, "messages");
@@ -230,44 +234,151 @@ ${maFicheDetaillee}
                     const m = d.data();
                     historiqueContext += `[${m.sender}]: ${m.text}\n`;
                 });
-            } catch (e) {}
+            } catch (e) { console.error(e); }
 
-            if (textInput && textInput.value.trim()) {
-                historiqueContext += `[Note ou action contextuelle récente] : ${textInput.value.trim()}\n`;
+            systemPrompt += historiqueContext;
+
+            // 4. PRÉPARATION DU TABLEAU DE MESSAGES POUR L'API (DÉBUT DES CONSOLE.LOG)
+            console.log("%c=== 🚀 DÉBUT DE LA RECONSTRUCTION DU PROMPT MISTRAL ===", "color: #a777e3; font-weight: bold;");
+            
+            let mistralMessages = [
+                { role: "system", content: systemPrompt }
+            ];
+            console.log("1. [SYSTEM] Instructions de base + Fiche personnage + Historique du RP injectés.");
+
+            // 5. CHARGEMENT DE L'HISTORIQUE DE CONVERSATION (ai_history)
+            console.log("%c=== 🧠 CHARGEMENT DE LA MÉMOIRE DE CONVERSATION (ai_history) ===", "color: #00bcd4; font-weight: bold;");
+            try {
+                const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
+                const qAi = query(aiHistoryRef, orderBy("createdAt", "asc"));
+                const snapAi = await getDocs(qAi);
+                
+                if (snapAi.empty) {
+                    console.log("-> Aucune ancienne consigne en mémoire. Première interaction avec l'IA pour ce RP.");
+                } else {
+                    let compteurMessage = 1;
+                    snapAi.forEach(d => {
+                        const m = d.data();
+                        mistralMessages.push({
+                            role: m.role, // "user" ou "assistant"
+                            content: m.text
+                        });
+                        console.log(`   [Mémoire ${compteurMessage}] Rôle: %c${m.role}%c | Contenu : "${m.text.substring(0, 60)}..."`, 
+                                    m.role === "user" ? "color: #ffcc00;" : "color: #4caf50;", "color: inherit;");
+                        compteurMessage++;
+                    });
+                }
+            } catch (e) { 
+                console.error("❌ Erreur lors du chargement de l'historique IA:", e); 
             }
 
-            historiqueContext += `\nRédige la réplique ou l'action suivante pour mon personnage "${currentActiveCharName}". Applique la directive demandée tout en respectant scrupuleusement les contraintes de mise en page RP (3ème personne, style, Markdown). Ne fais aucun commentaire hors-RP avant ou après le texte généré.`;
+            // 6. DECORATION ET DEMANDE ACTUELLE (Le Prompt Courant)
+            let currentPrompt = "";
+            if (textInput && textInput.value.trim()) {
+                currentPrompt += `[Note ou action contextuelle récente] : ${textInput.value.trim()}\n`;
+            }
 
+            currentPrompt += `\nRédige la réplique ou l'action suivante pour mon personnage "${currentActiveCharName}". Applique la directive demandée tout en respectant scrupuleusement les contraintes de mise en page RP (3ème personne, style, Markdown). Ne fais aucun commentaire hors-RP avant ou après le texte généré.`;
+
+            mistralMessages.push({ role: "user", content: currentPrompt });
+            
+            console.log("%c=== 📝 AJOUT DE LA DEMANDE ACTUELLE ===", "color: #ff5722; font-weight: bold;");
+            console.log(`2. [USER] Consigne envoyée : "${instructions ? instructions : 'Demande de suite simple'}"`);
+            
+            console.log("%c=== 📤 STRUCTURE FINALE ENVOYÉE À MISTRAL ===", "color: #a777e3; font-weight: bold;");
+            console.table(mistralMessages); // Affiche le tableau d'analyse complet
+
+            // 7. EXPÉDITION À L'API MISTRAL
             try {
                 const response = await fetch(MISTRAL_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
-                    body: JSON.stringify({ model: "mistral-large-latest", messages: [{role:"system", content:systemPrompt}, {role:"user", content:historiqueContext}], temperature: 0.90 })
+                    body: JSON.stringify({ 
+                        model: "mistral-large-latest", 
+                        messages: mistralMessages, 
+                        temperature: 0.9 
+                    })
                 });
                 
                 const data = await response.json();
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     let textAi = data.choices[0].message.content;
                     
-                    // 🛠️ Application de parseRP() pour traiter la réponse de l'IA avant affichage
+                    // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE
+                    try {
+                        const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
+                        
+                        // Sauvegarde de ce que l'utilisateur a demandé
+                        await addDoc(aiHistoryRef, {
+                            role: "user",
+                            text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
+                            createdAt: serverTimestamp()
+                        });
+                        
+                        // Sauvegarde de ce que l'IA a répondu
+                        await addDoc(aiHistoryRef, {
+                            role: "assistant",
+                            text: textAi,
+                            createdAt: serverTimestamp()
+                        });
+                        console.log("💾 Échange sauvegardé avec succès dans l'historique Firebase !");
+                    } catch (dbErr) { 
+                        console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
+                    }
+
+                    // Reset du champ consigne utilisateur pour la prochaine fois
+                    if (aiInstructionsElement) aiInstructionsElement.value = "";
+
+                    // 9. RENDU HTML DU MESSAGE ET AFFICHAGE DES MODALES ET BOUTONS
                     const textAiHTML = parseRP(textAi);
 
                     outputDiv.innerHTML = `
                         <div style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                 <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
-                                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                                <div style="display: flex; gap: 5px;">
+                                    <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
+                                    <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                                </div>
                             </div>
-                            <div style="color:#fff; font-size:0.9rem; font-family:Georgia, serif; line-height:1.4; margin:0;">${textAiHTML}</div>
+                            <div style="color:#fff; font-size:1rem; font-family:Georgia, serif; line-height:1.4; margin:0;">${textAiHTML}</div>
+                        </div>
+
+                        <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
+                            <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+                                <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
+                                    <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
+                                    <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+                                </div>
+                                <div style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.1rem; line-height: 1.6; background: #0c0c10;">
+                                    ${textAiHTML}
+                                </div>
+                            </div>
                         </div>
                     `;
-                    
+
+                    // Lancement des écouteurs pour copier et visionner le texte en grand
                     document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
                         navigator.clipboard.writeText(textAi);
                         this.innerText = "✓ Copié !";
                     });
+
+                    document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "flex";
+                    });
+
+                    document.getElementById("btnCloseExclusive").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "none";
+                    });
+
+                    document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
+                        if (e.target === this) this.style.display = "none";
+                    });
                 }
             } catch (err) { 
+                console.error("❌ Erreur de transmission API Mistral :", err);
                 outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
             }
         });

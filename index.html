@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RP Tracker PRO - Renaissance du Phoenix</title>
-    <link rel="stylesheet" href="./CSS/Style.css">
+    <link rel="stylesheet" href="./CSS/Style.css?v=2.4">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="icon" type="image/ico" href="./CSS/Logo/Favicon-32.ico">
 </head>
@@ -102,7 +102,7 @@
     <script type="module" src="./JavaScript/FeaturesBonus/Tags.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=2.1"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js"></script>
 
 
@@ -117,31 +117,32 @@
 </div>
 
 <div id="coWriteModal" class="chart-modal" style="display: none;">
-    <div class="chart-modal-content" style="max-width: 800px; width: 90%;">
+    <div class="chart-modal-content">
         <span class="chart-modal-close" onclick="closeCoWriteModal()">&times;</span>
         <h2 id="coWriteModalTitle" style="color: #a777e3; margin-top: 0;">🖋️ Salon de Co-Écriture</h2>
         
         <p style="margin: 0; color: #aaa; font-size: 0.85rem;">Historique du RP (Firestore) :</p>
         <div id="rpHistoryLog" style="background: #101015; border: 1px solid #2c2c35; border-radius: 6px; padding: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem;">
-            </div>
+        </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
-    <label style="color: #aaa; font-size: 0.85rem;">Auteur de la réplique :</label>
-    <select id="coWriteSenderName" style="background: #1c1c24; border: 1px solid #2c2c35; color: #fff; padding: 5px; border-radius: 4px; font-size: 0.85rem; width: 200px;">
-        </select>
-</div>
+                <label style="color: #aaa; font-size: 0.85rem;">Auteur de la réplique :</label>
+                <select id="coWriteSenderName" style="background: #1c1c24; border: 1px solid #2c2c35; color: #fff; padding: 5px; border-radius: 4px; font-size: 0.85rem; width: 200px;">
+                </select>
+            </div>
             
-            <div style="display: flex; gap: 10px;">
-    <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 90px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none;"></textarea>
-    <div style="display: flex; flex-direction: column; gap: 5px; justify-content: center;">
-        <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">💾 Enregistrer au RP</button>
-        
-        <input id="coWriteAiInstructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)" style="background: #101015; border: 1px solid rgba(167, 119, 227, 0.6); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; width: 140px;">
-        
-        <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">✨ Écrire avec l'IA</button>
-    </div>
-</div>
+            <div style="display: flex; gap: 10px; align-items: stretch;">
+                <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 120px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none; font-family: inherit; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
+                
+                <textarea id="coWriteAiInstructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)" style="flex: 1; height: 120px; background: #101015; border: 1px solid rgba(167, 119, 227, 0.6); color: #fff; padding: 8px; border-radius: 4px; resize: none; font-family: inherit; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
+                
+                <div style="display: flex; flex-direction: column; gap: 5px; justify-content: space-between;">
+                    <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">💾 Enregistrer au RP</button>
+                    <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: 100%;">✨ Écrire avec l'IA</button>
+                </div>
+            </div>
+        </div>
 
         <div id="coWriteAiOutput" style="font-style: italic; color: #aaa; font-size: 0.85rem; min-height: 40px;">
             En attente d'une action...
