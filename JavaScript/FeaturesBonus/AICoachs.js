@@ -1,4 +1,5 @@
 import { charactersDB, fiches } from './CharacterData.js';
+import { catBehaviorKnowledge } from './CatBehaviorData.js';
 import { db } from '../Firebase.js';
 import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
@@ -200,6 +201,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
+            // 1.5 Génération du dictionnaire du comportement félin
+            let catLorePrompt = "GUIDE COMPORTEMENTAL FÉLIN (À utiliser pour enrichir le langage corporel) :\n";
+            for (const category in catBehaviorKnowledge) {
+                for (const behavior in catBehaviorKnowledge[category]) {
+                    catLorePrompt += `- ${behavior.replace(/_/g, ' ').toUpperCase()} : ${catBehaviorKnowledge[category][behavior]}\n`;
+                }
+            }
+
             // 2. Construction du System Prompt de base
             // 2. Construction du System Prompt de base (Optimisé pour l'écriture organique/humaine)
             let systemPrompt = `Tu es un auteur d'élite de RP textuel. Écris de façon très humaine, fluide et immersive.
@@ -215,15 +224,20 @@ Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT l
 1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
 2. LIMITE DU RÔLE : Tu joues UNIQUEMENT "${currentActiveCharName}". Tu ne dois JAMAIS faire parler, agir, réagir ou penser les personnages des autres partenaires. Reste centré sur mon personnage.
 3. FORMATAGE TEXTE : Utilise intelligemment le formatage Markdown standard du RP (des astérisques pour l'italique lors des actions, du texte brut ou des guillemets pour les paroles).
-4. RESPECT DE LA FICHE : Respecte scrupuleusement l'âge, le caractère, le ton et l'historique de la fiche de mon personnage :
-${maFicheDetaillee}
 
 5. MÉTRIQUES D'ÉCRITURE HUMAINE (BURSTINESS & PERPLEXITY) :
 - VARIABILITÉ DU RYTHME : Alterne brutalement la structure et la longueur de tes phrases. Fais de longues descriptions poétiques, suivies immédiatement d'une phrase ultra-courte de deux ou trois mots pour marquer un impact, une hésitation ou une rupture. Ne garde JAMAIS le même rythme d'un paragraphe à l'autre.
 - DÉVIATION DE PROBABILITÉ : Évite les structures de transition trop parfaites et répétitives au début de tes paragraphes (bannit les listes de "Puis, d'un geste...", "Soudain...", "Un frisson..."). Entre directement dans l'action, la pensée brute ou la sensation physique.
-- IMPERFECTIONS NATURELLES : Incorpore des tics de langage corporel réalistes et parfois abrupts propres à l'univers félin (un miaulement étouffé, un coup de langue nerveux, un silence lourd, une hésitation dans le dialogue). Le texte ne doit pas ressembler à une notice littéraire figée, mais au flux de pensée d'un joueur en train de taper sur son clavier.
-- CONCLUSION ORGANIQUE : Ne cherche pas à faire une "belle phrase de fin de chapitre" clichée ou à répéter la même action de clôture. Termine sur un geste suspendu, un regard, ou une réplique directe pour laisser de la place au partenaire.\n\n`;
+- IMPERFECTIONS NATURELLES : Incorpore des tics de langage corporel réalistes et parfois abrupts propres à l'univers félin (un miaulement étouffé, un coup de langue nerveux, un silence lourd, une hésitation dans le dialogue).
+- CONCLUSION ORGANIQUE : Ne cherche pas à faire une "belle phrase de fin de chapitre" clichée. Termine sur un geste suspendu, un regard, ou une réplique directe.
 
+🐱 NUANCES COMPORTEMENTALES (Interdiction d'utiliser des clichés humains comme 'embrasser'. Pioche obligatoirement dans ces descriptions physiques pour traduire l'émotion à l'écran) :
+${catLorePrompt}
+
+🔥 PROFIL PSYCHOLOGIQUE OBLIGATOIRE (À respecter à 100% dans le ton et les actions) :
+<FICHE_PERSONNAGE>
+${maFicheDetaillee}
+</FICHE_PERSONNAGE>\n\n`;
             // 3. Récupération du contexte général du RP (les répliques du jeu)
             let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
             try {
@@ -272,13 +286,19 @@ ${maFicheDetaillee}
                 console.error("❌ Erreur lors du chargement de l'historique IA:", e); 
             }
 
-            // 6. DECORATION ET DEMANDE ACTUELLE (Le Prompt Courant)
+            // 6. DECORATION ET DEMANDE ACTUELLE (Le Prompt Courant - Recadrage Psychologique)
             let currentPrompt = "";
             if (textInput && textInput.value.trim()) {
-                currentPrompt += `[Note ou action contextuelle récente] : ${textInput.value.trim()}\n`;
+                currentPrompt += `[Note ou action contextuelle récente transmise par le joueur] : ${textInput.value.trim()}\n`;
             }
 
-            currentPrompt += `\nRédige la réplique ou l'action suivante pour mon personnage "${currentActiveCharName}". Applique la directive demandée tout en respectant scrupuleusement les contraintes de mise en page RP (3ème personne, style, Markdown). Ne fais aucun commentaire hors-RP avant ou après le texte généré.`;
+            currentPrompt += `\nTu dois maintenant rédiger la réplique suivante pour mon personnage "${currentActiveCharName}".
+
+⚠️ RAPPEL DES DIRECTIVES ABSOLUES POUR CETTE RÉPLIQUE :
+- Incane EXCLUSIVEMENT "${currentActiveCharName}". Reste à 100% fidèle au caractère, au ton, à l'âge et à la mentalité décrits dans sa <FICHE_PERSONNAGE> ci-dessus. Ne le fais pas agir hors-caractère.
+- Écris IMPÉRATIVEMENT à la 3ème personne du singulier (Pas de "Je", pas de "Tu").
+- Applique le rythme HUMAIN (brise les phrases, pas de transitions clichées, fin ouverte suspendue).
+- Génère UNIQUEMENT le texte du RP. Aucun commentaire hors-RP.`;
 
             mistralMessages.push({ role: "user", content: currentPrompt });
             
