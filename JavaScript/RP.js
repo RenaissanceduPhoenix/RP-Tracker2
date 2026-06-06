@@ -356,7 +356,7 @@ window.ajouterUnRpEnvoye = async function() {
             context: textContext,
             charCount: charCount,
             xpGain: xpGain,
-            timestamp: serverTimestamp()
+            createdAt: serverTimestamp()
         });
 
         if (typeof window.ajouterXpPersonnage === "function") {
