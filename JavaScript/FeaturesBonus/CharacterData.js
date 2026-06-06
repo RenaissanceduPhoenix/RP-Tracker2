@@ -368,8 +368,7 @@ Aujourd'hui, Étincelle de Vie est une guerrière un peu respectée, connue pour
 
 
 `
-		}
-
+		},
 
 };
 
@@ -396,5 +395,6 @@ export const charactersDB = {
     // Liens Racine
     "Racine de Pissenlit": fiches.racine,
     "Petit Pissenlit": fiches.racine,
-    "Patte de Pissenlit": fiches.racine
+    "Patte de Pissenlit": fiches.racine,
+
 };

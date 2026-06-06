@@ -1,5 +1,5 @@
 import { db } from './Firebase.js';
-import { collection, addDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, setDoc, addDoc, getDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from './Markdown.js';
 import { getAdvancedStats } from './DataService.js';
 import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBonus/Tags.js';
@@ -7,6 +7,57 @@ import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 
 let unsubscribePending = null;
 let rpsActifsCache = []; // Stocke les RPs (actifs et répondus) pour l'auto-remplissage et les transitions de statut
+
+/**
+ * 1. Intercepte le clic, nettoie les IDs et demande confirmation
+ */
+window.validerChangementNom = async function(charName) {
+    const idSecurise = charName.replace(/['\s]/g, '-');
+    const input = document.getElementById(`input-bapteme-${idSecurise}`);
+    if (!input) return;
+
+    const nouveauNom = input.value.trim();
+    if (!nouveauNom) {
+        alert("❌ Veuillez entrer un nom valide.");
+        return;
+    }
+
+    if (confirm(`⚠️ Mettre à jour le rang :\nVoulez-vous enregistrer le nom de baptême "${nouveauNom}" pour le profil de "${charName}" ?`)) {
+        await window.executerBaptemeFirebase(charName, nouveauNom);
+    }
+};
+
+/**
+ * 2. Modifie le document existant ou le crée s'il n'existe pas encore
+ */
+window.executerBaptemeFirebase = async function(charName, nouveauNom) {
+    const nomNettoye = nouveauNom.trim();
+    const docRef = doc(db, "characters", charName);
+
+    try {
+        // setDoc avec { merge: true } crée le doc s'il est absent, ou fusionne s'il existe déjà !
+        await setDoc(docRef, {
+            nom_bapteme: nomNettoye,
+            // Ces valeurs par défaut ne s'appliqueront QUE si le document est créé pour la première fois
+            level: 1,
+            xp: 0
+        }, { merge: true });
+
+        console.log(`🎉 [Firestore] Rang mis à jour (ou créé) avec succès pour ${charName}.`);
+        alert(`✨ Le baptême est prononcé ! Le personnage s'appelle désormais "${nomNettoye}".`);
+        
+        // Relance l'affichage du profil pour mettre à jour le titre immédiatement
+        if (typeof window.openFullPerso === "function") {
+            await window.openFullPerso();
+        } else {
+            location.reload();
+        }
+
+    } catch (error) {
+        console.error("❌ Erreur lors de la mise à jour du document Firestore :", error);
+        alert("Une erreur est survenue lors de la mise à jour du nom de baptême.");
+    }
+};
 
 window.openModal = function(content, title, meta) {
     const area = document.getElementById('displayAreaPending');
@@ -258,23 +309,71 @@ window.markStatus = async function(id, newStatus, characterName = null) {
     } catch (err) { console.error(err); }
 };
 
-window.addSent = async function() {
-    const charInput = document.getElementById("char_sent");
-    const serverInput = document.getElementById("server_sent");
-    const contentInput = document.getElementById("content_sent");
-    if (!charInput || !serverInput || !contentInput) return;
-    const character = charInput.value.trim();
-    const server = serverInput.value.trim();
-    const content = contentInput.value.trim();
-    if (!character || !server || !content) { alert("❌ Champs requis !"); return; }
+/**
+ * 🌟 FONCTION GLOBALE D'ENVOI DE RP
+ */
+window.ajouterUnRpEnvoye = async function() {
+    const charInput = document.getElementById('char_sent');
+    const titleInput = document.getElementById('titleSent');
+    const serverInput = document.getElementById('server_sent');
+    const contextInput = document.getElementById('content_sent');
+
+    // 1. Vérification de la sélection et récupération IMMÉDIATE du nom de baptême affiché
+    if (!charInput || charInput.selectedIndex <= 0) {
+        alert("❌ Veuillez sélectionner un personnage dans la liste.");
+        return;
+    }
+    
+    // Le nom de baptême (ex: "Nuage de Lynx" ou "Petit Test") visible dans la galerie/sélecteur
+    const nomBapteme = charInput.options[charInput.selectedIndex].text;
+    // L'ID/Nom brut pour la base de données Firebase
+    const characterName = charInput.value.trim();
+    const title = titleInput ? titleInput.value.trim() : "";
+    const server = serverInput ? serverInput.value.trim() : "";
+    const textContext = contextInput ? contextInput.value.trim() : "";
+
+    const charCount = textContext ? textContext.length : 0;
+
+    if (!characterName) {
+        alert("❌ Veuillez sélectionner un personnage dans la liste.");
+        return;
+    }
+
+    if (charCount < 150) {
+        alert(`⚠️ Votre RP est trop court (${charCount} caractères). Il doit contenir au moins 150 mots pour être enregistré.`);
+        return;
+    }
+
+    const xpGain = Math.floor(charCount / 10);
+
     try {
-        const wordCount = content.split(/\s+/).filter(Boolean).length;
-        const xpGained = Math.floor(wordCount * 0.1);
-        await addDoc(collection(db, "rps_sent"), { character, server, content, wordCount, xp: xpGained, createdAt: serverTimestamp() });
-        showFeedback(contentInput, false, `Enregistré ! +${xpGained} XP`);
-        charInput.value = ""; serverInput.value = ""; contentInput.value = "";
-        window.updateStats();
-    } catch (err) { showFeedback(contentInput, true); }
+        const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        
+        await addDoc(collection(db, "rps_sent"), {
+            character: characterName, 
+            title: title,
+            server: server,
+            context: textContext,
+            charCount: charCount,
+            xpGain: xpGain,
+            timestamp: serverTimestamp()
+        });
+
+        if (typeof window.ajouterXpPersonnage === "function") {
+            await window.ajouterXpPersonnage(characterName, xpGain);
+        }
+
+        showFeedback(serverInput, false, `RP contenant ${charCount} caractères ! ${nomBapteme} obtient donc ${xpGain} point d'experience ! Bravo ! `)
+        
+        if (titleInput) titleInput.value = "";
+        if (serverInput) serverInput.value = "";
+        if (contextInput) contextInput.value = "";
+        if (charInput) charInput.value = "";
+
+    } catch (error) {
+        console.error("Erreur ajout RP :", error);
+        alert("Une erreur est survenue lors de l'enregistrement.");
+    }
 };
 
 window.updateStats = async function() {
@@ -302,7 +401,7 @@ function showFeedback(element, isError = false, message = "") {
         const feedbackMsg = document.createElement("div");
         feedbackMsg.style.color = "#2ecc71"; feedbackMsg.style.fontSize = "0.8rem"; feedbackMsg.style.marginTop = "5px";
         feedbackMsg.innerText = "✅ " + message; element.parentElement.appendChild(feedbackMsg);
-        setTimeout(() => feedbackMsg.remove(), 4000);
+        setTimeout(() => feedbackMsg.remove(), 5000);
     }
 }
 
@@ -310,4 +409,39 @@ function lancerInitialisation() {
     if (typeof window.initPendingList === "function") window.initPendingList();
     if (typeof window.updateStats === "function") window.updateStats();
 }
+
+/**
+ * 🌟 AJOUT AUTOMATIQUE D'XP DANS FIRESTORE
+ * Attachée à window pour être accessible partout sans problème de portée
+ */
+window.ajouterXpPersonnage = async function(charName, points) {
+    if (!charName || points <= 0) return; // Si 0 XP gagné, on s'arrête
+    
+    const docRef = doc(db, "characters", charName);
+
+    try {
+        const snap = await getDoc(docRef);
+
+        if (snap.exists()) {
+            const currentData = snap.data();
+            const xpActuelle = currentData.xp || 0;
+            const nouveauTotalXp = xpActuelle + points;
+
+            await updateDoc(docRef, {
+                xp: nouveauTotalXp
+            });
+            console.log(`📈 XP mis à jour pour ${charName} : +${points} XP (Nouveau Total: ${nouveauTotalXp})`);
+        } else {
+            await setDoc(docRef, {
+                xp: points,
+                level: 1,
+                nom_bapteme: ""
+            });
+            console.log(`🌱 Premier RP pour ${charName} ! Document créé avec +${points} XP.`);
+        }
+    } catch (error) {
+        console.error("❌ Erreur lors de l'attribution de l'XP :", error);
+    }
+};
+
 if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", lancerInitialisation); } else { lancerInitialisation(); }

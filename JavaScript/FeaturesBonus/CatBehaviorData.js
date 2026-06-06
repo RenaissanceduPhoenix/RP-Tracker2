@@ -18,6 +18,7 @@ export const catBehaviorKnowledge = {
         enroulement_queue: "Enrouler tendrement sa queue autour du corps de l'autre, ou utiliser sa queue pour le guider subtilement et le ramener à soi afin de réduire tout espace entre leurs pelages.",
         queues_entrelacees: "Tresser sa queue avec celle de l'autre lorsqu'ils sont assis côte à côte, créant un nœud physique indissociable.",
         posture_abandon: "Se laisser glisser contre son flanc, abandonner le poids de sa tête dans le creux de son cou, inhalant profondément son odeur.",
+        toilettage_profond: "Adresser une lèche lente et insistante sur le front, la joue ou entre les yeux, souvent pour réconforter après un coup dur.",
         front_contre_babine: "Glisser délicatement son museau sous le menton ou contre les babines de l'autre, un geste d'une immense intimité féline."
     }
 };

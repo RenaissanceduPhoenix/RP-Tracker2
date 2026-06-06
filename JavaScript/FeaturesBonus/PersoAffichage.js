@@ -17,20 +17,67 @@ window.openFullPerso = async function() {
         return;
     }
     
+    // Nettoyage du nom pour créer des IDs HTML valides (ex: "Frasques-du-Lynx")
+    // Nettoyage du nom pour créer des IDs HTML valides (ex: "Frasques-du-Lynx")
+    const idSecurise = charName.replace(/['\s]/g, '-');
+
     area.innerHTML = `
-        <div class="perso-view">
-            <h2 style="border:none">📊 Profil : ${charName}</h2>
-            <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
-                <h3 style="color:#ffcc00; margin-top:0;">Résumé</h3>
-                <p>${data.resume}</p>
+    <div class="perso-view">
+        <h2 id="titre-profil-${idSecurise}" style="border:none">📊 Profil : ${charName}</h2>
+        
+        <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
+            <h3 style="color:#ffcc00; margin-top:0;">Résumé</h3>
+            <p>${data.resume}</p>
+            
+            <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <button class="btn-action" onclick="document.getElementById('zone-bapteme-${idSecurise}').style.display = 'flex'" style="background: #a777e3; color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                    ⚡ Baptiser / Évoluer le personnage
+                </button>
             </div>
-            <div id="hist-container">
-                <h3 style="color:#a777e3">⏳ Derniers RP envoyés</h3>
-                <p>Chargement de l'historique...</p>
+
+            <div id="zone-bapteme-${idSecurise}" style="display: none; gap: 8px; margin-top: 12px; flex-direction: column; background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; border: 1px solid rgba(167, 119, 227, 0.3);">
+                <label style="font-size: 0.8rem; color: #ffcc00; font-weight: 500;">Nouveau nom de baptême (Guerrier, Apprenti...) :</label>
+                <div style="display: flex; gap: 6px; margin-top: 5px;">
+                    <input type="text" id="input-bapteme-${idSecurise}" placeholder="Ex: Nuage de Lynx..." style="flex-grow: 1; background: #0c0c10; border: 1px solid #444; color: white; padding: 6px 10px; font-size: 0.85rem; border-radius: 4px;">
+                    <button onclick="window.validerChangementNom(\`${charName.replace(/`/g, "\\`")}\`)" style="background: #27ae60; color: white; border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                        OK
+                    </button>
+                    <button onclick="document.getElementById('zone-bapteme-${idSecurise}').style.display = 'none'" style="background: #57534e; color: white; border: none; padding: 6px 10px; font-size: 0.85rem; border-radius: 4px; cursor: pointer;">
+                        Annuler
+                    </button>
+                </div>
             </div>
         </div>
-    `;
 
+        <div id="hist-container">
+            <h3 style="color:#a777e3">⏳ Derniers RP envoyés</h3>
+            <p>Chargement de l'historique...</p>
+        </div>
+    </div>
+`;
+
+    // 🌟 RÉCUPÉRATION DU NOM DE BAPTÊME DEPUIS FIRESTORE
+    // On profite du fait qu'on va chercher l'historique ou qu'on est connecté à Firebase pour lire le profil
+    // 🌟 RÉCUPÉRATION DU NOM DE BAPTÊME DEPUIS FIRESTORE
+    try {
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const docRef = doc(db, "characters", charName);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const firestoreData = docSnap.data();
+            // Si le personnage a un nom de baptême enregistré, on met à jour le H2 en haut !
+            if (firestoreData.nom_bapteme) {
+                const titreH2 = document.getElementById(`titre-profil-${idSecurise}`);
+                if (titreH2) {
+                    titreH2.innerHTML = `📊 Profil : ${firestoreData.nom_bapteme} <small style="color:#78716c; font-size:0.9rem; font-weight:normal;">(${charName})</small>`;
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Erreur lors de la récupération du nom de baptême :", err);
+    }
+    
     // Fetch historique Firebase
     try {
         const q = query(
