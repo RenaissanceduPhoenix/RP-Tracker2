@@ -206,14 +206,11 @@ document.addEventListener("DOMContentLoaded", () => {
             outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
 
             // 1. Récupération de la fiche du personnage
-            const charData = charactersDB[currentActiveCharName] || {};
-            const skillsText = charData.competences ? charData.competences.join(", ") : "Guerrier standard";
-            
             let maFicheDetaillee = "Pas de fiche spécifique trouvée. Respecte le tempérament de base.";
             if (fiches) {
                 for (const key in fiches) {
-                    if (currentActiveCharName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(currentActiveCharName.toLowerCase())) {
-                        maFicheDetaillee = (fiches[key].resume || "") + "\n" + (fiches[key].complete || "");
+                    if (currentActiveCharName.toLowerCase().includes(key) || key.toLowerCase().includes(currentActiveCharName.toLowerCase())) {
+                        maFicheDetaillee = fiches[key].resume + "\n" + (fiches[key].complete || "");
                         break;
                     }
                 }
@@ -221,55 +218,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 1.5 Génération du dictionnaire du comportement félin
             let catLorePrompt = "GUIDE COMPORTEMENTAL FÉLIN (À utiliser pour enrichir le langage corporel) :\n";
-            if (typeof catBehaviorKnowledge === "object") {
-                for (const category in catBehaviorKnowledge) {
-                    for (const behavior in catBehaviorKnowledge[category]) {
-                        catLorePrompt += `- ${behavior.replace(/_/g, ' ').toUpperCase()} : ${catBehaviorKnowledge[category][behavior]}\n`;
-                    }
+            for (const category in catBehaviorKnowledge) {
+                for (const behavior in catBehaviorKnowledge[category]) {
+                    catLorePrompt += `- ${behavior.replace(/_/g, ' ').toUpperCase()} : ${catBehaviorKnowledge[category][behavior]}\n`;
                 }
-            } else {
-                catLorePrompt += "Comportement instinctif basé sur les sens, les oreilles, les feulements et les mouvements de queue.\n";
             }
 
-
+            // 2. Construction du System Prompt de base
             // 2. Construction du System Prompt de base (Optimisé pour l'écriture organique/humaine)
-            let systemPrompt = `Tu es un coach d'écriture expert et un joueur d'élite pour un forum RPG écrit basé sur l'univers de La Guerre des Clans. 
-Tu rédiges au nom du personnage suivant : ${currentActiveCharName}.
+            let systemPrompt = `Tu es un coach d'écriture expert pour un forum RPG écrit basé sur l'univers de La Guerre des Clans. 
+Tu écris le personnage : ${charName}.
+Compétences et caractéristiques clés : ${skillsText}
+Connaissances comportementales félines applicables : ${behaviorKnowledge}
 
-Fiche technique du personnage :
-- Compétences et caractéristiques clés : ${skillsText}
-- Profil psychologique & Histoire :
-${maFicheDetaillee}
+⚠️ RÈGLES DE MISE EN FORME MARKDOWN ABSOLUES (CRUCIAL POUR LE PARSEUR DU SITE) :
+1. PARAGRAPHES D'ACTIONS UNIQUES : Tout paragraphe décrivant une action, un mouvement ou une description physique DOIT être entièrement entouré de doubles astérisques. 
+   -> Exemple : **Étincelle de Vie sentit ses griffes s’enfoncer dans la mousse sans même qu’elle en ait conscience.**
 
-⚠️ DIRECTIVES DE SYNTAXE MARKDOWN IMPÉRATIVES (CRUCIAL POUR LE PARSEUR DU FORUM) :
-Tu dois appliquer scrupuleusement la structure suivante, paragraphe par paragraphe. Ne mélange JAMAIS les styles d'astérisques au hasard.
+2. PENSÉES UNIQUES : Tout paragraphe ou phrase isolée représentant une pensée interne DOIT être entièrement entouré d'astérisques simples (italique).
+   -> Exemple : *Trop. C’est trop.*
 
-1. PARAGRAPHES D'ACTIONS (En gras intégral) :
-Tout paragraphe qui décrit un mouvement, un déplacement, un état physique ou une description environnementale DOIT commencer par "**" et se terminer par "**". Rien d'autre dans le paragraphe.
--> Exemple exact : **Étincelle de Vie sentit ses griffes s’enfoncer dans la mousse sans même qu’elle en ait conscience.**
+3. DIALOGUES : Toutes les répliques dites à haute voix DOIVENT impérativement commencer par le caractère ">" suivi obligatoirement d'un espace.
+   -> Exemple : > Oh, par le Clan.
 
-2. PARAGRAPHES DE PENSÉES (En italique intégral) :
-Tout paragraphe (ou phrase isolée sur sa propre ligne) représentant une pensée ou un monologue intérieur secret DOIT commencer par "*" et se terminer par "*".
--> Exemple exact : *Trop. C’est trop.*
+4. REPLIQUES AVEC INCISES (VERBES DE PAROLE OU ACTIONS) : À l'intérieur d'une ligne de dialogue commançant par "> ", chaque incise narrative (action ou verbe de parole coupant le dialogue) DOIT être isolée et entourée de doubles astérisques. Le dialogue reprend normalement juste après sans répéter le ">".
+   -> Exemple exact : > Oh, par le Clan. **Sa voix claqua comme une branche sèche sous une patte.** Vous allez vraiment me faire ça aujourd’hui ?
+   -> Autre exemple : > Écoutez-moi bien. **Elle s’arrêta net, les pattes fléchies.** Ombre, tu arrêtes ton cinéma.
 
-3. DIALOGUES SIMPLES :
-Toutes les répliques prononcées à haute voix doivent obligatoirement commencer par le chevron ">" suivi d'un espace simple au tout début de la ligne.
--> Exemple exact : > Oh, par le Clan.
-
-4. DIALOGUES COMPLEXES AVEC INCISES NARRATIVES (RÈGLE CRUCIALE) :
-Dans une ligne de dialogue commençant par "> ", si le personnage coupe sa parole pour faire une action ou si un verbe de parole est inséré (une incise), cette incise narrative DOIT être isolée en étant entourée de doubles astérisques (**). Le dialogue reprend ensuite normalement après l'incise sans répéter le ">".
--> Exemple exact à calquer : > Oh, par le Clan. **Sa voix claqua comme une branche sèche sous une patte.** Vous allez vraiment me faire ça aujourd’hui ?
--> Autre exemple exact : > Écoutez-moi bien, tous les deux. **Elle s’arrêta net, les pattes avant légèrement fléchies.** Ombre, tu arrêtes ton cinéma.
-
-❌ INTERDICTIONS FORMELLES :
-- Ne laisse jamais d'astérisques non fermés en fin de paragraphe.
-- Ne commence jamais une action par un seul astérisque (*). L'action c'est toujours (**).
-- Ne mets pas le symbole ">" au milieu d'un texte, uniquement tout au début de la ligne de dialogue.\n\n`;
+Interdiction totale de mélanger les astérisques au hasard. Un paragraphe est soit une action complète (**), soit une pensée complète (*), soit un dialogue (>) géré avec ses incises (**). Ne laisse aucune balise ouverte.`;
 
             if (instructions) {
                 systemPrompt += `👉 DIRECTIVE DE SCÉNARIO ET DE STYLE :
 Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cette demande de l'utilisateur : "${instructions}"
-Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage Markdown et l'identité du personnage.\n\n`;
+Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage, la personne grammaticale et l'identité du personnage décrits ci-dessous. Fusionne cette demande avec les règles du RP.\n\n`;
             }
 
             systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) :
@@ -290,7 +271,6 @@ ${catLorePrompt}
 <FICHE_PERSONNAGE>
 ${maFicheDetaillee}
 </FICHE_PERSONNAGE>\n\n`;
-
             // 3. Récupération du contexte général du RP (les répliques du jeu)
             let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
             try {
@@ -307,36 +287,32 @@ ${maFicheDetaillee}
 
             // 4. PRÉPARATION DU TABLEAU DE MESSAGES POUR L'API (DÉBUT DES CONSOLE.LOG)
             console.log("%c=== 🚀 DÉBUT DE LA RECONSTRUCTION DU PROMPT MISTRAL ===", "color: #a777e3; font-weight: bold;");
+            
             let mistralMessages = [
                 { role: "system", content: systemPrompt }
             ];
-            console.log("1. [SYSTEM] Instructions, Fiche personnage, Règles Markdown et Contexte RP injectés.");
+            console.log("1. [SYSTEM] Instructions de base + Fiche personnage + Historique du RP injectés.");
 
             // 5. CHARGEMENT DE L'HISTORIQUE DE CONVERSATION (ai_history)
             console.log("%c=== 🧠 CHARGEMENT DE LA MÉMOIRE DE CONVERSATION (ai_history) ===", "color: #00bcd4; font-weight: bold;");
             try {
                 const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
-                // 🌟 Synchronisation sur l'ordre chronologique des messages de l'IA
                 const qAi = query(aiHistoryRef, orderBy("createdAt", "asc"));
                 const snapAi = await getDocs(qAi);
                 
                 if (snapAi.empty) {
-                    console.log("-> Aucune ancienne consigne en mémoire. Première interaction.");
+                    console.log("-> Aucune ancienne consigne en mémoire. Première interaction avec l'IA pour ce RP.");
                 } else {
                     let compteurMessage = 1;
                     snapAi.forEach(d => {
                         const m = d.data();
-                        // Validation et uniformisation des champs Firebase (text ou content)
-                        const messageContent = m.content || m.text || "";
-                        if (m.role && messageContent) {
-                            mistralMessages.push({
-                                role: m.role, // "user" ou "assistant"
-                                content: messageContent
-                            });
-                            console.log(`   [Mémoire ${compteurMessage}] Rôle: %c${m.role}%c | Contenu : "${messageContent.substring(0, 60)}..."`, 
-                                        m.role === "user" ? "color: #ffcc00;" : "color: #4caf50;", "color: inherit;");
-                            compteurMessage++;
-                        }
+                        mistralMessages.push({
+                            role: m.role, // "user" ou "assistant"
+                            content: m.text
+                        });
+                        console.log(`   [Mémoire ${compteurMessage}] Rôle: %c${m.role}%c | Contenu : "${m.text.substring(0, 60)}..."`, 
+                                    m.role === "user" ? "color: #ffcc00;" : "color: #4caf50;", "color: inherit;");
+                        compteurMessage++;
                     });
                 }
             } catch (e) { 
@@ -352,10 +328,10 @@ ${maFicheDetaillee}
             currentPrompt += `\nTu dois maintenant rédiger la réplique suivante pour mon personnage "${currentActiveCharName}".
 
 ⚠️ RAPPEL DES DIRECTIVES ABSOLUES POUR CETTE RÉPLIQUE :
-- Incarne EXCLUSIVEMENT "${currentActiveCharName}". Reste fidèle à sa fiche technique.
-- Écris IMPÉRATIVEMENT à la 3ème personne du singulier.
-- Respecte scrupuleusement la charte Markdown : Action entière entre (**), Pensée entière entre (*), Dialogue en (> ).
-- Génère UNIQUEMENT le texte du RP, sans commentaires annexes.`;
+- Incane EXCLUSIVEMENT "${currentActiveCharName}". Reste à 100% fidèle au caractère, au ton, à l'âge et à la mentalité décrits dans sa <FICHE_PERSONNAGE> ci-dessus. Ne le fais pas agir hors-caractère.
+- Écris IMPÉRATIVEMENT à la 3ème personne du singulier (Pas de "Je", pas de "Tu").
+- Applique le rythme HUMAIN (brise les phrases, pas de transitions clichées, fin ouverte suspendue).
+- Génère UNIQUEMENT le texte du RP. Aucun commentaire hors-RP.`;
 
             mistralMessages.push({ role: "user", content: currentPrompt });
             
@@ -373,14 +349,10 @@ ${maFicheDetaillee}
                     body: JSON.stringify({ 
                         model: "mistral-large-latest", 
                         messages: mistralMessages, 
-                        temperature: 0.8 
+                        temperature: 0.9 
                     })
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`Code erreur API Mistral : ${response.status}`);
-                }
-
                 const data = await response.json();
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     let textAi = data.choices[0].message.content;
@@ -393,7 +365,6 @@ ${maFicheDetaillee}
                         await addDoc(aiHistoryRef, {
                             role: "user",
                             text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
-                            content: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
                             createdAt: serverTimestamp()
                         });
                         
@@ -401,7 +372,6 @@ ${maFicheDetaillee}
                         await addDoc(aiHistoryRef, {
                             role: "assistant",
                             text: textAi,
-                            content: textAi,
                             createdAt: serverTimestamp()
                         });
                         console.log("💾 Échange sauvegardé avec succès dans l'historique Firebase !");
@@ -416,39 +386,29 @@ ${maFicheDetaillee}
                     const textAiHTML = parseRP(textAi);
 
                     outputDiv.innerHTML = `
-    <style>
-        .co-write-display .rp-dialogue {
-            display: block;
-            padding-left: 15px !important;
-            margin: 6px 0 !important;
-            border-left: 4px solid #ffcc00 !important; /* Ajoute une fine barre violette verticale pour marquer le retrait du dialogue */
-            font-style: normal !important;
-        }
-    </style>
+                        <div style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
+                                <div style="display: flex; gap: 5px;">
+                                    <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
+                                    <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                                </div>
+                            </div>
+                            <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
+                        </div>
 
-    <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
-            <div style="display: flex; gap: 5px;">
-                <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
-                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
-            </div>
-        </div>
-        <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
-    </div>
-
-    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
-        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
-                <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
-                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
-            </div>
-            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
-                ${textAiHTML}
-            </div>
-        </div>
-    </div>
-`;
+                        <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
+                            <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+                                <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
+                                    <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
+                                    <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+                                </div>
+                                <div style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+                                    ${textAiHTML}
+                                </div>
+                            </div>
+                        </div>
+                    `;
 
                     // Lancement des écouteurs pour copier et visionner le texte en grand
                     document.getElementById("btnCopierCoWrite").addEventListener("click", function() {

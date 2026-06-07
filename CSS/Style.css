@@ -669,7 +669,6 @@ select.select-tag-toggle:focus {
 
 /* Optionnel : Amélioration de la zone de réponse IA pour éviter qu'elle pousse tout */
 #coWriteAiOutput {
-    font-style: italic;
     color: #aaa;
     font-size: 1.25rem !important;
     min-height: 250px;
