@@ -159,6 +159,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnSave = document.getElementById("btnSaveContext");
     const btnAi = document.getElementById("btnAiCoWrite");
 
+    // Gestion visuelle de la sélection multiple (Moods)
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("mood-btn")) {
+        if (e.target.classList.contains("active")) {
+            // Désactiver le bouton
+            e.target.style.borderColor = "rgba(167, 119, 227, 0.4)";
+            e.target.style.background = "#2c2c35";
+            e.target.classList.remove("active");
+        } else {
+            // Activer le bouton (Changement de background pour bien le voir)
+            e.target.style.borderColor = "#a777e3";
+            e.target.style.background = "rgba(167, 119, 227, 0.2)";
+            e.target.classList.add("active");
+        }
+    }
+});
+
     if (btnSave) {
         btnSave.addEventListener("click", async () => {
             const textInput = document.getElementById("coWriteContext");
@@ -202,6 +219,34 @@ document.addEventListener("DOMContentLoaded", () => {
             // 🎯 RÉCUPÉRATION DE LA CONSIGNE D'AIGUILLAGE
             const aiInstructionsElement = document.getElementById("coWriteAiInstructions");
             const instructions = aiInstructionsElement ? aiInstructionsElement.value.trim() : "";
+
+            // 🎯 DÉTERMINATION MULTIPLE DES TONS DIRECTEURS (MOODS)
+const activeMoodBtns = document.querySelectorAll(".mood-btn.active");
+let moodInstruction = "";
+
+if (activeMoodBtns.length > 0) {
+    moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (Fusionne harmonieusement ces nuances dans le récit) :\n";
+    
+    // Dictionnaire des nuances comportementales félines
+    const moodDictionary = {
+        drague: "- DRAGUE : Le personnage montre un intérêt teinté de charme ou de malice. Regard insistant mais joueur, pas feutrés, port de tête fier, légers frôlements de queue ou de flancs, voix douce ou ronronnement discret.\n",
+        romance: "- ROMANCE : Ton tendre, complice et intime. Gestes doux, oreilles tournées vers l'autre, queue qui s'enroule subtilement, regard confiant, réduction de la distance physique, contact de truffe ou coup de langue affectueux si la situation s'y prête.\n",
+        combat: "- COMBAT / TENSION : Atmosphère hostile ou défensive. Griffes sorties, oreilles couchées, babines retroussées sur les crocs, feulements sourds, muscles bandés, posture basse prête à bondir. Phrases courtes et saccadées.\n",
+        solennel: "- SOLENNEL : Ton digne, sérieux et protocolaire. Posture droite et immobile, regard fixe et pénétrant, voix claire, posée et mesurée. Les mouvements sont calmes, lents et dénués de panique, rappelant le respect du Code du Clan.\n",
+        mystere: "- MYSTÈRE / SECRET : Ambiance méfiante et énigmatique. Regards en coin, oreilles pivotant au moindre bruit d'ambiance, voix basse, feutrée ou murmurée. Les mouvements sont discrets et calculés pour ne pas attirer l'attention.\n",
+        tristesse: "- TRISTESSE : Ton abattu, lourd ou mélancolique. Regard fuyant ou ancré au sol, oreilles basses, queue traînant dans la poussière, mouvements lents, épaules voûtées. Soupirs ou voix brisée.\n",
+        determination: "- DÉTERMINATION : Regard féroce et focalisé, mâchoire serrée, pas lourds et décidés ancrés dans le sol. Aucune hésitation dans les mouvements physiques, queue droite ou fouettant l'air avec fermeté.\n",
+        bravoure: "- BRAVOURE : Attitude héroïque face au danger. Le personnage bombe le torse, ignore sa propre peur, fait face à la menace sans reculer, poils légèrement hérissés pour paraître plus grand et impressionnant.\n",
+        courage: "- COURAGE : Force d'esprit et résilience. Le personnage surmonte ses doutes, garde une posture stable malgré l'adversité, montre un comportement protecteur envers ses alliés et reste maître de ses mouvements.\n"
+    };
+
+    activeMoodBtns.forEach(btn => {
+        const moodKey = btn.getAttribute("data-mood");
+        if (moodDictionary[moodKey]) {
+            moodInstruction += moodDictionary[moodKey];
+        }
+    });
+}
 
             outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
 
@@ -261,6 +306,8 @@ Dans une ligne de dialogue commençant par "> ", si le personnage coupe sa parol
 -> Exemple exact à calquer : > Oh, par le Clan. **Sa voix claqua comme une branche sèche sous une patte.** Vous allez vraiment me faire ça aujourd’hui ?
 -> Autre exemple exact : > Écoutez-moi bien, tous les deux. **Elle s’arrêta net, les pattes avant légèrement fléchies.** Ombre, tu arrêtes ton cinéma.
 
+
+
 ❌ INTERDICTIONS FORMELLES :
 - Ne laisse jamais d'astérisques non fermés en fin de paragraphe.
 - Ne commence jamais une action par un seul astérisque (*). L'action c'est toujours (**).
@@ -271,6 +318,10 @@ Dans une ligne de dialogue commençant par "> ", si le personnage coupe sa parol
 Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cette demande de l'utilisateur : "${instructions}"
 Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage Markdown et l'identité du personnage.\n\n`;
             }
+
+            if (moodInstruction) {
+    systemPrompt += `${moodInstruction}\n`;
+}
 
             systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) :
 1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
@@ -417,13 +468,31 @@ ${maFicheDetaillee}
 
                     outputDiv.innerHTML = `
     <style>
-        .co-write-display .rp-dialogue {
-            display: block;
-            padding-left: 15px !important;
-            margin: 6px 0 !important;
-            border-left: 4px solid #ffcc00 !important; /* Ajoute une fine barre violette verticale pour marquer le retrait du dialogue */
-            font-style: normal !important;
-        }
+        /* Le bloc entier de dialogue avec la bordure jaune à gauche */
+/* 1. Le bloc entier qui sert de conteneur (gère la ligne jaune verticale) */
+.rp-dialogue {
+    margin: 12px 0;
+    padding-left: 12px;
+    border-left: 3px solid #dfb56c; /* 🌟 LA LIGNE JAUNE UNIQUE AU BORD */
+    line-height: 1.4;
+}
+
+/* 2. Le style spécifique pour le texte des PAROLES */
+.rp-speech {
+    color: #dfb56c; /* 🌟 Le texte des paroles est jaune/doré */
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.15rem;
+    font-style: normal;
+}
+
+/* 3. Le style spécifique pour les INCISES NARRATIVES (les actions entre **) */
+.rp-incise {
+    font-weight: bold; /* 🌟 En gras */
+    color: #ffffff; /* 🌟 En blanc pour couper le jaune */
+    font-family: 'Segoe UI', Tahoma, sans-serif; /* Reprend la police du site */
+    font-size: 1rem;
+    font-style: normal;
+}
     </style>
 
     <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
