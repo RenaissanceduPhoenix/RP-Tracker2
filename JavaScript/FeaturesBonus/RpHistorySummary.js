@@ -1,0 +1,205 @@
+import { db } from '../Firebase.js';
+import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { parseRP } from '../Markdown.js';
+
+/**
+ * ============================================================================
+ * MODALE : SOMMAIRE & VISIONNAGE HISTORIQUE CHRONOLOGIQUE
+ * ============================================================================
+ */
+
+// Stocke l'intégralité des messages récupérés pour le visionnage dynamique
+let cacheMessagesRp = [];
+
+/**
+ * 🚀 Fonction principale : Génère et ouvre le sommaire d'un RP spécifique
+ * @param {string} rpId - L'ID unique du document RP dans Firestore
+ */
+window.ouvrirSommaireHistorique = async function(rpId) {
+    if (!rpId) return;
+
+    // 1. Créer ou récupérer les conteneurs de la modale dans le DOM
+    assurerExistenceModaleSommaire();
+    
+    const modal = document.getElementById("rpSummaryModal");
+    const charactersListDiv = document.getElementById("summaryCharactersList");
+    const timelineTimelineDiv = document.getElementById("summaryTimelineTracks");
+    const readerDiv = document.getElementById("summaryPostReader");
+
+    // Reset des affichages
+    modal.style.display = "flex";
+    charactersListDiv.innerHTML = "<p class='blink' style='color:#a777e3;'>Calcul de l'ordre d'entrée...</p>";
+    timelineTimelineDiv.innerHTML = "<p class='blink' style='color:#a777e3;'>Chargement de la chronologie...</p>";
+    readerDiv.innerHTML = "<p style='color:#777; text-align:center; font-style:italic; margin-top:50px;'>Sélectionnez une réplique ou un personnage dans le sommaire pour lire le RP en grand.</p>";
+
+    try {
+        // 2. Requête Firestore ordonnée du plus VIEUX au plus RÉCENT
+        const messagesRef = collection(db, "rps_pending", rpId, "messages");
+        const q = query(messagesRef, orderBy("createdAt", "asc"));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            charactersListDiv.innerHTML = "<span style='color:#777;'>Aucun joueur.</span>";
+            timelineTimelineDiv.innerHTML = "<span style='color:#777;'>Historique vide.</span>";
+            return;
+        }
+
+        // Remplissage du cache global local
+        cacheMessagesRp = [];
+        let ordrePersonnages = [];
+
+        snap.forEach((docSnap) => {
+            const data = docSnap.data();
+            const msgObj = {
+                id: docSnap.id,
+                sender: data.sender || "Inconnu",
+                text: data.text || "",
+                date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString("fr-FR") : "En cours..."
+            };
+            cacheMessagesRp.push(msgObj);
+
+            // Détection de l'ordre d'ajout des personnages (Unique)
+            if (!ordrePersonnages.includes(msgObj.sender)) {
+                ordrePersonnages.push(msgObj.sender);
+            }
+        });
+
+        // 3. Rendu du Sommaire des Personnages (Ordre d'entrée chronologique)
+        charactersListDiv.innerHTML = "";
+        ordrePersonnages.forEach((nomPerso, index) => {
+            const totalPosts = cacheMessagesRp.filter(m => m.sender === nomPerso).length;
+            charactersListDiv.innerHTML += `
+                <div class="summary-char-badge" onclick="window.filtrerHistoriqueParPerso('${nomPerso}')" style="background: #1c1c24; border: 1px solid #ffcc00; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display:flex; justify-content:space-between; align-items:center; gap: 10px;">
+                    <span style="color:#ffcc00; font-weight:bold;">#${index + 1} ${nomPerso}</span>
+                    <span style="background:#2c2c35; color:#aaa; font-size:0.7rem; padding: 2px 5px; border-radius:3px;">${totalPosts} post(s)</span>
+                </div>
+            `;
+        });
+
+        // 4. Rendu de la frise chronologique (Sommaire cliquable)
+        window.afficherTouteLaTimeline();
+
+    } catch (err) {
+        console.error("Erreur Sommaire :", err);
+        timelineTimelineDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur au chargement du sommaire.</span>";
+    }
+};
+
+/**
+ * 📊 Affiche toutes les répliques dans l'ordre chronologique dans la barre latérale
+ */
+window.afficherTouteLaTimeline = function() {
+    const timelineTimelineDiv = document.getElementById("summaryTimelineTracks");
+    timelineTimelineDiv.innerHTML = "";
+
+    cacheMessagesRp.forEach((msg, index) => {
+        timelineTimelineDiv.innerHTML += `
+            <div class="summary-timeline-item" onclick="window.chargerPostDansLeLecteur('${msg.id}')" style="padding: 10px; background: #161622; border-left: 3px solid #a777e3; border-radius: 0 4px 4px 0; cursor: pointer; margin-bottom: 8px; font-size: 0.85rem; transition: background 0.2s;">
+                <div style="display:flex; justify-content:space-between; color:#a777e3; font-weight:bold; margin-bottom:2px;">
+                    <span>Post n°${index + 1}</span>
+                    <span style="color:#777; font-size:0.75rem;">${msg.date}</span>
+                </div>
+                <div style="color:#fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <strong>${msg.sender}</strong> : ${msg.text.substring(0, 45)}...
+                </div>
+            </div>
+        `;
+    });
+};
+
+/**
+ * 🔍 Filtre la timeline pour n'afficher que les écrits d'un seul personnage en grand
+ */
+window.filtrerHistoriqueParPerso = function(nomPerso) {
+    const readerDiv = document.getElementById("summaryPostReader");
+    const filtrés = cacheMessagesRp.filter(m => m.sender === nomPerso);
+
+    if (filtrés.length === 0) return;
+
+    readerDiv.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,204,0,0.3); padding-bottom:10px; margin-bottom:15px;">
+            <h2 style="margin:0; color:#ffcc00;">📚 Compilation des écrits de [${nomPerso}]</h2>
+            <button onclick="window.afficherTouteLaTimeline();" style="background:#2c2c35; color:#fff; border:1px solid #aaa; padding:4px 8px; font-size:0.8rem; border-radius:3px; cursor:pointer;">Réinitialiser la vue</button>
+        </div>
+    `;
+
+    filtrés.forEach((msg, index) => {
+        const parsedHTML = parseRP(msg.text);
+        readerDiv.innerHTML += `
+            <div style="margin-bottom: 30px; background:#121218; padding:15px; border-radius:6px; border:1px solid #1c1c24;">
+                <div style="color:#a777e3; font-size:0.8rem; font-weight:bold; margin-bottom:8px; border-bottom:1px dotted #2c2c35; padding-bottom:4px;">RÉPLIQUE N°${index + 1} — Ajoutée le ${msg.date}</div>
+                <div style="color:#f0f0f0; font-family:Georgia, serif; font-size:1.25rem; line-height:1.5;">${parsedHTML}</div>
+            </div>
+        `;
+    });
+    readerDiv.scrollTop = 0;
+};
+
+/**
+ * 📖 Charge un post précis de la frise chronologique dans le panneau principal en grand
+ */
+window.chargerPostDansLeLecteur = function(msgId) {
+    const readerDiv = document.getElementById("summaryPostReader");
+    const msg = cacheMessagesRp.find(m => m.id === msgId);
+    
+    if (!msg) return;
+
+    const parsedHTML = parseRP(msg.text);
+    readerDiv.innerHTML = `
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <div style="border-bottom:1px solid rgba(167,119,227,0.3); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="color:#777; font-size:0.8rem;">AUTEUR DE LA RÉPLIQUE</span>
+                    <h2 style="margin:0; color:#ffcc00; font-family:'Segoe UI', sans-serif;">${msg.sender}</h2>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color:#777; font-size:0.8rem;">DATE D'ENREGISTREMENT</span>
+                    <div style="color:#aaa; font-size:0.9rem; font-weight:bold;">${msg.date}</div>
+                </div>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding-right:10px; color:#f0f0f0; font-family:Georgia, serif; font-size:1.35rem; line-height:1.6;">
+                ${parsedHTML}
+            </div>
+        </div>
+    `;
+};
+
+/**
+ * 🧱 Injection automatique de la structure HTML de la modale Sommaire (Sécurité anti-oubli)
+ */
+function assurerExistenceModaleSommaire() {
+    if (document.getElementById("rpSummaryModal")) return;
+
+    const modalHTML = `
+    <div id="rpSummaryModal" style="display: none; position: fixed; z-index: 200000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center; font-family:'Segoe UI', sans-serif;">
+        <div style="background: #0c0c10; border: 1px solid #ffcc00; box-shadow: 0 0 35px rgba(255, 204, 0, 0.15); width: 95vw; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+            
+            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255, 204, 0, 0.2); display: flex; justify-content: space-between; align-items: center; background: #121218;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <h3 style="margin: 0; color: #ffcc00; font-size:1.2rem; display:flex; align-items:center; gap:8px;">📊 Sommaire Tactique & Historique de Guerre</h3>
+                </div>
+                <button onclick="document.getElementById('rpSummaryModal').style.display='none'" style="background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+
+            <div style="flex: 1; display: flex; overflow: hidden; background:#08080c;">
+                
+                <div style="width: 250px; border-right: 1px solid #1c1c24; display: flex; flex-direction: column; background:#0c0c12;">
+                    <div style="padding:10px; font-size:0.75rem; color:#777; font-weight:bold; letter-spacing:1px; border-bottom:1px solid #1c1c24;">ORDRE D'ENTRÉE DES PERSOS</div>
+                    <div id="summaryCharactersList" style="flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <div style="width: 320px; border-right: 1px solid #1c1c24; display: flex; flex-direction: column; background:#0e0e16;">
+                    <div style="padding:10px; font-size:0.75rem; color:#777; font-weight:bold; letter-spacing:1px; border-bottom:1px solid #1c1c24;">CHRONOLOGIE DES POSTS</div>
+                    <div id="summaryTimelineTracks" style="flex:1; overflow-y:auto; padding:10px;"></div>
+                </div>
+
+                <div id="summaryPostReader" style="flex: 1; padding: 25px; overflow-y: auto; background: #06060a;"></div>
+
+            </div>
+        </div>
+    </div>`;
+
+    const range = document.createRange();
+    const fragment = range.createContextualFragment(modalHTML);
+    document.body.appendChild(fragment);
+}

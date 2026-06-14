@@ -82,6 +82,7 @@ Mère : Écorce de Bouleau [Femelle — Vivante — Non jouée — Clan de la Ca
 Père : Larme de l’Aube [Mâle — Vivant — Non joué — Clan de la Canopée] 
 Fratrie : Fierté de l’Ours (@shine.lol), Piqué du Faucon (@stay_4hyunlix143).
 Mentor :Note de Pétrichor (son apprentissage est teinté de respect mutuel mais de confrontations fréquentes).
+Crsuh : Court Pensée
 
 
 ✦ HISTOIRE
