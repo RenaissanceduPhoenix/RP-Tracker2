@@ -1,7 +1,7 @@
 import { charactersDB, fiches } from './CharacterData.js';
 import { catBehaviorKnowledge } from './CatBehaviorData.js';
 import { db } from '../Firebase.js';
-import { collection, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
 
 // ⚠️ CONFIGURATION MISTRAL
@@ -691,53 +691,66 @@ ${maFicheDetaillee}
 
             mistralMessages.push({ role: "user", content: currentPrompt });
 
-            try {
-                const response = await fetch(MISTRAL_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
-                    body: JSON.stringify({ 
-                        model: "mistral-large-latest", 
-                        messages: mistralMessages, 
-                        temperature: 0.8 
-                    })
-                });
-                
-                if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
+           try {
+    const response = await fetch(MISTRAL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
+        body: JSON.stringify({ 
+            model: "mistral-large-latest", 
+            messages: mistralMessages, 
+            temperature: 0.8 
+        })
+    });
+    
+    if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
 
-                const data = await response.json();
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    let textAiRaw = data.choices[0].message.content;
-                    
-                    outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
-                    
-                    let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
+    const data = await response.json();
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+        let textAiRaw = data.choices[0].message.content;
+        
+        outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
+        
+        let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
 
-                    // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (RECONNECTÉ ET SÉCURISÉ)
-                    try {
-                        const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
-                        
-                        await addDoc(aiHistoryRef, {
-                            role: "user",
-                            text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
-                            content: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
-                            createdAt: serverTimestamp()
-                        });
-                        
-                        await addDoc(aiHistoryRef, {
-                            role: "assistant",
-                            text: textAi,
-                            content: textAi,
-                            createdAt: serverTimestamp()
-                        });
-                        console.log("💾 Échange sauvegardé avec succès dans l'historique Firebase !");
-                    } catch (dbErr) { 
-                        console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
-                    }
+        // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (SÉCURISÉ ET UNIQUE)
+        try {
+            // 🔒 SÉCURITÉ : Référence du document parent principal
+            const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
 
-                    if (aiInstructionsElement) aiInstructionsElement.value = "";
+            // Force l'existence réelle du parent pour éviter le bug des "collections fantômes"
+            await setDoc(pendingDocRef, { 
+                lastUpdated: serverTimestamp(),
+                character: window.currentActiveCharName || "Inconnu"
+            }, { merge: true });
 
-                    // 9. RENDU HTML DU MESSAGE
-                    const textAiHTML = parseRP(textAi);
+            // Référence vers la sous-collection ai_history
+            const aiHistoryRef = collection(pendingDocRef, "ai_history");
+            
+            // Sauvegarde UNIQUE du prompt de l'utilisateur
+            await addDoc(aiHistoryRef, {
+                role: "user",
+                text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
+                content: instructions || "[Demande de suite]",
+                createdAt: serverTimestamp()
+            });
+            
+            // Sauvegarde UNIQUE de la réponse de l'assistant IA
+            await addDoc(aiHistoryRef, {
+                role: "assistant",
+                text: textAi,
+                content: textAi,
+                createdAt: serverTimestamp()
+            });
+
+            console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
+        } catch (dbErr) { 
+            console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
+        }
+
+        if (aiInstructionsElement) aiInstructionsElement.value = "";
+
+        // 9. RENDU HTML FINAL DU MESSAGE
+        const textAiHTML = parseRP(textAi);
 
                     outputDiv.innerHTML = `
     <style>
