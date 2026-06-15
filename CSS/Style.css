@@ -759,3 +759,11 @@ select.select-tag-toggle:focus {
     scrollbar-width: thin;
     scrollbar-color: rgba(167, 119, 227, 0.3) rgba(0, 0, 0, 0.1);
 }
+
+/* Style des boutons Mood quand ils sont sélectionnés */
+.mood-btn.active {
+    background: #a777e3 !important;
+    color: #fff !important;
+    border-color: #ffcc00 !important;
+    box-shadow: 0 0 15px #ffcc00 !important;
+}

@@ -24,22 +24,29 @@ window.openCoWriteModal = async function(rpId, charName) {
     const modal = document.getElementById("coWriteModal");
     const title = document.getElementById("coWriteModalTitle");
     const historyLog = document.getElementById("rpHistoryLog");
-    const outputDiv = document.getElementById("coWriteAiOutput");
-    const contextArea = document.getElementById("coWriteContext");
-    const senderSelect = document.getElementById("coWriteSenderName");
-
+    const senderSelect = document.getElementById("coWriteSenderName")
+    
     if (!modal) return;
+    
+    modal.style.display = "flex";
+    title.innerText = `🖋️ Co-Écriture : ${charName}`;
+    if (historyLog) historyLog.innerHTML = "<p style='color:#888; text-align:center;'>Chargement de l'historique du RP...</p>";
 
-    // Gestion de l'affichage plié/déplié des Moods
+    // 🧼 RESET TOTAL ET SÉCURISÉ : Supprime la classe active de TOUS les boutons de moods
+    document.querySelectorAll(".mood-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    // 👁️ GESTION DU PANNEAU PLIABLE
     const btnToggle = document.getElementById("btnToggleMoods");
     const contentMoods = document.getElementById("moodSelectorContent");
+    
     if (btnToggle && contentMoods) {
-        // On s'assure qu'ils repartent masqués à chaque ouverture de modale
-        contentMoods.style.display = "none";
+        contentMoods.style.display = "none"; 
         btnToggle.innerText = "👁️ Afficher les Moods";
         
-        // Supprime l'ancien écouteur s'il y en avait un pour éviter les doublons
-        btnToggle.onclick = function() {
+        btnToggle.onclick = function(e) {
+            e.preventDefault();
             if (contentMoods.style.display === "none") {
                 contentMoods.style.display = "flex";
                 btnToggle.innerText = "🙈 Masquer les Moods";
@@ -49,14 +56,25 @@ window.openCoWriteModal = async function(rpId, charName) {
             }
         };
     }
-    
+
+    // 🎛️ CORRECTION DU BUG ON/OFF : Utilisation d'un écouteur propre qui bascule correctement
+    document.querySelectorAll(".mood-btn").forEach(btn => {
+        btn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Le toggle permet d'ajouter si absent, et d'enlever (annuler le clic) si présent
+            this.classList.toggle("active"); 
+        };
+    });
+
+        const contextArea = document.getElementById("coWriteContext");
+        const outputDiv = document.getElementById("coWriteAiOutput");
+
     contextArea.value = "";
     outputDiv.innerHTML = "Prêt à rédiger avec l'aide de Mistral Large.";
     historyLog.innerHTML = "<span style='color: #aaa;'>Chargement des données du RP...</span>";
     
     modal.style.display = "flex";
-    // 🧹 RESET SÉCURITÉ : Désélectionne tous les moods à chaque fois qu'on ouvre une modale d'écriture
-    document.querySelectorAll(".mood-btn").forEach(btn => btn.classList.remove("active"));
 
     try {
         const pendingDocRef = doc(db, "rps_received", rpId);
@@ -98,17 +116,6 @@ window.openCoWriteModal = async function(rpId, charName) {
 
     await loadOrCreateRpHistory(rpId, charName);
 
-    // 🎛️ GESTION DU CLIC SUR LES MOODS (ON / OFF)
-    document.querySelectorAll(".mood-btn").forEach(btn => {
-        // On nettoie l'ancien écouteur pour éviter les déclenchements multiples
-        btn.onclick = null; 
-        
-        btn.onclick = function(e) {
-            e.preventDefault();
-            // Bascule la classe .active (si elle y est, on l'enlève, sinon on l'ajoute)
-            this.classList.toggle("active");
-        };
-    });
 };
 
 /**
@@ -219,7 +226,7 @@ Exemple :
                     },
                     { role: "user", content: texteBrutIA }
                 ],
-                temperature: 0.1
+                temperature: 0.2
             })
         });
 
