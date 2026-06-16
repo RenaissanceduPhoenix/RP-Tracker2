@@ -1,7 +1,7 @@
 import { charactersDB, fiches } from './CharacterData.js';
 import { catBehaviorKnowledge } from './CatBehaviorData.js';
 import { db } from '../Firebase.js';
-import { collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { limit, collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
 
 // ⚠️ CONFIGURATION MISTRAL
@@ -1154,7 +1154,7 @@ window.relireLaScene = async function() {
     try {
         // 1. Récupérer les 5 derniers messages de la sous-collection
         const messagesRef = collection(db, "rps_pending", rpId, "messages");
-        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(5));
+        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(25));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
