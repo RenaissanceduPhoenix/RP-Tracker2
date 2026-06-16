@@ -1136,3 +1136,64 @@ ${maFicheDetaillee}
         outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur lors du Reroll.</span>";
     }
 };
+
+// 🎬 FONCTION DE RÉSUMÉ DE SCÈNE TACTIQUE
+window.relireLaScene = async function() {
+    const outputDiv = document.getElementById("coWriteAiOutput");
+    const rpId = window.currentActiveRpId; // On récupère le RP en cours
+
+    if (!rpId) {
+        alert("❌ Aucun RP actif sélectionné pour analyser la scène !");
+        return;
+    }
+
+    if (outputDiv) {
+        outputDiv.innerHTML = "⏳ *L'IA examine les dernières répliques pour reconstituer la scène...*";
+    }
+
+    try {
+        // 1. Récupérer les 5 derniers messages de la sous-collection
+        const messagesRef = collection(db, "rps_pending", rpId, "messages");
+        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(5));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            if (outputDiv) outputDiv.innerHTML = "📭 Aucun historique de message trouvé pour ce RP.";
+            return;
+        }
+
+        // 2. On remet les messages dans le bon ordre chronologique
+        let derniersMessages = [];
+        querySnapshot.forEach(docSnap => {
+            derniersMessages.unshift(docSnap.data());
+        });
+
+        // 3. On construit le prompt textuel pour l'IA
+        let contexteBrut = derniersMessages.map(m => `[${m.sender || "Inconnu"}]: ${m.text || m.content}`).join("\n\n");
+
+        const promptSysteme = `Tu es un assistant de jeu de rôle textuel. Ta tâche est de faire un résumé court, percutant et ultra-précis de la scène en cours basé sur les 5 dernières répliques fournies. 
+        Tu dois obligatoirement lister :
+        - Les personnages présents (qui est là ?).
+        - Ce qu'ils font ou l'action cruciale qui vient de se passer (faits récents).
+        - L'état psychologique ou l'ambiance immédiate (tension, peur, calme).
+        Sois concis (maximum 4-5 phrases), va droit au but, pas de blabla d'introduction.`;
+
+        // 4. Appel à ton API de génération IA (Adapte cette ligne avec ta fonction d'appel IA existante !)
+        // Exemple type si tu as une fonction appelée appelerMonIA(systemPrompt, userText) :
+        const resumeIa = await appelerMonIA(promptSysteme, contexteBrut); 
+
+        // 5. Affichage du résultat stylisé dans ton interface
+        if (outputDiv) {
+            outputDiv.innerHTML = `
+                <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
+                    <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
+                    ${resumeIa.replace(/\n/g, "<br>")}
+                </div>
+            `;
+        }
+
+    } catch (err) {
+        console.error("Erreur lors de la relecture de la scène :", err);
+        if (outputDiv) outputDiv.innerHTML = "❌ Erreur lors de la génération du résumé de scène.";
+    }
+};
