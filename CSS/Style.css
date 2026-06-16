@@ -276,6 +276,26 @@ button:hover {
     line-height: 1.4;
 }
 
+.rp-dialogue {
+            margin: 12px 0;
+            padding-left: 12px;
+            border-left: 3px solid #dfb56c;
+            line-height: 1.4;
+        }
+        .rp-speech {
+            color: #dfb56c;
+            font-family: Georgia, serif;
+            font-size: 1.4rem !important;
+            font-style: normal;
+        }
+        .rp-incise {
+            font-weight: bold;
+            color: #ffffff;
+            font-family: Georgia, serif;
+            font-size: 1.4rem !important;
+            font-style: normal;
+        }
+
 /* Base des badges d'urgence / catégories (Pills haut de gamme) */
 .urgency-badge {
     font-size: 9px;
