@@ -1192,7 +1192,7 @@ window.relireLaScene = async function() {
                     { role: "system", content: promptSysteme },
                     { role: "user", content: contexteBrut }
                 ],
-                temperature: 0.6 // Un peu plus bas pour être très factuel sur le résumé
+                temperature: 0.5 // Un peu plus bas pour être très factuel sur le résumé
             })
         });
 
@@ -1204,10 +1204,11 @@ window.relireLaScene = async function() {
 
             // 5. Affichage du résultat stylisé dans ton interface
             if (outputDiv) {
+                const reponsePropre = parseRP(resumeIa)
                 outputDiv.innerHTML = `
                     <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
                         <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
-                        ${resumeIa.replace(/\n/g, "<br>")}
+                        ${reponsePropre.remp(/\n/g, "<br>")}
                     </div>
                 `;
             }
