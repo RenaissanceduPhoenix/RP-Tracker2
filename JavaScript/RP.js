@@ -123,8 +123,12 @@ window.addPending = async function() {
 
     const rpExistant = rpsActifsCache.find(rp => rp.title.toLowerCase() === title.toLowerCase());
 
+    // 🎯 ID UNIQUE SYNCHRONISÉ : On récupère l'ID généré par l'IA ou on en crée un s'il n'existe pas
+    const uniqueIdDuPost = window.lastGeneratedMsgId || "msg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+
     try {
         if (rpExistant) {
+            // Définition des données de mise à jour de base
             const updateData = {
                 character: character,
                 participants: participantsArray,
@@ -133,13 +137,21 @@ window.addPending = async function() {
                 updatedAt: serverTimestamp()
             };
             
+            // Si du contenu textuel est envoyé, on l'ajoute
             if (content !== "") {
                 updateData.content = content;
             }
 
+            // --- NOTE TECHNIQUE ---
+            // Si tes messages internes sont stockés dans un champ spécial ou un tableau, 
+            // c'est ici qu'on inclurait { id: uniqueIdDuPost }. 
+            // Pour l'instant, on met à jour le document global de rps_received.
+            // ----------------------
+
             await updateDoc(doc(db, "rps_received", rpExistant.id), updateData);
             showFeedback(contentInput, false, "Le RP est de retour en attente !");
         } else {
+            // Pour un NOUVEAU RP complet, on crée le document principal avec les infos
             await addDoc(collection(db, "rps_received"), {
                 title: title,
                 character: character,
@@ -154,6 +166,10 @@ window.addPending = async function() {
             showFeedback(contentInput, false, "Nouveau RP ajouté aux pendings !");
         }
 
+        // 🧼 NETTOYAGE : Une fois l'action effectuée, on réinitialise l'ID pour le prochain tour
+        window.lastGeneratedMsgId = null;
+
+        // Reset du formulaire
         titleInput.value = "";
         charInput.value = "";
         if(partInput) partInput.value = "";

@@ -1,6 +1,6 @@
 import { db } from '../Firebase.js';
 import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { parseRP } from '../Markdown.js';
+import { parseRP } from '../Markdown.js'; // Ajuste le chemin selon ton dossier si besoin
 import { nettoyerSyntaxeDialogue } from './AICoachs.js';
 
 /**
@@ -141,31 +141,77 @@ window.filtrerHistoriqueParPerso = function(nomPerso) {
  */
 window.chargerPostDansLeLecteur = async function(msgId) {
     const readerDiv = document.getElementById("summaryPostReader");
-    const msg = cacheMessagesRp.find(m => m.id === msgId);
-    // 1. On récupère le texte brut enregistré à l'époque
-const texteBrut = msg && (msg.text || msg.content) ? (msg.text || msg.content) : "";
+    if (!readerDiv) return;
+    
+    // 1. On cherche la position (l'index) et le message de base dans ton cache rps_received
+    // (cacheMessagesRp contient la liste chronologique des posts affichés au centre)
+    const indexPost = cacheMessagesRp.findIndex(m => m.id === msgId);
+    const msgBase = cacheMessagesRp[indexPost];
+    
+    if (!msgBase) {
+        console.warn("❌ Impossible de trouver le message dans le cache pour l'ID :", msgId);
+        return;
+    }
 
-// 2. On applique la fonction magique de l'IA importée pour remettre les ** au bon endroit !
-const texteNettoye = await nettoyerSyntaxeDialogue(texteBrut);
+    // Texte et auteur par défaut (repli automatique si rps_pending n'a rien)
+    let texteAUtiliser = msgBase.text || msgBase.content || "";
+    let nomAuteur = msgBase.sender || "Inconnu";
 
-// 3. On passe le texte propre dans le parseur Markdown pour faire les bulles HTML
-const texteFormateHTML = parseRP(texteNettoye);
+    try {
+        if (window.currentActiveRpId) {
+            // 2. On récupère TOUS les messages du rps_pending triés par ordre d'envoi
+            const pendingMessagesRef = collection(db, "rps_pending", window.currentActiveRpId, "messages");
+            const q = query(pendingMessagesRef, orderBy("createdAt", "asc"));
+            const querySnapshot = await getDocs(q);
 
-// 4. On injecte le tout dans l'affichage
+            if (!querySnapshot.empty) {
+                let listePending = [];
+                querySnapshot.forEach(docSnap => {
+                    // On extrait les données et on garde aussi l'ID réel du document dans Firebase
+                    listePending.push({ idFirebase: docSnap.id, ...docSnap.data() });
+                });
+
+                // 3. STRATÉGIE DE RECHERCHE MIXTE (Futur VS Ancien)
+                // Étape A : On cherche d'abord par l'ID unique (nouveau système synchronisé)
+                let msgPendingTrouve = listePending.find(m => m.idFirebase === msgId || m.id === msgId);
+
+                // Étape B : Si pas trouvé (pour tes anciens RPs sans ID unique), on s'aligne sur la même position !
+                if (!msgPendingTrouve && indexPost !== -1 && listePending[indexPost]) {
+                    msgPendingTrouve = listePending[indexPost];
+                    console.log(`🔄 [Mode Secours Anciens RPs] Alignement fait par l'index de position : ${indexPost}`);
+                }
+
+                // Si on a mis la main sur la version propre de rps_pending (corrigée par l'IA)
+                if (msgPendingTrouve) {
+                    texteAUtiliser = msgPendingTrouve.text || msgPendingTrouve.content || texteAUtiliser;
+                    nomAuteur = msgPendingTrouve.sender || msgPendingTrouve.character || nomAuteur;
+                    console.log("✨ [Succès] Version nettoyée de rps_pending chargée dans le lecteur !");
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("⚠️ Erreur lors du chargement depuis rps_pending, affichage de la version brute :", err);
+    }
+
+    // 4. On envoie le texte propre dans le parseur Markdown (pour activer tes styles de dialogue et bulles)
+    const parsedHTML = parseRP(texteAUtiliser);
+
+    // 5. Rendu et injection HTML dans ton panneau de droite (Lecteur)
+    // IMPORTANT : J'utilise la classe "rp-post-content" pour que tes CSS de bulles s'activent !
     readerDiv.innerHTML = `
         <div style="display:flex; flex-direction:column; height:100%;">
             <div style="border-bottom:1px solid rgba(167,119,227,0.3); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <span style="color:#777; font-size:0.8rem;">AUTEUR DE LA RÉPLIQUE</span>
-                    <h2 style="margin:0; color:#ffcc00; font-family:'Segoe UI', sans-serif;">${msg.sender}</h2>
+                    <h2 style="margin:0; color:#ffcc00; font-family:'Segoe UI', sans-serif; font-size:1.3rem;">${nomAuteur}</h2>
                 </div>
                 <div style="text-align:right;">
-                    <span style="color:#777; font-size:0.8rem;">DATE D'ENREGISTREMENT</span>
-                    <div style="color:#aaa; font-size:0.9rem; font-weight:bold;">${msg.date}</div>
+                    <span style="color:#777; font-size:0.8rem;">DATE DU POST</span>
+                    <div style="color:#aaa; font-size:0.9rem; font-weight:bold;">${msgBase.date || "Inconnue"}</div>
                 </div>
             </div>
-            <div style="flex:1; overflow-y:auto; padding-right:10px; color:#f0f0f0; font-family:Georgia, serif; font-size:1.35rem; line-height:1.6;">
-                ${texteFormateHTML}
+            <div class="rp-post-content" style="flex:1; overflow-y:auto; padding-right:10px; color:#f0f0f0; font-family:Georgia, serif; font-size:1.35rem; line-height:1.6;">
+                ${parsedHTML}
             </div>
         </div>
     `;

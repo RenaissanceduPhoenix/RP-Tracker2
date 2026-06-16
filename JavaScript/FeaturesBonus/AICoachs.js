@@ -401,14 +401,52 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             try {
-                const auteurDuMessage = senderSelect.value; 
+                // 🎯 1. GÉNÉRATION DE L'ID UNIQUE À L'AVANCE (CÔTÉ CLIENT)
+// On crée une référence de document vide dans la sous-collection "messages" pour obtenir un ID unique Firebase
+const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
+const nouveauMessageRef = doc(collection(pendingDocRef, "messages"));
+const uniqueMsgId = nouveauMessageRef.id; // Ex: "K8zYt93m..."
 
-                const messagesRef = collection(db, "rps_pending", window.currentActiveRpId, "messages");
-                await addDoc(messagesRef, {
-                    sender: auteurDuMessage, 
-                    text: textInput.value.trim(),
-                    createdAt: serverTimestamp()
-                });
+// On met cet ID dans une variable globale pour que ton script de publication finale puisse le récupérer
+window.lastGeneratedMsgId = uniqueMsgId;
+
+// 2. ENREGISTREMENT SÉCURISÉ ET UNIQUE DANS RPS_PENDING
+try {
+    // Force l'existence réelle du document parent rps_pending
+    await setDoc(pendingDocRef, { 
+        lastUpdated: serverTimestamp(),
+        character: window.currentActiveCharName || "Inconnu"
+    }, { merge: true });
+
+    // Sauvegarde du prompt utilisateur dans "ai_history"
+    await addDoc(collection(pendingDocRef, "ai_history"), {
+        role: "user",
+        text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
+        content: instructions || "[Demande de suite]",
+        createdAt: serverTimestamp()
+    });
+    
+    // Sauvegarde de la réponse IA dans "ai_history"
+    await addDoc(collection(pendingDocRef, "ai_history"), {
+        role: "assistant",
+        text: textAi,
+        content: textAi,
+        createdAt: serverTimestamp()
+    });
+
+    // 🎯 SAUVEGARDE DU TEXTE NETTOYÉ DANS "messages" EN FORÇANT NOTRE ID UNIQUE !
+    await setDoc(nouveauMessageRef, {
+        id: uniqueMsgId, // On écrit l'ID à l'intérieur du document
+        sender: window.currentActiveCharName || "Inconnu",
+        text: textAi,     // C'est le texte propre reformaté par l'IA
+        content: textAi,
+        createdAt: serverTimestamp()
+    });
+
+    console.log(`💾 Version IA enregistrée dans rps_pending sous l'ID unique : ${uniqueMsgId}`);
+} catch (dbErr) { 
+    console.error("Erreur d'écriture dans l'historique Firestore:", dbErr); 
+}
                 
                 if (auteurDuMessage.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
                     if (typeof window.clearAiHistory === "function") {
