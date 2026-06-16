@@ -1138,6 +1138,7 @@ ${maFicheDetaillee}
 };
 
 // 🎬 FONCTION DE RÉSUMÉ DE SCÈNE TACTIQUE
+// 🎬 FONCTION DE RÉSUMÉ DE SCÈNE TACTIQUE
 window.relireLaScene = async function() {
     const outputDiv = document.getElementById("coWriteAiOutput");
     const rpId = window.currentActiveRpId; // On récupère le RP en cours
@@ -1152,9 +1153,9 @@ window.relireLaScene = async function() {
     }
 
     try {
-        // 1. Récupérer les 5 derniers messages de la sous-collection
+        // 1. Récupérer les derniers messages de la sous-collection (on limite à 5 pour le résumé serré)
         const messagesRef = collection(db, "rps_pending", rpId, "messages");
-        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(25));
+        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(5));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
@@ -1171,25 +1172,47 @@ window.relireLaScene = async function() {
         // 3. On construit le prompt textuel pour l'IA
         let contexteBrut = derniersMessages.map(m => `[${m.sender || "Inconnu"}]: ${m.text || m.content}`).join("\n\n");
 
-        const promptSysteme = `Tu es un assistant de jeu de rôle textuel. Ta tâche est de faire un résumé court, percutant et ultra-précis de la scène en cours basé sur les 5 dernières répliques fournies. 
-        Tu dois obligatoirement lister :
+        const promptSysteme = `Tu es un assistant de jeu de rôle textuel expert. Ta tâche est de faire un résumé court, percutant et ultra-précis de la scène en cours basé sur les dernières répliques fournies.
+        Tu dois obligatoirement lister de façon claire :
         - Les personnages présents (qui est là ?).
         - Ce qu'ils font ou l'action cruciale qui vient de se passer (faits récents).
-        - L'état psychologique ou l'ambiance immédiate (tension, peur, calme).
-        Sois concis (maximum 4-5 phrases), va droit au but, pas de blabla d'introduction.`;
+        - L'état psychologique ou l'ambiance immédiate (tension, peur, calme, secret).
+        Sois concis (maximum 4-5 phrases), va droit au but, pas de formules de politesse ni d'introduction.`;
 
-        // 4. Appel à ton API de génération IA (Adapte cette ligne avec ta fonction d'appel IA existante !)
-        // Exemple type si tu as une fonction appelée appelerMonIA(systemPrompt, userText) :
-        const resumeIa = await appelerMonIA(promptSysteme, contexteBrut); 
+        // 4. 🎯 APPEL DIRECT À L'API MISTRAL (Plus de ReferenceError !)
+        const response = await fetch(MISTRAL_URL, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": `Bearer ${MISTRAL_API_KEY}` 
+            },
+            body: JSON.stringify({ 
+                model: "mistral-large-latest", 
+                messages: [
+                    { role: "system", content: promptSysteme },
+                    { role: "user", content: contexteBrut }
+                ],
+                temperature: 0.6 // Un peu plus bas pour être très factuel sur le résumé
+            })
+        });
 
-        // 5. Affichage du résultat stylisé dans ton interface
-        if (outputDiv) {
-            outputDiv.innerHTML = `
-                <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
-                    <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
-                    ${resumeIa.replace(/\n/g, "<br>")}
-                </div>
-            `;
+        if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
+        const data = await response.json();
+        
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            const resumeIa = data.choices[0].message.content;
+
+            // 5. Affichage du résultat stylisé dans ton interface
+            if (outputDiv) {
+                outputDiv.innerHTML = `
+                    <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
+                        <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
+                        ${resumeIa.replace(/\n/g, "<br>")}
+                    </div>
+                `;
+            }
+        } else {
+            throw new Error("Réponse Mistral vide ou mal formatée");
         }
 
     } catch (err) {
