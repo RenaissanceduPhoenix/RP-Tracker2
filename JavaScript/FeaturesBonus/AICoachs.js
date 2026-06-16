@@ -279,7 +279,7 @@ Exemple :
  * 🛡️ 2. ROBOT NETTOYEUR SÉMANTIQUE (VERSION HYBRIDE ULTIME)
  * Actions & Dialogues = Firestore Auto-apprenant | Pensées = Dico Code Fixe Ultra-Solide
  */
-async function nettoyerSyntaxeDialogue(texteBrutIA) {
+export async function nettoyerSyntaxeDialogue(texteBrutIA) {
     if (!texteBrutIA) return "";
 
     // 1. Récupération des bases de données dynamiques (Actions & Dialogues) depuis Firestore

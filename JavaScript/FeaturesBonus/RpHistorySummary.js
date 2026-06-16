@@ -1,6 +1,7 @@
 import { db } from '../Firebase.js';
 import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js';
+import { nettoyerSyntaxeDialogue } from './AICoachs.js';
 
 /**
  * ============================================================================
@@ -138,13 +139,19 @@ window.filtrerHistoriqueParPerso = function(nomPerso) {
 /**
  * 📖 Charge un post précis de la frise chronologique dans le panneau principal en grand
  */
-window.chargerPostDansLeLecteur = function(msgId) {
+window.chargerPostDansLeLecteur = async function(msgId) {
     const readerDiv = document.getElementById("summaryPostReader");
     const msg = cacheMessagesRp.find(m => m.id === msgId);
-    
-    if (!msg) return;
+    // 1. On récupère le texte brut enregistré à l'époque
+const texteBrut = msg && (msg.text || msg.content) ? (msg.text || msg.content) : "";
 
-    const parsedHTML = parseRP(msg.text);
+// 2. On applique la fonction magique de l'IA importée pour remettre les ** au bon endroit !
+const texteNettoye = await nettoyerSyntaxeDialogue(texteBrut);
+
+// 3. On passe le texte propre dans le parseur Markdown pour faire les bulles HTML
+const texteFormateHTML = parseRP(texteNettoye);
+
+// 4. On injecte le tout dans l'affichage
     readerDiv.innerHTML = `
         <div style="display:flex; flex-direction:column; height:100%;">
             <div style="border-bottom:1px solid rgba(167,119,227,0.3); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -158,7 +165,7 @@ window.chargerPostDansLeLecteur = function(msgId) {
                 </div>
             </div>
             <div style="flex:1; overflow-y:auto; padding-right:10px; color:#f0f0f0; font-family:Georgia, serif; font-size:1.35rem; line-height:1.6;">
-                ${parsedHTML}
+                ${texteFormateHTML}
             </div>
         </div>
     `;
