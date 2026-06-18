@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
             }
 
-            alert(`💾 Réplique de ${auteurDuMessage} enregistrée avec succès dans l'historique !`);
+            
 
         } catch (err) { 
             console.error("Erreur lors de l'enregistrement de la réplique externe :", err); 
@@ -831,11 +831,6 @@ ${maFicheDetaillee}
     </div>
 `;
 
-                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
-                        navigator.clipboard.writeText(textAi);
-                        this.innerText = "✓ Copié !";
-                    });
-
                     document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
                         const exclusiveModal = document.getElementById("coWriteExclusiveModal");
                         if (exclusiveModal) exclusiveModal.style.display = "flex";
@@ -844,6 +839,11 @@ ${maFicheDetaillee}
                     document.getElementById("btnCloseExclusive").addEventListener("click", function() {
                         const exclusiveModal = document.getElementById("coWriteExclusiveModal");
                         if (exclusiveModal) exclusiveModal.style.display = "none";
+                    });
+
+                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
+                        navigator.clipboard.writeText(textAi);
+                        this.innerText = "✓ Copié !";
                     });
 
                     document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
@@ -1168,7 +1168,9 @@ window.relireLaScene = async function() {
         const promptSysteme = `Tu es un assistant de jeu de rôle textuel expert. Ta tâche est de faire un résumé court, percutant et ultra-précis de la scène en cours basé sur les dernières répliques fournies.
         Tu dois obligatoirement lister de façon claire :
         - Les personnages présents (qui est là ?).
-        - Ce qu'ils font ou l'action cruciale qui vient de se passer (faits récents).
+        - Ce qu'ils font ou l'action cruciale qui vient de se passer.
+        - Les informations obtenus sur les diffèrent personnages et les plans engagés (exactions, opération coup de poing, ect...).
+        - Le placemnt des personnage vis à vis de la situation et des politiques menées par les cheffes.
         - L'état psychologique ou l'ambiance immédiate (tension, peur, calme, secret).
         Sois concis (maximum 45 phrases), va droit au but, pas de formules de politesse ni d'introduction.`;
 
@@ -1210,7 +1212,8 @@ window.relireLaScene = async function() {
             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
                 <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Résumé</h3>
                 <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
-            </div>
+                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                </div>
             <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
                 ${reponsePropre}
             </div>
@@ -1221,6 +1224,16 @@ window.relireLaScene = async function() {
                     document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
                         const exclusiveModal = document.getElementById("coWriteExclusiveModal");
                         if (exclusiveModal) exclusiveModal.style.display = "flex";
+                    });
+
+                     document.getElementById("btnCloseExclusive").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "none";
+                    });
+
+                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
+                        navigator.clipboard.writeText(textAi);
+                        this.innerText = "✓ Copié !";
                     });
 
             }
