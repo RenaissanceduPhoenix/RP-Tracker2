@@ -1199,11 +1199,12 @@ window.relireLaScene = async function() {
 
             // 5. Affichage du résultat stylisé dans ton interface
             if (outputDiv) {
-                const reponsePropre = parseRP(resumeIa)
+                let reponsePropre = await parseRP(resumeIa)
                 outputDiv.innerHTML = `
                     <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
                         <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
                         <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
+                        <button id="btnCopierResume" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
                         ${reponsePropre}
                     </div>
 
@@ -1212,7 +1213,7 @@ window.relireLaScene = async function() {
             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
                 <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Résumé</h3>
                 <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
-                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                
                 </div>
             <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
                 ${reponsePropre}
@@ -1231,8 +1232,8 @@ window.relireLaScene = async function() {
                         if (exclusiveModal) exclusiveModal.style.display = "none";
                     });
 
-                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
-                        navigator.clipboard.writeText(textAi);
+                    document.getElementById("btnCopierResume").addEventListener("click", function() {
+                        navigator.clipboard.writeText(resumeIa);
                         this.innerText = "✓ Copié !";
                     });
 
