@@ -391,74 +391,67 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (btnSave) {
-        btnSave.addEventListener("click", async () => {
-            const textInput = document.getElementById("coWriteContext");
-            const senderSelect = document.getElementById("coWriteSenderName");
-            
-            if (!textInput || !textInput.value.trim() || !senderSelect || !senderSelect.value || !window.currentActiveRpId) {
-                alert("Erreur : Remplis correctement le texte !");
-                return;
+    btnSave.addEventListener("click", async () => {
+        const textInput = document.getElementById("coWriteContext");
+        const senderSelect = document.getElementById("coWriteSenderName");
+        
+        // 1. Récupération des valeurs
+        const texteSaisi = textInput ? textInput.value.trim() : "";
+        const auteurDuMessage = senderSelect ? senderSelect.value : "";
+
+        // 2. Sécurité : On vérifie qu'on a bien un texte, un auteur et un RP actif
+        if (!texteSaisi || !auteurDuMessage || !window.currentActiveRpId) {
+            alert("Erreur : Sélectionne l'auteur du message et colle son texte !");
+            return;
+        }
+
+        try {
+            // 🎯 3. GÉNÉRATION DE L'ID UNIQUE Firebase pour ce message
+            const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId);
+            const nouveauMessageRef = doc(collection(pendingDocRef, "messages"));
+            const uniqueMsgId = nouveauMessageRef.id;
+
+            window.lastGeneratedMsgId = uniqueMsgId;
+
+            // 4. On s'assure que le document parent existe (sans écraser le reste grâce à merge: true)
+            await setDoc(pendingDocRef, { 
+                lastUpdated: serverTimestamp()
+            }, { merge: true });
+
+            // 🎯 5. SAUVEGARDE DE LA RÉPLIQUE DANS L'HISTORIQUE 'messages'
+            await setDoc(nouveauMessageRef, {
+                id: uniqueMsgId,         // ID unique du message
+                sender: auteurDuMessage, // Le nom du personnage sélectionné (ex: l'autre joueur)
+                text: texteSaisi,        // Son texte brut
+                content: texteSaisi,     // Doublon de sécurité pour ton parseur
+                createdAt: serverTimestamp() // Horodatage précis pour l'ordre chronologique
+            });
+
+            console.log(`💾 Réplique de [${auteurDuMessage}] ajoutée à l'historique du RP. ID : ${uniqueMsgId}`);
+
+            // 6. Si l'auteur du message enregistré est TON personnage, on nettoie l'historique de l'IA
+            if (window.currentActiveCharName && auteurDuMessage.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
+                if (typeof window.clearAiHistory === "function") {
+                    await window.clearAiHistory(window.currentActiveRpId);
+                }
             }
 
-            try {
-                // 🎯 1. GÉNÉRATION DE L'ID UNIQUE À L'AVANCE (CÔTÉ CLIENT)
-// On crée une référence de document vide dans la sous-collection "messages" pour obtenir un ID unique Firebase
-const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
-const nouveauMessageRef = doc(collection(pendingDocRef, "messages"));
-const uniqueMsgId = nouveauMessageRef.id; // Ex: "K8zYt93m..."
-
-// On met cet ID dans une variable globale pour que ton script de publication finale puisse le récupérer
-window.lastGeneratedMsgId = uniqueMsgId;
-
-// 2. ENREGISTREMENT SÉCURISÉ ET UNIQUE DANS RPS_PENDING
-try {
-    // Force l'existence réelle du document parent rps_pending
-    await setDoc(pendingDocRef, { 
-        lastUpdated: serverTimestamp(),
-        character: window.currentActiveCharName || "Inconnu"
-    }, { merge: true });
-
-    // Sauvegarde du prompt utilisateur dans "ai_history"
-    await addDoc(collection(pendingDocRef, "ai_history"), {
-        role: "user",
-        text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
-        content: instructions || "[Demande de suite]",
-        createdAt: serverTimestamp()
-    });
-    
-    // Sauvegarde de la réponse IA dans "ai_history"
-    await addDoc(collection(pendingDocRef, "ai_history"), {
-        role: "assistant",
-        text: textAi,
-        content: textAi,
-        createdAt: serverTimestamp()
-    });
-
-    // 🎯 SAUVEGARDE DU TEXTE NETTOYÉ DANS "messages" EN FORÇANT NOTRE ID UNIQUE !
-    await setDoc(nouveauMessageRef, {
-        id: uniqueMsgId, // On écrit l'ID à l'intérieur du document
-        sender: window.currentActiveCharName || "Inconnu",
-        text: textAi,     // C'est le texte propre reformaté par l'IA
-        content: textAi,
-        createdAt: serverTimestamp()
-    });
-
-    console.log(`💾 Version IA enregistrée dans rps_pending sous l'ID unique : ${uniqueMsgId}`);
-} catch (dbErr) { 
-    console.error("Erreur d'écriture dans l'historique Firestore:", dbErr); 
-}
-                
-                if (auteurDuMessage.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
-                    if (typeof window.clearAiHistory === "function") {
-                        await window.clearAiHistory(window.currentActiveRpId);
-                    }
-                }
-
-                textInput.value = "";
+            // 7. Nettoyage de l'interface et mise à jour visuelle
+            textInput.value = "";
+            
+            // On recharge le composant visuel de l'historique pour voir la réplique apparaître
+            if (typeof loadOrCreateRpHistory === "function") {
                 await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
-            } catch (err) { console.error(err); }
-        });
-    }
+            }
+
+            alert(`💾 Réplique de ${auteurDuMessage} enregistrée avec succès dans l'historique !`);
+
+        } catch (err) { 
+            console.error("Erreur lors de l'enregistrement de la réplique externe :", err); 
+            alert("❌ Erreur lors de l'enregistrement dans Firestore.");
+        }
+    });
+}
 
     if (btnAi) {
         btnAi.addEventListener("click", async () => {
@@ -1149,13 +1142,13 @@ window.relireLaScene = async function() {
     }
 
     if (outputDiv) {
-        outputDiv.innerHTML = "⏳ *L'IA examine les dernières répliques pour reconstituer la scène...*";
+        outputDiv.innerHTML = "⏳ L'IA examine les dernières répliques pour reconstituer la scène...";
     }
 
     try {
         // 1. Récupérer les derniers messages de la sous-collection (on limite à 5 pour le résumé serré)
         const messagesRef = collection(db, "rps_pending", rpId, "messages");
-        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(5));
+        const q = query(messagesRef, orderBy("createdAt", "desc"), limit(50));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
@@ -1177,7 +1170,7 @@ window.relireLaScene = async function() {
         - Les personnages présents (qui est là ?).
         - Ce qu'ils font ou l'action cruciale qui vient de se passer (faits récents).
         - L'état psychologique ou l'ambiance immédiate (tension, peur, calme, secret).
-        Sois concis (maximum 4-5 phrases), va droit au but, pas de formules de politesse ni d'introduction.`;
+        Sois concis (maximum 45 phrases), va droit au but, pas de formules de politesse ni d'introduction.`;
 
         // 4. 🎯 APPEL DIRECT À L'API MISTRAL (Plus de ReferenceError !)
         const response = await fetch(MISTRAL_URL, {
@@ -1208,9 +1201,28 @@ window.relireLaScene = async function() {
                 outputDiv.innerHTML = `
                     <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
                         <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
-                        ${reponsePropre.remp(/\n/g, "<br>")}
+                        <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
+                        ${reponsePropre}
                     </div>
+
+                    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
+        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
+                <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Résumé</h3>
+                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+                ${reponsePropre}
+            </div>
+        </div>
+    </div>
                 `;
+
+                    document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "flex";
+                    });
+
             }
         } else {
             throw new Error("Réponse Mistral vide ou mal formatée");
