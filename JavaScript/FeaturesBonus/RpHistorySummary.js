@@ -1,7 +1,6 @@
 import { db } from '../Firebase.js';
 import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // Ajuste le chemin selon ton dossier si besoin
-import { nettoyerSyntaxeDialogue } from './AICoachs.js';
 
 /**
  * ============================================================================
