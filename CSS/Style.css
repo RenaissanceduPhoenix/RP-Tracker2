@@ -780,10 +780,30 @@ select.select-tag-toggle:focus {
     scrollbar-color: rgba(167, 119, 227, 0.3) rgba(0, 0, 0, 0.1);
 }
 
-/* Style des boutons Mood quand ils sont sélectionnés */
+
+
+/* 2. État activé manuellement (Bouton doré classique) */
 .mood-btn.active {
-    background: #a777e3 !important;
-    color: #fff !important;
-    border-color: #ffcc00 !important;
-    box-shadow: 0 0 15px #ffcc00 !important;
+    border-color: #a777e3 !important;
+    background: rgba(167, 119, 227, 0.2) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.4) !important; /* Halo jaune léger */
+}
+
+
+
+/* 1. L'état Détecté par l'IA + ACTIF (Orange fluo avec le gros halo jaune) */
+.mood-btn.active.detected {
+    border-color: #ff6b4a !important;                       /* Bordure Orange */
+    background: rgba(255, 107, 74, 0.2) !important;          /* Fond Orange transparent */
+    color: #ff6b4a !important;                               /* Texte Orange */
+    box-shadow: 0 0 12px rgba(255, 204, 0, 0.7) !important;  /* Halo Jaune vif */
+}
+
+/* 2. L'état Détecté par l'IA mais DESACTIVE au clic (Orange très sombre/éteint, sans halo) */
+.mood-btn.detected:not(.active) {
+    border-color: rgba(255, 107, 74, 0.3) !important;       /* Bordure Orange très sombre */
+    background: rgba(255, 107, 74, 0.05) !important;         /* Fond presque noir */
+    color: rgba(255, 107, 74, 0.5) !important;               /* Texte grisé/orange */
+    box-shadow: none !important;                             /* Pas de halo */
 }

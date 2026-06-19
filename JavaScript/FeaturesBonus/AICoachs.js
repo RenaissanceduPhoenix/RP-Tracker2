@@ -3,6 +3,7 @@ import { catBehaviorKnowledge } from './CatBehaviorData.js';
 import { db } from '../Firebase.js';
 import { limit, collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
+import { analyserSituationEtAppliquerMoods } from './MoodAnalyzer.js';
 
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
@@ -60,16 +61,6 @@ window.openCoWriteModal = async function(rpId, charName) {
         };
     }
 
-    // 🎛️ CORRECTION DU BUG ON/OFF : Utilisation d'un écouteur propre qui bascule correctement
-    document.querySelectorAll(".mood-btn").forEach(btn => {
-        btn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            // Le toggle permet d'ajouter si absent, et d'enlever (annuler le clic) si présent
-            this.classList.toggle("active"); 
-        };
-    });
-
         const contextArea = document.getElementById("coWriteContext");
         const outputDiv = document.getElementById("coWriteAiOutput");
 
@@ -118,6 +109,9 @@ window.openCoWriteModal = async function(rpId, charName) {
     }
 
     await loadOrCreateRpHistory(rpId, charName);
+
+    // Déclenchement de l'analyse isolée dans le nouveau module !
+    analyserSituationEtAppliquerMoods(charName);
 
 };
 
@@ -468,18 +462,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnAi = document.getElementById("btnAiCoWrite");
 
     document.addEventListener("click", (e) => {
-        if (e.target.classList.contains("mood-btn")) {
-            if (e.target.classList.contains("active")) {
-                e.target.style.borderColor = "rgba(167, 119, 227, 0.4)";
-                e.target.style.background = "#2c2c35";
-                e.target.classList.remove("active");
-            } else {
-                e.target.style.borderColor = "#a777e3";
-                e.target.style.background = "rgba(167, 119, 227, 0.2)";
-                e.target.classList.add("active");
-            }
+    if (e.target.classList.contains("mood-btn")) {
+        
+        // CONDITION 1 : Le bouton a les DEUX classes (Orange IA actif)
+        if (e.target.classList.contains("active") && e.target.classList.contains("detected")) {
+            // On retire UNIQUEMENT la classe active (il devient orange "inactif")
+            e.target.classList.remove("active");
         }
-    });
+        
+        // CONDITION 2 : Le bouton est Orange mais déjà désactivé, ou doré normal
+        else if (e.target.classList.contains("active")) {
+            // C'était un bouton doré manuel, on l'éteint complètement
+            e.target.classList.remove("active");
+        }
+        
+        // CONDITION 3 : Le bouton était éteint (ou orange inactif)
+        else {
+            // On l'allume ou le réactive en lui ajoutant la classe active
+            e.target.classList.add("active");
+        }
+    }
+});
 
     // 🛡️ SÉCURITÉ D'INJECTION POUR LA COLONNE DE BOUTONS
     let btnOuvrirConsignes = document.getElementById("btnOuvrirConsignes");
