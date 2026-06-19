@@ -1,7 +1,7 @@
 import { db } from './Firebase.js';
 import { collection, setDoc, addDoc, getDoc, updateDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from './Markdown.js';
-import { getAdvancedStats } from './DataService.js';
+import { getStatsSemaine, getStatsMois, getStatsGlobales } from './DataService.js';
 import { genererBadgesEtSelecteur, initialiserFiltrageTags } from './FeaturesBonus/Tags.js';
 import { getUrgencyTag } from './FeaturesBonus/UrgencyTags.js';
 
@@ -395,19 +395,125 @@ window.ajouterUnRpEnvoye = async function() {
 window.updateStats = async function() {
     const statsContainer = document.getElementById("statsContainer");
     if (!statsContainer) return;
+    
     try {
-        const stats = await getAdvancedStats();
+        // Chargement simultané mais dans 3 variables totalement hermétiques
+        const resSemaine = await getStatsSemaine();
+        const resMois = await getStatsMois();
+        const resGlobal = await getStatsGlobales();
+
+        // 📊 Préparation Graphique SEMAINE
+        const sS = resSemaine.stylesGlobaux;
+        const tS = sS.actions + sS.paroles + sS.pensees;
+        const pActS = tS > 0 ? Math.round((sS.actions / tS) * 100) : 0;
+        const pParS = tS > 0 ? Math.round((sS.paroles / tS) * 100) : 0;
+        const pPenS = tS > 0 ? (100 - (pActS + pParS)) : 0;
+
+        // 📊 Préparation Graphique MOIS
+        const sM = resMois.stylesGlobaux;
+        const tM = sM.actions + sM.paroles + sM.pensees;
+        const pActM = tM > 0 ? Math.round((sM.actions / tM) * 100) : 0;
+        const pParM = tM > 0 ? Math.round((sM.paroles / tM) * 100) : 0;
+        const pPenM = tM > 0 ? (100 - (pActM + pParM)) : 0;
+
+        // 📊 Préparation Graphique GLOBAL
+        const sG = resGlobal.stylesGlobaux;
+        const tG = sG.actions + sG.paroles + sG.pensees;
+        const pActG = tG > 0 ? Math.round((sG.actions / tG) * 100) : 0;
+        const pParG = tG > 0 ? Math.round((sG.paroles / tG) * 100) : 0;
+        const pPenG = tG > 0 ? (100 - (pActG + pParG)) : 0;
+
+        // Injection brute des 3 structures séparées dans le DOM
         statsContainer.innerHTML = `
-            <h2>Statistiques</h2>
-            <div class="stats-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px;">
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; text-align:center;"><div>Total XP</div><div class="xp-counter">${stats.totalXP || 0}</div></div>
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; text-align:center;"><div>RPs Archivés</div><div style="font-size:1.8rem; color:#2ecc71;">${stats.totalSent || 0}</div></div>
-                <div class="stat-card" style="background:rgba(255,255,255,0.05); padding:15px; text-align:center;"><div>Mots Écrits</div><div style="font-size:1.8rem; color:#3498db;">${stats.totalWords || 0}</div></div>
+            <h2 style="font-family: 'Cinzel', serif; color: #a777e3; margin-bottom: 25px;">⚔️ Quartier Général des Statistiques</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid #2a2a35; padding: 20px; border-radius: 6px; color: #e0e0e0;">
+                    <h3 style="color: #ffcc00; margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">📊 RELEVÉ 7 JOURS</h3>
+                    <ul style="list-style: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
+                        <li>⚡ <b>XP :</b> <span style="color: #ffcc00; font-weight: bold;">${resSemaine.totalXp.toLocaleString()} XP</span></li>
+                        <li>🏆 <b>Champion :</b> <span>${resSemaine.topChar}</span></li>
+                        <li>🏰 <b>Front Actif :</b> <span>${resSemaine.topServer}</span></li>
+                        <li>📈 <b>Activité :</b> <span style="color: #2ecc71;">${resSemaine.moyenneJour}</span></li>
+                        <li>📝 <b>Mots :</b> <span style="color: #3498db; font-weight: bold;">${resSemaine.totalMots.toLocaleString()} mots</span></li>
+                        <li style="margin-top: 5px; font-size: 0.8rem; color: #aaa;">⚔️ Act: ${sS.actions} | 💬 Par: ${sS.paroles} | 💭 Pen: ${sS.pensees}</li>
+                    </ul>
+                    <button type="button" id="btnGraphSemaine" style="background: #a777e3; color: #fff; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; width: 100%; margin-top: 10px;">DÉPLOYER LE GRAPH</button>
+                    <div id="zoneGraphSemaine" style="display: none; flex-direction: column; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(#e28743 0% ${pActS}%, #76b5c5 ${pActS}% ${pActS + pParS}%, #873e23 ${pActS + pParS}% 100%);"></div>
+                        <div style="display: flex; gap: 8px; margin-top: 10px; font-size: 0.7rem; font-weight: bold;">
+                            <span style="color: #e28743;">● Act (${pActS}%)</span> <span style="color: #76b5c5;">● Par (${pParS}%)</span> <span style="color: #873e23;">● Pen (${pPenS}%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid #2a2a35; padding: 20px; border-radius: 6px; color: #e0e0e0;">
+                    <h3 style="color: #3498db; margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">🦅 RELEVÉ 30 JOURS</h3>
+                    <ul style="list-style: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
+                        <li>⚡ <b>XP :</b> <span style="color: #ffcc00; font-weight: bold;">${resMois.totalXp.toLocaleString()} XP</span></li>
+                        <li>🏆 <b>Champion :</b> <span>${resMois.topChar}</span></li>
+                        <li>🏰 <b>Front Actif :</b> <span>${resMois.topServer}</span></li>
+                        <li>📈 <b>Activité :</b> <span style="color: #2ecc71;">${resMois.moyenneJour}</span></li>
+                        <li>📝 <b>Mots :</b> <span style="color: #3498db; font-weight: bold;">${resMois.totalMots.toLocaleString()} mots</span></li>
+                        <li style="margin-top: 5px; font-size: 0.8rem; color: #aaa;">⚔️ Act: ${sM.actions} | 💬 Par: ${sM.paroles} | 💭 Pen: ${sM.pensees}</li>
+                    </ul>
+                    <button type="button" id="btnGraphMois" style="background: #a777e3; color: #fff; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; width: 100%; margin-top: 10px;">DÉPLOYER LE GRAPH</button>
+                    <div id="zoneGraphMois" style="display: none; flex-direction: column; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(#e28743 0% ${pActM}%, #76b5c5 ${pActM}% ${pActM + pParM}%, #873e23 ${pActM + pParM}% 100%);"></div>
+                        <div style="display: flex; gap: 8px; margin-top: 10px; font-size: 0.7rem; font-weight: bold;">
+                            <span style="color: #e28743;">● Act (${pActM}%)</span> <span style="color: #76b5c5;">● Par (${pParM}%)</span> <span style="color: #873e23;">● Pen (${pPenM}%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid #2a2a35; padding: 20px; border-radius: 6px; color: #e0e0e0;">
+                    <h3 style="color: #2ecc71; margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">👑 HISTORIQUE GLOBAL</h3>
+                    <ul style="list-style: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
+                        <li>⚡ <b>XP :</b> <span style="color: #ffcc00; font-weight: bold;">${resGlobal.totalXp.toLocaleString()} XP</span></li>
+                        <li>🏆 <b>Champion :</b> <span>${resGlobal.topChar}</span></li>
+                        <li>🏰 <b>Front Actif :</b> <span>${resGlobal.topServer}</span></li>
+                        <li>📈 <b>Activité :</b> <span style="color: #2ecc71;">${resGlobal.moyenneJour}</span></li>
+                        <li>📝 <b>Mots :</b> <span style="color: #3498db; font-weight: bold;">${resGlobal.totalMots.toLocaleString()} mots</span></li>
+                        <li style="margin-top: 5px; font-size: 0.8rem; color: #aaa;">⚔️ Act: ${sG.actions} | 💬 Par: ${sG.paroles} | 💭 Pen: ${sG.pensees}</li>
+                    </ul>
+                    <button type="button" id="btnGraphGlobal" style="background: #a777e3; color: #fff; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; width: 100%; margin-top: 10px;">DÉPLOYER LE GRAPH</button>
+                    <div id="zoneGraphGlobal" style="display: none; flex-direction: column; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <div style="width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(#e28743 0% ${pActG}%, #76b5c5 ${pActG}% ${pActG + pParG}%, #873e23 ${pActG + pParG}% 100%);"></div>
+                        <div style="display: flex; gap: 8px; margin-top: 10px; font-size: 0.7rem; font-weight: bold;">
+                            <span style="color: #e28743;">● Act (${pActG}%)</span> <span style="color: #76b5c5;">● Par (${pParG}%)</span> <span style="color: #873e23;">● Pen (${pPenG}%)</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         `;
-    } catch (e) {}
-};
 
+        // 🔒 Bouton Semaine 
+        document.getElementById("btnGraphSemaine").addEventListener("click", function() {
+            const z = document.getElementById("zoneGraphSemaine");
+            z.style.display = z.style.display === "flex" ? "none" : "flex";
+            this.innerText = z.style.display === "flex" ? "MASQUER LE GRAPH" : "DÉPLOYER LE GRAPH";
+        });
+
+        // 🔒 Bouton Mois
+        document.getElementById("btnGraphMois").addEventListener("click", function() {
+            const z = document.getElementById("zoneGraphMois");
+            z.style.display = z.style.display === "flex" ? "none" : "flex";
+            this.innerText = z.style.display === "flex" ? "MASQUER LE GRAPH" : "DÉPLOYER LE GRAPH";
+        });
+
+        // 🔒 Bouton Global
+        document.getElementById("btnGraphGlobal").addEventListener("click", function() {
+            const z = document.getElementById("zoneGraphGlobal");
+            z.style.display = z.style.display === "flex" ? "none" : "flex";
+            this.innerText = z.style.display === "flex" ? "MASQUER LE GRAPH" : "DÉPLOYER LE GRAPH";
+        });
+
+    } catch (e) {
+        console.error("Erreur critique lors de la mise à jour des statistiques :", e);
+    }
+};
 function showFeedback(element, isError = false, message = "") {
     if (!element) return;
     if (isError) {
