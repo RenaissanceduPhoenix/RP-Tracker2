@@ -17,6 +17,9 @@ let dernierPromptJoueur = ""; // Sauvegarde le message ou contexte du joueur
  * 1. FONCTION : OUVERTURE DE LA MODALE
  * ============================================================================
  */
+
+
+
 window.openCoWriteModal = async function(rpId, charName) {
     window.currentActiveRpId = rpId;
     window.currentActiveCharName = charName;
@@ -367,6 +370,94 @@ ${lexiquePenseesFixe}
         return texteBrutIA;
     }
 }
+
+window.ouvrirModaleConsignes = function() {
+    assurerExistenceModaleConsignes();
+    document.getElementById("modalConsignes").style.display = "flex";
+};
+
+window.fermerModaleConsignes = function() {
+    const modal = document.getElementById("modalConsignes");
+    if (modal) modal.style.display = "none";
+};
+
+function assurerExistenceModaleConsignes() {
+    if (document.getElementById("modalConsignes")) return;
+
+    const modalHTML = `
+    <div id="modalConsignes" style="display: none; position: fixed; z-index: 300000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center; font-family:'Segoe UI', sans-serif;">
+        <div style="background: #0c0c10; border: 1px solid #a777e3; box-shadow: 0 0 25px rgba(167, 119, 227, 0.2); width: 50vw; max-width: 600px; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; color: #fff;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.2); display: flex; justify-content: space-between; align-items: center; background: #121218;">
+                <h3 style="margin: 0; color: #a777e3; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">📝 Écriture des Consignes</h3>
+                <button onclick="window.fermerModaleConsignes()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div style="padding: 20px; background: #08080c; display: flex; flex-direction: column; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 0.85rem; color: #aaa; font-weight: bold;">CONSIGNES DU SCÉNARIO :</label>
+                    <button type="button" id="btnGenererIA" style="background: #2ecc71; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 8px rgba(46, 204, 113, 0.2);">
+                        🤖 Écrire avec l'IA
+                    </button>
+                </div>
+                <textarea id="textareaConsignes" placeholder="Écris tes consignes, contraintes ou contexte récent ici..." style="width: 100%; height: 200px; background: #121218; border: 1px solid #2a2a35; border-radius: 4px; color: #fff; padding: 10px; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
+                <button type="button" onclick="window.fermerModaleConsignes()" style="background: #a777e3; color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">
+                    💾 ENREGISTRER ET QUITTER
+                </button>
+            </div>
+        </div>
+    </div>`;
+
+    const range = document.createRange();
+    const fragment = range.createContextualFragment(modalHTML);
+    document.body.appendChild(fragment);
+
+    brancherEvenementIAPilote();
+}
+
+function brancherEvenementIAPilote() {
+    const btnModalIA = document.getElementById("btnGenererIA");
+    const textareaModal = document.getElementById("textareaConsignes");
+
+    const btnAiPrincipal = document.getElementById("btnAiCoWrite");
+    const coWriteContextInput = document.getElementById("coWriteContext");
+    const outputDivPrincipal = document.getElementById("coWriteAiOutput");
+
+    if (!btnModalIA || !textareaModal) return;
+
+    btnModalIA.addEventListener("click", async () => {
+        if (!btnAiPrincipal) {
+            alert("⚠️ Le module de co-écriture IA principal (btnAiCoWrite) est introuvable sur cette page.");
+            return;
+        }
+
+        const texteOriginal = btnModalIA.innerHTML;
+        btnModalIA.disabled = true;
+        btnModalIA.style.background = "#7f8c8d";
+        btnModalIA.innerHTML = `⏳ L'IA réfléchit...`;
+
+        if (coWriteContextInput) {
+            coWriteContextInput.value = textareaModal.value;
+        }
+
+        btnAiPrincipal.click();
+
+        const verifierFinGeneration = setInterval(() => {
+            const enCoursDeChargement = outputDivPrincipal && (
+                outputDivPrincipal.innerHTML.includes("blink") || 
+                outputDivPrincipal.innerHTML.includes("✍️") || 
+                outputDivPrincipal.innerHTML.includes("🛡️")
+            );
+
+            if (!enCoursDeChargement) {
+                clearInterval(verifierFinGeneration);
+                textareaModal.value = "✨ [Génération Réussie] La réplique a été injectée avec succès ! Tu peux fermer cette fenêtre pour aller la lire.";
+                btnModalIA.disabled = false;
+                btnModalIA.style.background = "#2ecc71";
+                btnModalIA.innerHTML = texteOriginal;
+            }
+        }, 500);
+    });
+}
+
 /**
  * ============================================================================
  * 4. INITIALISATION DES ACTIONS BOUTONS ET ENVOI DE PROMPT À L'IA
@@ -389,6 +480,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+
+    // 🛡️ SÉCURITÉ D'INJECTION POUR LA COLONNE DE BOUTONS
+    let btnOuvrirConsignes = document.getElementById("btnOuvrirConsignes");
+    
+    if (!btnOuvrirConsignes && btnAi) {
+        console.warn("⚠️ Bouton 'btnOuvrirConsignes' manquant dans le HTML d'origine. Injection dynamique lancée.");
+        
+        btnOuvrirConsignes = document.createElement("button");
+        btnOuvrirConsignes.type = "button";
+        btnOuvrirConsignes.id = "btnOuvrirConsignes";
+        btnOuvrirConsignes.style.cssText = "background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;";
+        btnOuvrirConsignes.innerHTML = "📝 Rédiger les Consignes";
+        
+        // On l'injecte juste au-dessus du bouton "Écrire avec l'IA"
+        btnAi.parentNode.insertBefore(btnOuvrirConsignes, btnAi);
+    }
+
+    if (btnOuvrirConsignes) {
+        btnOuvrirConsignes.addEventListener("click", () => {
+            window.ouvrirModaleConsignes();
+        });
+    }
 
     if (btnSave) {
     btnSave.addEventListener("click", async () => {
@@ -452,6 +565,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 }
+
+
 
     if (btnAi) {
         btnAi.addEventListener("click", async () => {
@@ -813,6 +928,7 @@ ${maFicheDetaillee}
                 <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
                 <button id="btnAiReroll" onclick="window.executerReroll()" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:8px 15px; border-radius:4px; cursor:pointer; margin-left: 10px;">🎲 Reroll (Ambiance active)</button>
                 <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                <button type="button" id="btnOuvrirConsignes" style="background: #a777e3; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">📝 Rédiger les Consignes</button>
             </div>
         </div>
         <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>

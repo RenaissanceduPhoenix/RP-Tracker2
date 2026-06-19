@@ -1,6 +1,6 @@
 import { db } from '../Firebase.js';
-import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { parseRP } from '../Markdown.js'; // Ajuste le chemin selon ton dossier si besoin
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { parseRP } from '../Markdown.js'; 
 
 /**
  * ============================================================================
@@ -13,7 +13,6 @@ let cacheMessagesRp = [];
 
 /**
  * 🚀 Fonction principale : Génère et ouvre le sommaire d'un RP spécifique
- * @param {string} rpId - L'ID unique du document RP dans Firestore
  */
 window.ouvrirSommaireHistorique = async function(rpId) {
     if (!rpId) return;
@@ -50,21 +49,30 @@ window.ouvrirSommaireHistorique = async function(rpId) {
 
         snap.forEach((docSnap) => {
             const data = docSnap.data();
+            
+            // 🎯 CORRECTION STRICTE DU TIMESTAMP DE FIREBASE (en millisecondes)
+            let msgTimestamp = Date.now(); 
+            if (data.createdAt && typeof data.createdAt.toMillis === 'function') {
+                msgTimestamp = data.createdAt.toMillis();
+            } else if (data.createdAt && data.createdAt.seconds) {
+                msgTimestamp = data.createdAt.seconds * 1000;
+            }
+
             const msgObj = {
                 id: docSnap.id,
                 sender: data.sender || "Inconnu",
                 text: data.text || "",
-                date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString("fr-FR") : "En cours..."
+                date: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString("fr-FR") : "En cours...",
+                timestamp: msgTimestamp // Sauvegarde propre en millisecondes
             };
             cacheMessagesRp.push(msgObj);
 
-            // Détection de l'ordre d'ajout des personnages (Unique)
             if (!ordrePersonnages.includes(msgObj.sender)) {
                 ordrePersonnages.push(msgObj.sender);
             }
         });
 
-        // 3. Rendu du Sommaire des Personnages (Ordre d'entrée chronologique)
+        // 3. Rendu du Sommaire des Personnages
         charactersListDiv.innerHTML = "";
         ordrePersonnages.forEach((nomPerso, index) => {
             const totalPosts = cacheMessagesRp.filter(m => m.sender === nomPerso).length;
@@ -76,7 +84,7 @@ window.ouvrirSommaireHistorique = async function(rpId) {
             `;
         });
 
-        // 4. Rendu de la frise chronologique (Sommaire cliquable)
+        // 4. Rendu de la frise chronologique
         window.afficherTouteLaTimeline();
 
     } catch (err) {
@@ -92,11 +100,24 @@ window.afficherTouteLaTimeline = function() {
     const timelineTimelineDiv = document.getElementById("summaryTimelineTracks");
     timelineTimelineDiv.innerHTML = "";
 
+    // Calcul de la limite exacte (48 heures en millisecondes)
+    const deuxJoursEnMillisecondes = 2 * 24 * 60 * 60 * 1000;
+    const limiteNouveau = Date.now() - deuxJoursEnMillisecondes;
+
     cacheMessagesRp.forEach((msg, index) => {
+        // Vérification mathématique par rapport à l'âge du post
+        const estNouveau = msg.timestamp > limiteNouveau;
+        
+        // Assignation des indicateurs visuels
+        const badgeHtml = estNouveau ? `<span class="badge-nouveau">Nouveau</span>` : "";
+        const classeLueur = estNouveau ? "post-sommaire-nouveau" : "";
+        const couleurBordure = estNouveau ? "#2ecc71" : "#a777e3";
+        const couleurTitre = estNouveau ? "#2ecc71" : "#a777e3";
+
         timelineTimelineDiv.innerHTML += `
-            <div class="summary-timeline-item" onclick="window.chargerPostDansLeLecteur('${msg.id}')" style="padding: 10px; background: #161622; border-left: 3px solid #a777e3; border-radius: 0 4px 4px 0; cursor: pointer; margin-bottom: 8px; font-size: 0.85rem; transition: background 0.2s;">
-                <div style="display:flex; justify-content:space-between; color:#a777e3; font-weight:bold; margin-bottom:2px;">
-                    <span>Post n°${index + 1}</span>
+            <div class="summary-timeline-item ${classeLueur}" onclick="window.chargerPostDansLeLecteur('${msg.id}')" style="padding: 10px; background: #161622; border-left: 3px solid ${couleurBordure}; border-radius: 0 4px 4px 0; cursor: pointer; margin-bottom: 8px; font-size: 0.85rem; transition: background 0.2s;">
+                <div style="display:flex; justify-content:space-between; color:${couleurTitre}; font-weight:bold; margin-bottom:2px; align-items:center;">
+                    <span>Post n°${index + 1} ${badgeHtml}</span>
                     <span style="color:#777; font-size:0.75rem;">${msg.date}</span>
                 </div>
                 <div style="color:#fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -142,23 +163,16 @@ window.chargerPostDansLeLecteur = async function(msgId) {
     const readerDiv = document.getElementById("summaryPostReader");
     if (!readerDiv) return;
     
-    // 1. On cherche la position (l'index) et le message de base dans ton cache rps_received
-    // (cacheMessagesRp contient la liste chronologique des posts affichés au centre)
     const indexPost = cacheMessagesRp.findIndex(m => m.id === msgId);
     const msgBase = cacheMessagesRp[indexPost];
     
-    if (!msgBase) {
-        console.warn("❌ Impossible de trouver le message dans le cache pour l'ID :", msgId);
-        return;
-    }
+    if (!msgBase) return;
 
-    // Texte et auteur par défaut (repli automatique si rps_pending n'a rien)
     let texteAUtiliser = msgBase.text || msgBase.content || "";
     let nomAuteur = msgBase.sender || "Inconnu";
 
     try {
         if (window.currentActiveRpId) {
-            // 2. On récupère TOUS les messages du rps_pending triés par ordre d'envoi
             const pendingMessagesRef = collection(db, "rps_pending", window.currentActiveRpId, "messages");
             const q = query(pendingMessagesRef, orderBy("createdAt", "asc"));
             const querySnapshot = await getDocs(q);
@@ -166,37 +180,27 @@ window.chargerPostDansLeLecteur = async function(msgId) {
             if (!querySnapshot.empty) {
                 let listePending = [];
                 querySnapshot.forEach(docSnap => {
-                    // On extrait les données et on garde aussi l'ID réel du document dans Firebase
                     listePending.push({ idFirebase: docSnap.id, ...docSnap.data() });
                 });
 
-                // 3. STRATÉGIE DE RECHERCHE MIXTE (Futur VS Ancien)
-                // Étape A : On cherche d'abord par l'ID unique (nouveau système synchronisé)
                 let msgPendingTrouve = listePending.find(m => m.idFirebase === msgId || m.id === msgId);
 
-                // Étape B : Si pas trouvé (pour tes anciens RPs sans ID unique), on s'aligne sur la même position !
                 if (!msgPendingTrouve && indexPost !== -1 && listePending[indexPost]) {
                     msgPendingTrouve = listePending[indexPost];
-                    console.log(`🔄 [Mode Secours Anciens RPs] Alignement fait par l'index de position : ${indexPost}`);
                 }
 
-                // Si on a mis la main sur la version propre de rps_pending (corrigée par l'IA)
                 if (msgPendingTrouve) {
                     texteAUtiliser = msgPendingTrouve.text || msgPendingTrouve.content || texteAUtiliser;
                     nomAuteur = msgPendingTrouve.sender || msgPendingTrouve.character || nomAuteur;
-                    console.log("✨ [Succès] Version nettoyée de rps_pending chargée dans le lecteur !");
                 }
             }
         }
     } catch (err) {
-        console.warn("⚠️ Erreur lors du chargement depuis rps_pending, affichage de la version brute :", err);
+        console.warn("⚠️ Erreur rps_pending, version brute affichée :", err);
     }
 
-    // 4. On envoie le texte propre dans le parseur Markdown (pour activer tes styles de dialogue et bulles)
     const parsedHTML = parseRP(texteAUtiliser);
 
-    // 5. Rendu et injection HTML dans ton panneau de droite (Lecteur)
-    // IMPORTANT : J'utilise la classe "rp-post-content" pour que tes CSS de bulles s'activent !
     readerDiv.innerHTML = `
         <div style="display:flex; flex-direction:column; height:100%;">
             <div style="border-bottom:1px solid rgba(167,119,227,0.3); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
@@ -217,10 +221,37 @@ window.chargerPostDansLeLecteur = async function(msgId) {
 };
 
 /**
- * 🧱 Injection automatique de la structure HTML de la modale Sommaire (Sécurité anti-oubli)
+ * 🧱 Injection automatique de la structure HTML de la modale Sommaire
  */
 function assurerExistenceModaleSommaire() {
     if (document.getElementById("rpSummaryModal")) return;
+
+    const styleElement = document.createElement("style");
+    styleElement.innerHTML = `
+        .badge-nouveau {
+            display: inline-block !important;
+            background-color: #2ecc71 !important;
+            color: #fff !important;
+            font-size: 0.65rem !important;
+            font-weight: bold !important;
+            padding: 2px 5px !important;
+            border-radius: 3px !important;
+            margin-left: 6px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            box-shadow: 0 0 6px #2ecc71 !important;
+            animation: lueurPulsation 2s infinite ease-in-out !important;
+        }
+        .post-sommaire-nouveau {
+            box-shadow: inset 4px 0 10px rgba(46, 204, 113, 0.12) !important;
+        }
+        @keyframes lueurPulsation {
+            0% { box-shadow: 0 0 4px #2ecc71; opacity: 0.8; }
+            50% { box-shadow: 0 0 12px #2ecc71; opacity: 1; }
+            100% { box-shadow: 0 0 4px #2ecc71; opacity: 0.8; }
+        }
+    `;
+    document.head.appendChild(styleElement);
 
     const modalHTML = `
     <div id="rpSummaryModal" style="display: none; position: fixed; z-index: 200000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center; font-family:'Segoe UI', sans-serif;">
