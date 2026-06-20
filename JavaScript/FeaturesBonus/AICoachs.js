@@ -5,7 +5,8 @@ import { limit, collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
 import { analyserSituationEtAppliquerMoods } from './MoodAnalyzer.js';
 import { analyserImpactPhysiqueEtMental } from './TraumaAnalyzer.js';
-
+// 🔄 Remplacer l'ancienne ligne par celle-ci :
+import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER } from './DiceManager.js';
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
@@ -114,6 +115,126 @@ window.openCoWriteModal = async function(rpId, charName) {
     // Déclenchement de l'analyse isolée dans le nouveau module !
     analyserSituationEtAppliquerMoods(charName);
 
+// Tout en bas de la fonction openCoWriteModal, juste avant l'accolade de fermeture :
+// 🎲 Étape 1 : Nettoyage et initialisation de base synchrone
+// 🎲 Étape 1 : Nettoyage et initialisation synchrone
+    if (typeof preparerEtInitialiserZoneDes === "function") {
+        preparerEtInitialiserZoneDes();
+    }
+
+    // 🔥 Étape 2 : Verrouillage strict de l'affichage
+    const diceContainer = document.getElementById("diceActionsList");
+    if (diceContainer && typeof dictionnaireActionsErER === "object") {
+        diceContainer.innerHTML = "<div id='diceLoader' style='color: #a777e3; font-style: italic; padding: 10px; font-size: 0.85rem;'>🎲 Calcul et synchronisation des lancers sur Firebase...</div>";
+        
+        window.getActionsSelectionneesPourIA = [];
+
+        const activeRpId = window.currentActiveRpId || rpId;
+        const activeCharName = window.currentActiveCharName || charName;
+        const listeIdActions = Object.keys(dictionnaireActionsErER);
+
+        console.log("🚀 [Étape A] Début de la synchronisation obligatoire pour :", activeCharName);
+
+        try {
+            // Utilisation d'une boucle synchrone linéaire directe attendue par la modale
+            for (const idAction of listeIdActions) {
+                const action = dictionnaireActionsErER[idAction];
+                
+                let res = null;
+                if (typeof executerLancerDesErER === "function") {
+                    res = executerLancerDesErER(activeCharName, idAction);
+                }
+
+                if (activeRpId && res) {
+                    const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
+                    
+                    // L'exécution attend obligatoirement que Firebase réponde avant de passer à l'action suivante
+                    await setDoc(actionDocRef, {
+                        actionId: idAction,
+                        nom: action.nom,
+                        actif: false,
+                        total: Number(res.total) || 0,
+                        lancerDe: Number(res.lancerDe) || 0,
+                        sa: Number(res.sa) || 0,
+                        verdictTexte: res.verdict ? res.verdict.texte : "Inconnu",
+                        verdictCouleur: res.verdict ? res.verdict.couleur : "#aaa",
+                        verdictDescription: res.verdict ? res.verdict.description : "",
+                        timestamp: new Date()
+                    }, { merge: true });
+
+                    console.log(`🚀 [Firestore] Document '${idAction}' synchronisé.`);
+                }
+            }
+
+            console.log("🚀 [Étape B] Firebase est à jour à 100%. Injection des boutons graphiques.");
+            
+            // Nettoyage du loader
+            diceContainer.innerHTML = "";
+
+            // Génération des boutons
+            listeIdActions.forEach(idAction => {
+                const action = dictionnaireActionsErER[idAction];
+                
+                const divAction = document.createElement("div");
+                divAction.style.cssText = "padding: 8px 10px; margin: 5px 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #b0b0b8; transition: all 0.2s ease;";
+                divAction.setAttribute("data-action-id", idAction);
+                
+                divAction.innerHTML = `
+                    <span style="font-weight: 500;">${action.nom}</span>
+                    <span class="status-indicator" style="font-family: monospace; color: #444a5a; font-weight: bold;">[ ]</span>
+                `;
+                
+                divAction.addEventListener("click", async () => {
+                    const indicator = divAction.querySelector(".status-indicator");
+                    const index = window.getActionsSelectionneesPourIA.indexOf(idAction);
+                    let estCoche = false;
+
+                    if (index === -1) {
+                        window.getActionsSelectionneesPourIA.push(idAction);
+                        estCoche = true;
+                        
+                        divAction.style.background = "rgba(167, 119, 227, 0.15)";
+                        divAction.style.borderColor = "#a777e3";
+                        divAction.style.color = "#fff";
+                        if (indicator) {
+                            indicator.innerText = "[ COCHÉ ]";
+                            indicator.style.color = "#a777e3";
+                        }
+                    } else {
+                        window.getActionsSelectionneesPourIA.splice(index, 1);
+                        estCoche = false;
+
+                        divAction.style.background = "rgba(255,255,255,0.03)";
+                        divAction.style.borderColor = "rgba(255,255,255,0.05)";
+                        divAction.style.color = "#b0b0b8";
+                        if (indicator) {
+                            indicator.innerText = "[ ]";
+                            indicator.style.color = "#444a5a";
+                        }
+                    }
+
+                    if (activeRpId) {
+                        try {
+                            const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
+                            await setDoc(actionDocRef, { actif: estCoche }, { merge: true });
+                        } catch (fsErr) {
+                            console.error("❌ Erreur de mise à jour du flag actif :", fsErr);
+                        }
+                    }
+
+                    if (typeof window.mettreAJourAffichageDesPourIA === "function") {
+                        window.mettreAJourAffichageDesPourIA();
+                    }
+                });
+                
+                diceContainer.appendChild(divAction);
+            });
+
+        } catch (err) {
+            console.error("❌ Erreur critique lors de la boucle synchrone :", err);
+            diceContainer.innerHTML = "<div style='color: #ff4a4a; padding: 10px;'>❌ Impossible de synchroniser les documents avec Firebase.</div>";
+        }
+    }
 };
 
 /**
@@ -591,6 +712,24 @@ dernierPromptJoueur = textInput ? textInput.value.trim() : "";
 
                 moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (CONSIGNE ABSOLUE : Chaque attribut ci-dessous est indépendant et cloisonné. Traite-les de manière brute, juxtaposée, SANS JAMAIS faire de compromis, de lien ou de fusion entre eux) :\n";
 
+                    // 🎲 1. RÉCUPÉRATION DU CONTEXTE DES DÉS MULTIPLES (ErER)
+    let contrainteDeDesPrompt = "";
+
+    if (window.getActionsSelectionneesPourIA && Array.isArray(window.getActionsSelectionneesPourIA) && window.getActionsSelectionneesPourIA.length > 0) {
+        contrainteDeDesPrompt = `\n[CONTRAINTES DE JEU - ACTIONS ET DÉS MULTIPLES]\n`;
+        contrainteDeDesPrompt += `Durant ce tour, le personnage réalise les actions JDR suivantes. Tu DOIS impérativement intégrer et romancer TOUTES ces actions dans ton récit en respectant rigoureusement leur niveau de réussite :\n`;
+
+        window.getActionsSelectionneesPourIA.forEach(d => {
+            contrainteDeDesPrompt += `- Action tentée : ${d.nomAction}\n`;
+            contrainteDeDesPrompt += `  Score obtenu : ${d.total} / 50\n`;
+            contrainteDeDesPrompt += `  Verdict du Clan : ${d.verdict.texte}\n`;
+            contrainteDeDesPrompt += `  Effet requis : ${d.verdict.description}\n\n`;
+        });
+
+        contrainteDeDesPrompt += `CONSIGNE NARRATIVE CRUCIALE :
+        Insère ces réussites ou ces échecs de manière fluide, sauvage et immersive. Tu ne dois JAMAIS afficher de chiffres, de calculs ou de termes techniques de JDR (bannis les expressions comme "score", "total", "dés", "SA", "échec", "réussite"). Traduis ces données uniquement par des descriptions physiques (ex: un coup qui dévie, une douleur fulgurante, une maladresse, un exploit agile), les ressentis du chat ou des répliques.`;
+    }
+
 const moodDictionary = {
                     // ⚔️ COMBAT & PHYSIQUE (12)
                     combat: "- COMBAT : Actions physiques offensives, esquives, feintes, attaques directes.\n",
@@ -764,9 +903,13 @@ Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cet
 Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage Markdown et l'identité du personnage.\n\n`;
             }
 
-            if (moodInstruction) {
-                systemPrompt += `${moodInstruction}\n`;
-            }
+            if (contrainteDeDesPrompt) {
+    systemPrompt += `${contrainteDeDesPrompt}\n`;
+}
+
+if (moodInstruction) {
+    systemPrompt += `${moodInstruction}\n`;
+}
 
             systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) :
 1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
@@ -861,6 +1004,25 @@ ${maFicheDetaillee}
         outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
         
         let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
+
+        // 🧹 NETTOYAGE DES DÉS SELECTIONNÉS
+    window.getActionsSelectionneesPourIA = [];
+
+    const lignesDes = document.querySelectorAll("#diceActionsList > div");
+    lignesDes.forEach(ligne => {
+        ligne.style.color = "#b0b0b8";
+        ligne.style.background = "rgba(255, 255, 255, 0.01)";
+        const indicator = ligne.querySelector(".status-indicator");
+        if (indicator) {
+            indicator.innerText = "[ ]";
+            indicator.style.color = "#444a5a";
+        }
+    });
+
+    const zoneResultatDes = document.getElementById("diceResultZone");
+    if (zoneResultatDes) {
+        zoneResultatDes.innerHTML = "Aucune action sélectionnée pour ce tour.";
+    }
 
         // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (SÉCURISÉ ET UNIQUE)
         try {
@@ -1427,7 +1589,7 @@ window.relireLaScene = async function() {
 };
 
 // ============================================================================
-// PATCH DE SECOURS ISOLÉ POUR LA MODALE DE TRAUMATISMES (VERSION AVEC ID FIXES)
+// PATCH DE SECOURS ISOLÉ POUR LA MODALE DE TRAUMATISMES (CORRECTION TECHNIQUE DES ESPACES)
 // ============================================================================
 (function() {
     document.addEventListener("click", async function(e) {
@@ -1436,7 +1598,7 @@ window.relireLaScene = async function() {
         
         e.preventDefault();
 
-        // --- DEFINITION DES CONSTANTES PAR ID EN HAUT DU PATCH ---
+        // Constantes d'affichage par ID
         const modal = document.getElementById("traumaExclusiveModal");
         const loading = document.getElementById("traumaModalLoading");
         const content = document.getElementById("traumaModalContent");
@@ -1446,10 +1608,7 @@ window.relireLaScene = async function() {
         const mentalEl = document.getElementById("mentalTraumaList");
         const guerisseurEl = document.getElementById("guerisseurText");
 
-        if (!modal) {
-            console.error("❌ Erreur critique : #traumaExclusiveModal introuvable.");
-            return;
-        }
+        if (!modal) return;
 
         // Ouvrir la modale
         modal.style.setProperty("display", "flex", "important");
@@ -1469,48 +1628,109 @@ window.relireLaScene = async function() {
                 if (loading) loading.style.setProperty("display", "none", "important");
 
                 if (bilan) {
-                    // Injection dans les ID déclarés en haut
+                    // 1. Statut Général
                     if (statusEl) statusEl.innerText = `⚡ Bilan actuel pour : ${charName} (${bilan.statutGeneral || 'État stable'})`;
                     
+                    // --- RECONSTRUCTION DES FONCTIONS DE RENDU ---
+                    function genererStructureHtml(donnee) {
+                        if (typeof donnee === "string" || typeof donnee === "number") {
+                            return `<p style="margin: 4px 0; line-height: 1.6; color: #e0e0e0; font-size: 1.1rem;">${donnee}</p>`;
+                        }
+                        if (Array.isArray(donnee)) {
+                            return `<ul style="margin: 6px 0; padding-left: 20px; list-style-type: '🌿 '; line-height: 1.6; color: #e0e0e0;">` +
+                                donnee.map(item => `<li style="margin-bottom: 6px;">${genererStructureHtml(item)}</li>`).join("") +
+                            `</ul>`;
+                        }
+                        if (typeof donnee === "object" && donnee !== null) {
+                            let sousBloc = `<div style="display: flex; flex-direction: column; gap: 8px; padding-left: 10px; margin-top: 5px;">`;
+                            for (const [cle, valeur] of Object.entries(donnee)) {
+                                const cleAvecEspaces = cle.replace(/_/g, ' ');
+                                const titreCle = cleAvecEspaces.charAt(0).toUpperCase() + cleAvecEspaces.slice(1);
+                                
+                                if (typeof valeur === "object" && valeur !== null) {
+                                    sousBloc += `<div style="margin-top: 10px; border-left: 2px dashed rgba(255, 204, 0, 0.3); padding-left: 15px;">
+                                        <strong style="color: #ffcc00; font-size: 1.1rem;">🐾 ${titreCle}</strong>
+                                        ${genererStructureHtml(valeur)}
+                                    </div>`;
+                                } else {
+                                    sousBloc += `<p style="margin: 3px 0; line-height: 1.5; color: #e0e0e0;">
+                                        <strong style="color: #ffcc00;">✨ ${titreCle} :</strong> ${valeur}
+                                    </p>`;
+                                }
+                            }
+                            sousBloc += `</div>`;
+                            return sousBloc;
+                        }
+                        return "";
+                    }
+
+                    // 2. Rendu des Blessures Physiques (Protégé contre les objets)
                     if (physicalEl) {
-                        physicalEl.innerHTML = (bilan.blessuresPhysiques && bilan.blessuresPhysiques.length > 0)
-                            ? bilan.blessuresPhysiques.map(w => `<li style="margin-bottom:8px; font-size:1.1rem; color:#f0f0f0;">${w}</li>`).join("")
-                            : `<li style="color:#aaa;">Aucune blessure physique apparente détectée.</li>`;
+                        physicalEl.innerHTML = (bilan.blessuresPhysiques)
+                            ? genererStructureHtml(bilan.blessuresPhysiques)
+                            : `<p style="color:#aaa;">Aucune blessure physique apparente détectée.</p>`;
                     }
                     
+                    // 3. Rendu des Séquelles Mentales (Protégé contre les objets)
                     if (mentalEl) {
-                        mentalEl.innerHTML = (bilan.traumatismesMentaux && bilan.traumatismesMentaux.length > 0)
-                            ? bilan.traumatismesMentaux.map(t => `<li style="margin-bottom:8px; font-size:1.1rem; color:#f0f0f0;">${t}</li>`).join("")
-                            : `<li style="color:#aaa;">Esprit serein. Aucun traumatisme psychologique à signaler.</li>`;
+                        mentalEl.innerHTML = (bilan.traumatismesMentaux)
+                            ? genererStructureHtml(bilan.traumatismesMentaux)
+                            : `<p style="color:#aaa;">Esprit serein. Aucun traumatisme psychologique à signaler.</p>`;
                     }
                     
+                    // 4. RENDU VISUEL AVANCÉ DU CONSEIL GUÉRISSEUR
                     if (guerisseurEl) {
-                        guerisseurEl.innerText = bilan.conseilGuerisseur || "Prendre du repos et rester au chaud dans la tanière.";
+                        let htmlResultat = "";
+
+                        if (typeof bilan.conseilGuerisseur === "object" && bilan.conseilGuerisseur !== null && !Array.isArray(bilan.conseilGuerisseur)) {
+                            htmlResultat = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 10px;">`;
+                            for (const [section, contenu] of Object.entries(bilan.conseilGuerisseur)) {
+                                const sectionAvecEspaces = section.replace(/_/g, ' ');
+                                const titreSection = sectionAvecEspaces.toUpperCase();
+                                htmlResultat += `
+                                    <div style="background: rgba(255, 204, 0, 0.03); border: 1px solid rgba(255, 204, 0, 0.15); border-radius: 6px; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
+                                        <h4 style="margin: 0 0 10px 0; color: #ffcc00; font-size: 1.1rem; border-bottom: 1px dashed rgba(255,204,0,0.2); padding-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                                            🌿 ${titreSection}
+                                        </h4>
+                                        ${genererStructureHtml(contenu)}
+                                    </div>`;
+                            }
+                            htmlResultat += `</div>`;
+                        } else {
+                            htmlResultat = genererStructureHtml(bilan.conseilGuerisseur);
+                        }
+
+                        // Nettoyage final anti-[object Object] au cas où
+                        if (htmlResultat.includes("[object Object]")) htmlResultat = htmlResultat.replace(/\[object Object\]/g, "");
+                        
+                        guerisseurEl.innerHTML = htmlResultat;
                     }
-                    
+
+                    // Forcer l'affichage global
                     if (content) content.style.setProperty("display", "block", "important");
+
                 } else {
                     if (loading) {
                         loading.style.setProperty("display", "block", "important");
-                        loading.innerText = "❌ L'analyse a échoué. L'historique du RP est peut-être indisponible.";
+                        loading.innerText = "❌ Le Clan des Étoiles n'a pas pu structurer son message. Réessaye l'analyse.";
                     }
                 }
             } else {
                 if (loading) {
                     loading.style.setProperty("display", "block", "important");
-                    loading.innerText = "❌ Erreur : Le fichier TraumaAnalyzer.js n'est pas détecté.";
+                    loading.innerText = "❌ Erreur : La fonction d'analyse est indisponible.";
                 }
             }
         } catch (err) {
             console.error("Erreur durant l'analyse :", err);
             if (loading) {
                 loading.style.setProperty("display", "block", "important");
-                loading.innerText = "❌ Une erreur est survenue avec l'IA.";
+                loading.innerText = "❌ Une erreur technique est survenue.";
             }
         }
     });
 
-    // Fermeture de la modale
+    // Gestion de la fermeture isolée
     document.addEventListener("click", function(e) {
         const modal = document.getElementById("traumaExclusiveModal");
         if (!modal) return;

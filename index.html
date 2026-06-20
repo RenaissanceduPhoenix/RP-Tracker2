@@ -109,7 +109,7 @@
     <script type="module" src="./JavaScript/FeaturesBonus/Tags.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js?v=2.3"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js?v=2.3"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=10"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=12.8"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js?v=2.2"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/RpHistorySummary.js?v=2.1"></script>
 
@@ -171,14 +171,33 @@
                 </select>
             </div>
             
+<div id="jdrDiceInterfaceContainer" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 15px; margin-top: 15px; display: flex; flex-direction: column; gap: 12px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 204, 0, 0.2); padding-bottom: 6px;">
+        <span style="color: #ffcc00; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">🎲 Dés de Situation</span>
+        <small id="diceActiveCharLabel" style="color: #aaa; font-style: italic;"></small>
+    </div>
+
+    <div id="diceActionsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
+        </div>
+
+    <div id="diceResultZone" style="background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(255, 204, 0, 0.2); border-radius: 6px; padding: 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; color: #888; font-size: 0.95rem; margin-top: 5px;">
+        Aucun dé lancé pour cette action. Cliquez sur une capacité ci-dessus.
+    </div>
+</div>
+
             <div class="mood-section-wrapper" style="background: #121218; padding: 12px; border-radius: 6px; border: 1px solid #1c1c24; margin-bottom: 15px;">
     
+
+                
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <span style="color: #a777e3; font-size: 0.85rem; font-weight: bold; letter-spacing: 0.5px;">🎭 Configuration psychologique & Ambiance</span>
         <button type="button" id="btnToggleMoods" style="background: #1c1c24; color: #ffcc00; border: 1px solid #ffcc00; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s;">
             👁️ Afficher les Moods
         </button>
     </div>
+
+    
 
     <div id="moodSelectorContent" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #1c1c24; padding-top: 15px;">
         

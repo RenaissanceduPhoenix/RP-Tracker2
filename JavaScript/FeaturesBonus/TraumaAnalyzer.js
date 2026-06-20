@@ -26,41 +26,73 @@ export async function analyserImpactPhysiqueEtMental(charName) {
                 messages: [
                     {
                         role: "system",
-                        content: `Tu es le plus grand guérisseur et analyste psychologique de l'univers de La Guerre des Clans. Tu as un don unique pour lire les âmes, décrypter l'inconscient et percevoir les moindres failles physiques et mentales d'un chat sauvage.
+                        content: `Tu es le guérisseur en chef et l'analyste comportemental d'un JDR textuel basé sur l'univers de La Guerre des Clans. Tu as un don unique pour lire les âmes et percevoir les failles physiques et mentales des chats sauvages.
 
-Tu vas recevoir l'historique complet d'une scène de jeu de rôle (RP). Ton objectif absolu est d'analyser avec une profondeur chirurgicale ce qui arrive au personnage nommé "${charName}". Va chercher les détails cachés entre les lignes.
+Tu vas recevoir l'historique complet d'une scène de jeu de rôle. Ton objectif absolu est d'analyser l'impact des derniers événements sur le personnage nommé "${charName}".
 
-Analyse minutieusement ces 4 dimensions :
-1. 🩸 L'IMPACT PHYSIQUE ABSOLU : Ne te limite pas aux blessures évidentes. Évalue l'état des muscles, l'épuisement cellulaire, les micro-déchirures, les infections latentes, la douleur sourde, l'impact de la météo (froid, humidité) sur ses anciennes cicatrices et sa capacité motrice immédiate.
-2. 🧠 LA PSYCHÉ PROFONDE & LES FAILLES DE L'ÂME : Analyse son inconscient. Quels traumatismes ancrés se réveillent ? Est-il en état de dissociation, de paranoïa, de deuil bloqué, de culpabilité du survivant, ou de rupture de confiance envers ses proches ou son Clan ? Détecte les chocs émotionnels invisibles.
-3. 🌀 L'ÉVOLUTION ET LA SYNCHRONICITÉ : Comment cette scène transforme-t-elle sa vision du monde ? Devient-il plus sauvage, soumis, terrifié, ou obsédé par la vengeance ?
-4. 🌿 LA SAGESSE DU GUÉRISSEUR : Propose un protocole de soin immersif (remèdes complexes à base de plantes, isolement, rituels de paroles ou repos spirituel) pour tenter de réparer ce qui a été brisé.
+⚠️ CONSIGNES DE VRAISEMBLANCE ET DE PERSONNALITÉ TRÈS STRICTES :
+- Analyse le comportement, la fierté, la timidité ou l'agressivité de "${charName}" à travers ses répliques dans l'historique. Ses protocoles de soin doivent s'adapter à son caractère (un guerrier fier refusera de rester confiné, un chat anxieux aura besoin d'une présence discrète, etc.).
+- BANNIS TOUTES LES ACTIONS IRRAÉLISTES OU HUMAINES (Pas de berceuses, pas d'écriture sur de l'écorce, pas de concepts psychologiques modernes ou de phrases toutes faites à répéter).
+- Tout doit être RÉALISABLE EN RP : des rituels de guerriers crédibles (partager le gibier en silence, monter la garde près du camp pour se changer les idées, nettoyer la tanière des anciens), des applications de plantes réelles et des interactions sociales sauvages et brutes.
 
-Tu dois répondre STRICTEMENT sous la forme d'un objet JSON valide, sans aucun texte d'explication avant ou après. Le format doit être exactement le suivant :
+Tu dois répondre STRICTEMENT sous la forme d'un objet JSON valide, sans aucun texte d'explication avant ou après :
 {
-  "statutGeneral": "Un diagnostic global et poignant de son état (ex: Coquille vide, rongée par la fièvre et la trahison)",
+  "statutGeneral": "Un diagnostic global, court et poignant de son état actuel par rapport à son tempérament habituel",
   "blessuresPhysiques": [
-    "Détail précis de la blessure active 1 (ex: Entorse sévère à la patte avant droite avec gonflement critique - nécessite une immobilisation)",
-    "Détail des séquelles invisibles (ex: Épuisement total des réserves physiques, tremblements dus au choc hypothermique)"
+    "Détail précis de la blessure active 1 (ex: Griffure infectée à l'oreille)",
+    "Impact direct sur sa mobilité ou ses capacités au combat"
   ],
   "traumatismesMentaux": [
-    "Traumatisme psychologique majeur (ex: Syndrome de stress post-traumatique lié à l'effondrement de la tanière, peur panique de l'obscurité)",
-    "Altération de la psyché (ex: Paranoïa aiguë envers ses camarades de patrouille, sentiment d'abandon par le Clan des Étoiles)"
+    "Séquelle psychologique concrète (ex: Perte de confiance en ses réflexes de chasseur)",
+    "Réaction comportementale visible en jeu (ex: Sursaute au moindre craquement de branche)"
   ],
-  "conseilGuerisseur": "Le protocole de soins médicaux et spirituels (ex: Application de bile de souris pour les tiques de stress, cataplasme de souci et de racine de glouteron, suivi d'une veille silencieuse sous la garde d'un ancien)"
+  "conseilGuerisseur": {
+    "stabilisation_physique_immediate": [
+      "Application concrète d'onguent ou de remède (ex: Mâcher des baies de genièvre pour la force)",
+      "Gestion physique réaliste selon sa réticence à se faire soigner"
+    ],
+    "reparation_emotionnelle": [
+      "Action de clan ou interaction sociale réaliste adaptée à son caractère pour évacuer le choc",
+      "Tâche ou corvée de camp spécifique pour canaliser ses émotions négatives"
+    ],
+    "reintegration_spirituelle": [
+      "Une action concrète à long terme au sein du Clan pour retrouver son statut de guerrier/apprenti"
+    ],
+    "remedes_complementaires": [
+      "Plante médicinale sauvage pour apaiser ses nuits ou calmer ses crises de stress"
+    ],
+    "protocole_urgence_crise": [
+      "Action physique ou mot d'ordre réaliste pour les autres membres du Clan si le chat panique ou s'isole brusquement en plein RP"
+    ]
+  }
 }`
                     },
                     { role: "user", content: toutLhistorique }
                 ],
-                temperature: 0.5
+                temperature: 0.3
             })
         });
 
         if (!response.ok) return null;
         const data = await response.json();
         if (data.choices && data.choices[0]) {
-            let cleanJson = data.choices[0].message.content.replace(/```json|```/g, "").trim();
-            return JSON.parse(cleanJson);
+            let texteBrut = data.choices[0].message.content.trim();
+            
+            // Nettoyage anti-crash
+            if (texteBrut.startsWith("```json")) {
+                texteBrut = texteBrut.replace(/^```json/, "").replace(/```$/, "").trim();
+            }
+            texteBrut = texteBrut.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
+            try {
+                return JSON.parse(texteBrut);
+            } catch (jsonErr) {
+                console.warn("Erreur de parsing, tentative de nettoyage des guillemets internes...", jsonErr);
+                let texteRepare = texteBrut
+                    .replace(/(?<![:,\{\[\]\s])"(?![:,\}\]\]\s])/g, "'")
+                    .replace(/\\"/g, "'");
+                return JSON.parse(texteRepare);
+            }
         }
     } catch (err) {
         console.error("Erreur lors de l'analyse des traumatismes :", err);
