@@ -807,3 +807,38 @@ select.select-tag-toggle:focus {
     color: rgba(255, 107, 74, 0.5) !important;               /* Texte grisé/orange */
     box-shadow: none !important;                             /* Pas de halo */
 }
+
+/* ==========================================================================
+   GESTION DES MODALES EXCLUSIVES (TRAUMA, CO-WRITE, ETC.)
+   ========================================================================== */
+.exclusive-modal {
+    display: none; /* Caché par défaut */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Fond sombre transparent */
+    z-index: 9999; /* Reste toujours au-dessus de tout le site */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px); /* Léger flou en arrière-plan */
+}
+
+
+/* Boîtier de la modale Trauma configuré en format géant ultra-large */
+.trauma-modal {
+    background: #0d0d14 !important;
+    border: 2px solid #ff4a4a !important; 
+    box-shadow: 0 0 35px rgba(255, 74, 74, 0.4) !important;
+    border-radius: 12px !important;
+    width: 96% !important;             /* Aligné sur la largeur totale disponible */
+    max-width: 1480px !important;      /* Largeur maximale identique à ton dashboard */
+    height: 85vh !important;           /* Hauteur optimale */
+    display: flex !important;
+    flex-direction: column !important;
+    color: #f0f0f0 !important;
+    overflow-y: auto !important;       
+    padding: 30px !important;          
+    box-sizing: border-box !important; /* Force le calcul exact des marges intérieures */
+}

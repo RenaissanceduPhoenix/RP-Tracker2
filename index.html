@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RP Tracker PRO - Renaissance du Phoenix</title>
-    <link rel="stylesheet" href="./CSS/Style.css?v=3.3">
+    <link rel="stylesheet" href="./CSS/Style.css?v=3.8">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="icon" type="image/ico" href="./CSS/Logo/Favicon-32.ico">
 </head>
@@ -109,7 +109,7 @@
     <script type="module" src="./JavaScript/FeaturesBonus/Tags.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js?v=2.3"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js?v=2.3"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=8.4"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=10"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js?v=2.2"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/RpHistorySummary.js?v=2.1"></script>
 
@@ -129,6 +129,37 @@
         <span class="chart-modal-close" onclick="closeCoWriteModal()">&times;</span>
         <h2 id="coWriteModalTitle" style="color: #a777e3; margin-top: 0;">🖋️ Salon de Co-Écriture</h2>
         
+            <div id="traumaExclusiveModal" class="exclusive-modal">
+        <div class="trauma-modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ff4a4a; padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 id="traumaModalStatus" style="margin: 0; color: #ff4a4a; font-size: 1.5rem;">⚡ Analyse de l'impact Physique & Mental</h2>
+                <button id="btnCloseTraumaExclusive" style="background: none; border: none; color: #ff4a4a; font-size: 1.8rem; cursor: pointer; font-weight: bold;">&times;</button>
+            </div>
+            
+            <div id="traumaModalLoading" style="display: none; text-align: center; padding: 30px; font-size: 1.2rem; color: #ffcc00;">
+                ⚡ Le Clan des Étoiles analyse les blessures...
+            </div>
+            
+            <div id="traumaModalContent" style="display: none; flex-direction: column; gap: 20px; flex: 1;">
+                <div style="display: flex; gap: 20px; flex: 1;">
+                    <div style="flex: 1; background: rgba(255,0,0,0.05); border: 1px solid rgba(255,74,74,0.2); padding: 15px; border-radius: 8px;">
+                        <h3 style="color: #ff6b6b; margin-top: 0; border-bottom: 1px solid rgba(255,107,107,0.2); padding-bottom: 5px;">🩸 Blessures Physiques</h3>
+                        <ul id="physicalWoundsList" class="wounds-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
+                    </div>
+                    <div style="flex: 1; background: rgba(167,119,227,0.05); border: 1px solid rgba(167,119,227,0.2); padding: 15px; border-radius: 8px;">
+                        <h3 style="color: #a777e3; margin-top: 0; border-bottom: 1px solid rgba(167,119,227,0.2); padding-bottom: 5px;">🧠 Séquelles Psychologiques</h3>
+                        <ul id="mentalTraumaList" class="trauma-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255,204,0,0.05); border: 1px solid rgba(255,204,0,0.2); padding: 15px; border-radius: 8px; margin-top: 25px;">
+                    <h3 style="color: #ffcc00; margin-top: 0; border-bottom: 1px solid rgba(255,204,0,0.2); padding-bottom: 5px;">🌿 Conseil du Guérisseur</h3>
+                    <p id="guerisseurText" class="healer-advice" style="margin: 10px 0 0 0; font-style: italic; line-height: 1.5; color: #e0e0e0;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
         <p style="margin: 0; color: #aaa; font-size: 0.85rem;">Historique du RP (Firestore) :</p>
         <div id="rpHistoryLog" style="background: #101015; border: 1px solid #2c2c35; border-radius: 6px; padding: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem;">
         </div>
@@ -277,6 +308,7 @@
                     <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">💾 Enregistrer au RP</button>
                     <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: 100%;">✨ Écrire avec l'IA</button>
                     <button type="button" onclick="window.relireLaScene()" style="background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">🎬 Relire la scène</button>
+                    <button id="btnDiagnosticTraumaSidebar" style="background:#ff4a4a; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold; white-space:nowrap;">🩸 Bilan Séquelles (IA)</button>
                 </div>
             </div>
             <div id="coWriteAiOutput" style="color: #aaa; font-size: 0.85rem; min-height: 40px;">

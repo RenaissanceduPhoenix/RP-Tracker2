@@ -4,6 +4,7 @@ import { db } from '../Firebase.js';
 import { limit, collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
 import { analyserSituationEtAppliquerMoods } from './MoodAnalyzer.js';
+import { analyserImpactPhysiqueEtMental } from './TraumaAnalyzer.js';
 
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
@@ -898,40 +899,26 @@ ${maFicheDetaillee}
 
         if (aiInstructionsElement) aiInstructionsElement.value = "";
 
-        // 9. RENDU HTML FINAL DU MESSAGE
         const textAiHTML = parseRP(textAi);
 
+                    // ============================================================================
+                    // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
+                    // ============================================================================
                     outputDiv.innerHTML = `
     <style>
-        .rp-dialogue {
-            margin: 12px 0;
-            padding-left: 12px;
-            border-left: 3px solid #dfb56c;
-            line-height: 1.4;
-        }
-        .rp-speech {
-            color: #dfb56c;
-            font-family: Georgia, serif;
-            font-size: 1.4rem !important;
-            font-style: normal;
-        }
-        .rp-incise {
-            font-weight: bold;
-            color: #ffffff;
-            font-family: Georgia, serif;
-            font-size: 1.4rem !important;
-            font-style: normal;
-        }
+        .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
+        .rp-speech { color: #dfb56c; font-family: Georgia, serif; font-size: 1.4rem !important; }
+        .rp-incise { font-weight: bold; color: #ffffff; font-family: Georgia, serif; font-size: 1.4rem !important; }
     </style>
 
     <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                 <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
-                <button id="btnAiReroll" onclick="window.executerReroll()" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:8px 15px; border-radius:4px; cursor:pointer; margin-left: 10px;">🎲 Reroll (Ambiance active)</button>
                 <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
-                <button type="button" id="btnOuvrirConsignes" style="background: #a777e3; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">📝 Rédiger les Consignes</button>
+                <button id="btnOuvrirConsignesMessage" style="background: #34495e; color: #fff; border: none; padding: 3px 6px; font-size: 0.7rem; border-radius: 3px; cursor: pointer; font-weight: bold;">📝 Rédiger les Consignes</button>
+                <button id="btnDiagnosticTrauma" style="background:#ff4a4a; color:white; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer; font-weight:bold;">🩸 Bilan Séquelles (IA)</button>
             </div>
         </div>
         <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
@@ -950,24 +937,96 @@ ${maFicheDetaillee}
     </div>
 `;
 
-                    document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
-                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
-                        if (exclusiveModal) exclusiveModal.style.display = "flex";
-                    });
+// ============================================================================
+    // GESTION DE LA MODALE EXCLUSIVE DE TRAUMATISMES (VERSION FINALE CORRIGÉE)
+    // ============================================================================
+    document.addEventListener("click", async function(e) {
+        // Détection du clic sur le bouton d'analyse dans la sidebar
+        const btnDiagnostic = e.target.closest("#btnDiagnosticTraumaSidebar");
+        
+        if (btnDiagnostic) {
+            e.preventDefault();
+            
+            // Étape A : Trouver la modale exclusive
+            const traumaModal = document.getElementById("traumaExclusiveModal");
+            if (!traumaModal) {
+                console.error("La modale #traumaExclusiveModal est introuvable dans la page HTML !");
+                return;
+            }
 
-                    document.getElementById("btnCloseExclusive").addEventListener("click", function() {
-                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
-                        if (exclusiveModal) exclusiveModal.style.display = "none";
-                    });
+            // Étape B : Forcer l'affichage avec flex
+            traumaModal.style.setProperty("display", "flex", "important");
+            
+            // Préparer les zones de chargement
+            const traumaLoading = document.getElementById("traumaModalLoading");
+            const traumaResultBody = document.getElementById("traumaModalContent");
 
-                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
-                        navigator.clipboard.writeText(textAi);
-                        this.innerText = "✓ Copié !";
-                    });
+            if (traumaLoading) {
+                traumaLoading.style.display = "block"; // Corrigé ici (plus de .style.style !)
+                traumaLoading.innerText = "⚡ Le Clan des Étoiles analyse les blessures...";
+            }
+            if (traumaResultBody) {
+                traumaResultBody.style.display = "none";
+            }
 
-                    document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
-                        if (e.target === this) this.style.display = "none";
-                    });
+            // Étape C : Récupérer le nom du personnage actif
+            const charName = window.currentActiveCharName || "ton personnage";
+
+            try {
+                // Lancer l'analyse de l'IA (TraumaAnalyzer.js)
+                const bilan = await analyserImpactPhysiqueEtMental(charName);
+
+                if (traumaLoading) traumaLoading.style.display = "none";
+
+                if (bilan) {
+                    const statusEl = document.getElementById("traumaModalStatus");
+                    const physicalEl = document.getElementById("physicalWoundsList");
+                    const mentalEl = document.getElementById("mentalTraumaList");
+                    const guerisseurEl = document.getElementById("guerisseurText");
+
+                    if (statusEl) statusEl.innerText = `Bilan actuel pour : ${charName} (${bilan.statutGeneral})`;
+                    if (physicalEl) physicalEl.innerHTML = bilan.blessuresPhysiques.map(w => `<li>${w}</li>`).join("");
+                    if (mentalEl) mentalEl.innerHTML = bilan.traumatismesMentaux.map(t => `<li>${t}</li>`).join("");
+                    if (guerisseurEl) guerisseurEl.innerText = bilan.conseilGuerisseur;
+                    
+                    if (traumaResultBody) traumaResultBody.style.display = "block";
+                } else {
+                    if (traumaLoading) {
+                        traumaLoading.style.display = "block";
+                        traumaLoading.innerText = "❌ L'historique du RP semble vide ou indisponible pour ce personnage.";
+                    }
+                }
+            } catch (err) {
+                console.error("Erreur IA Trauma :", err);
+                if (traumaLoading) {
+                    traumaLoading.style.display = "block";
+                    traumaLoading.innerText = "❌ Erreur technique lors de l'analyse.";
+                }
+            }
+        }
+    });
+
+    // Gestion de la fermeture en cliquant à côté ou sur le bouton fermer
+    document.addEventListener("click", function(e) {
+        const traumaModal = document.getElementById("traumaExclusiveModal");
+        if (!traumaModal) return;
+
+        // Si clic sur la croix ou en dehors du cadre
+        if (e.target.closest("#btnCloseTraumaExclusive") || e.target === traumaModal) {
+            traumaModal.style.setProperty("display", "none", "important");
+        }
+    });
+
+    // Gestion de la fermeture en cliquant à côté ou sur le bouton fermer
+    document.addEventListener("click", function(e) {
+        const traumaModal = document.getElementById("traumaExclusiveModal");
+        if (!traumaModal) return;
+
+        // Si clic sur la croix ou en dehors du cadre
+        if (e.target.closest("#btnCloseTraumaExclusive") || e.target === traumaModal) {
+            traumaModal.style.setProperty("display", "none", "important");
+        }
+    });
                 }
             } catch (err) { 
                 console.error("❌ Erreur de transmission API Mistral :", err);
@@ -1366,3 +1425,98 @@ window.relireLaScene = async function() {
         if (outputDiv) outputDiv.innerHTML = "❌ Erreur lors de la génération du résumé de scène.";
     }
 };
+
+// ============================================================================
+// PATCH DE SECOURS ISOLÉ POUR LA MODALE DE TRAUMATISMES (VERSION AVEC ID FIXES)
+// ============================================================================
+(function() {
+    document.addEventListener("click", async function(e) {
+        const btn = e.target.closest("#btnDiagnosticTraumaSidebar");
+        if (!btn) return; 
+        
+        e.preventDefault();
+
+        // --- DEFINITION DES CONSTANTES PAR ID EN HAUT DU PATCH ---
+        const modal = document.getElementById("traumaExclusiveModal");
+        const loading = document.getElementById("traumaModalLoading");
+        const content = document.getElementById("traumaModalContent");
+        
+        const statusEl = document.getElementById("traumaModalStatus");
+        const physicalEl = document.getElementById("physicalWoundsList");
+        const mentalEl = document.getElementById("mentalTraumaList");
+        const guerisseurEl = document.getElementById("guerisseurText");
+
+        if (!modal) {
+            console.error("❌ Erreur critique : #traumaExclusiveModal introuvable.");
+            return;
+        }
+
+        // Ouvrir la modale
+        modal.style.setProperty("display", "flex", "important");
+
+        if (loading) {
+            loading.style.setProperty("display", "block", "important");
+            loading.innerText = "⚡ Le Clan des Étoiles consulte les souvenirs de la scène...";
+        }
+        if (content) content.style.setProperty("display", "none", "important");
+
+        const charName = window.currentActiveCharName || "ton personnage";
+
+        try {
+            if (typeof analyserImpactPhysiqueEtMental === "function") {
+                const bilan = await analyserImpactPhysiqueEtMental(charName);
+                
+                if (loading) loading.style.setProperty("display", "none", "important");
+
+                if (bilan) {
+                    // Injection dans les ID déclarés en haut
+                    if (statusEl) statusEl.innerText = `⚡ Bilan actuel pour : ${charName} (${bilan.statutGeneral || 'État stable'})`;
+                    
+                    if (physicalEl) {
+                        physicalEl.innerHTML = (bilan.blessuresPhysiques && bilan.blessuresPhysiques.length > 0)
+                            ? bilan.blessuresPhysiques.map(w => `<li style="margin-bottom:8px; font-size:1.1rem; color:#f0f0f0;">${w}</li>`).join("")
+                            : `<li style="color:#aaa;">Aucune blessure physique apparente détectée.</li>`;
+                    }
+                    
+                    if (mentalEl) {
+                        mentalEl.innerHTML = (bilan.traumatismesMentaux && bilan.traumatismesMentaux.length > 0)
+                            ? bilan.traumatismesMentaux.map(t => `<li style="margin-bottom:8px; font-size:1.1rem; color:#f0f0f0;">${t}</li>`).join("")
+                            : `<li style="color:#aaa;">Esprit serein. Aucun traumatisme psychologique à signaler.</li>`;
+                    }
+                    
+                    if (guerisseurEl) {
+                        guerisseurEl.innerText = bilan.conseilGuerisseur || "Prendre du repos et rester au chaud dans la tanière.";
+                    }
+                    
+                    if (content) content.style.setProperty("display", "block", "important");
+                } else {
+                    if (loading) {
+                        loading.style.setProperty("display", "block", "important");
+                        loading.innerText = "❌ L'analyse a échoué. L'historique du RP est peut-être indisponible.";
+                    }
+                }
+            } else {
+                if (loading) {
+                    loading.style.setProperty("display", "block", "important");
+                    loading.innerText = "❌ Erreur : Le fichier TraumaAnalyzer.js n'est pas détecté.";
+                }
+            }
+        } catch (err) {
+            console.error("Erreur durant l'analyse :", err);
+            if (loading) {
+                loading.style.setProperty("display", "block", "important");
+                loading.innerText = "❌ Une erreur est survenue avec l'IA.";
+            }
+        }
+    });
+
+    // Fermeture de la modale
+    document.addEventListener("click", function(e) {
+        const modal = document.getElementById("traumaExclusiveModal");
+        if (!modal) return;
+
+        if (e.target.closest("#btnCloseTraumaExclusive") || e.target === modal) {
+            modal.style.setProperty("display", "none", "important");
+        }
+    });
+})();
