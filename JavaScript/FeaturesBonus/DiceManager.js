@@ -1,9 +1,54 @@
+
+
+
+// =========================================================================
+// ⚖️ STRUCTURE D'ÉVALUATION DU SCORE FINAL (SUR 50)
+// =========================================================================
+export function evaluerResultatSocial50(scoreTotal) {
+    if (scoreTotal <= 15) {
+        return { texte: "Échec Critique 💀", couleur: "#ff3333", description: "L'action se retourne violemment contre le chat." };
+    } else if (scoreTotal <= 28) {
+        return { texte: "Échec Standard ❌", couleur: "#ff6666", description: "L'action échoue et crée un froid ou un quiproquo." };
+    } else if (scoreTotal <= 38) {
+        return { texte: "Réussite Partielle ⚖️", couleur: "#ffcc00", description: "Succès mitigé, l'interlocuteur accepte mais demande une contrepartie." };
+    } else if (scoreTotal <= 47) {
+        return { texte: "Réussite Standard 🎉", couleur: "#33cc33", description: "L'action est un succès complet et fluide." };
+    } else {
+        return { texte: "Réussite Critique 🌟", couleur: "#00ffff", description: "Succès légendaire, la cible est totalement subjuguée ou acquise à votre cause." };
+    }
+}
+
+
+
+
+// Rattachement global pour l'interface
+window.declencherJetSocialDirect = function(idAction) {
+    const nomChatActif = window.currentActiveCharName || document.getElementById("char_sent")?.value;
+    if (!nomChatActif) {
+        alert("⚠️ Choisis d'abord un personnage !");
+        return;
+    }
+
+    // Extraction sécurisée des traits depuis la base globale s'ils existent
+    const chatTraits = window.fichesPersonnagesJDR?.[nomChatActif]?.traits || {};
+    const rapport = executerLancerSocialPrecalcul(chatTraits, idAction);
+
+    if (rapport) {
+        alert(`🎲 Jet de ${rapport.nomAction} pour ${nomChatActif} :\n\n` +
+              `• Résultat du Dé (D20) : ${rapport.de}\n` +
+              `• Modificateur Psychologique : +${rapport.bonus}\n` +
+              `• SCORE TOTAL : ${rapport.total} / 50\n\n` +
+              `➔ VERDICT : ${rapport.verdict.texte}`);
+    }
+};
+
 /**
  * DiceManager.js - Moteur de gestion et d'affichage des lancers de dés (Formule : D30 + 4 + SA)
  */
 
 import { db } from '../Firebase.js'; 
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { dictionnaireActionsSociales, dictionnaireSynonymesCaractere, fichesPersonnagesJDR, executerLancerSocialPrecalcul } from './TraitsDictionnaire.js';
 
 // ============================================================================
 // ⚠️ VARIABLES GLOBALES DE SESSION POUR LES DÉS
@@ -44,17 +89,51 @@ export const dictionnaireActionsErER = {
 /**
  * Détermine la classe de réussite cloisonnée (Échelle ErER de 1 à 50)
  */
-export function determinerClasseReussite(total) {
-    if (total >= 1 && total <= 10) {
-        return { id: "echec_critique", texte: "❌ Raté Critique (1)", niveau: 1, couleur: "#ff4a4a", description: "Échec critique : l'action échoue totalement." };
-    } else if (total >= 11 && total <= 20) {
-        return { id: "echec_simple", texte: "🍁 Raté Classique (2)", niveau: 2, couleur: "#ff9f43", description: "Échec simple : l'action est évitée." };
+
+export function determinerClasseReussite(total, lancerDe) {
+    // 🛑 1. INTERCEPTION STRICTE DES DÉS IMPOSÉS (Les 7 dés truqués)
+    if (lancerDe === 1) {
+        return { 
+            texte: "Échec Critique 💀", 
+            couleur: "#ff4a4a", 
+            description: "Un désastre total, l'action échoue lamentablement !", 
+            code: 1 
+        };
+    }
+    if (lancerDe === 12) {
+        return { 
+            texte: "Réussite Partielle ⚖️", 
+            couleur: "#ffcc00", 
+            description: "L'action est accomplie de manière standard.", 
+            code: 3 
+        };
+    }
+    if (lancerDe === 30) {
+        return { 
+            texte: "Réussite Critique ⭐", 
+            couleur: "#ffcc00", 
+            description: "Un exploit légendaire et spectaculaire !", 
+            code: 6 // Code 6 pour ta réussite critique !
+        };
+    }
+
+    // 🎲 2. BAREME PAR DÉFAUT POUR LE HASARD (Les 7 dés normaux calculés via le Total)
+    // S'ajuste automatiquement selon le score total (D30 + 4 + SA)
+    if (total <= 10) {
+        return { 
+            texte: "Échec Critique 💀", 
+            niveau: 1,
+            couleur: "#ff3333", 
+            description: "Un désastre total, l'action échoue lamentablement !", 
+        };
+} else if (total >= 11 && total <= 20) {
+        return { id: "echec_simple", texte: "Échec Standard ❌", niveau: 2, couleur: "#ff6666", description: "Échec simple : l'action est évitée." };
     } else if (total >= 21 && total <= 30) {
-        return { id: "reussite_classique", texte: "🌿 Réussite Classique (3)", niveau: 3, couleur: "#1dd1a1", description: "Attaque/action réussie modérément." };
+        return { id: "reussite_classique", texte: "Réussite Partielle ⚖️", niveau: 3, couleur: "#ffcc00", description: "L'action est accomplie de manière standard." };
     } else if (total >= 31 && total <= 40) {
-        return { id: "tres_bonne_reussite", texte: "🔥 Très Bonne Réussite (4)", niveau: 4, couleur: "#10ac84", description: "Inflige de grosses douleurs." };
+        return { id: "tres_bonne_reussite", texte: "Très Bonne Réussite 🔥", niveau: 4, couleur: "#33cc33", description: "Inflige de grosses douleurs." };
     } else {
-        return { id: "reussite_critique", texte: "⭐ Réussite Critique (6)", niveau: 6, couleur: "#feca57", description: "Réussite critique : exploit violent." };
+        return { id: "reussite_critique", texte: "Réussite Critique 🌟", niveau: 6, couleur: "#00ffff", description: "Un exploit légendaire et spectaculaire !" };
     }
 }
 
@@ -63,8 +142,7 @@ export function determinerClasseReussite(total) {
  */
 // 🎲 1. Ta fonction synchrone d'origine (Requise en interne par preparerEtInitialiserZoneDes)
 // 🎲 La fonction de calcul pure (synchrone, ultra rapide)
-export function executerLancerDesErER(charName, idAction) {
-    // 🛠️ Nettoyage de la chaîne pour ignorer les problèmes d'accents majuscules (Étincelle vs Etincelle)
+export function executerLancerDesErER(charName, idAction, deForce = null) {
     let cleanName = charName;
     if (charName === "Etincelle de Vie") cleanName = "Étincelle de Vie";
 
@@ -73,14 +151,15 @@ export function executerLancerDesErER(charName, idAction) {
 
     if (!actionConfig) return null;
 
-    // Si le personnage n'a pas de fiches de stats, on met 0 par défaut partout pour ne pas bloquer Firebase
     const valA = chatStats ? (chatStats[actionConfig.statA] || 0) : 0;
     const valB = chatStats ? (chatStats[actionConfig.statB] || 0) : 0;
     const scoreAction = valA + valB;
 
-    const resultatD30 = Math.floor(Math.random() * 30) + 1;
-    const grandTotal = resultatD30 + 4 + scoreAction;
-    const verdict = determinerClasseReussite(grandTotal);
+    // 🎲 Si un dé est imposé, on le prend, sinon on lance un D30 classique
+    const resultatD30 = deForce !== null ? deForce : (Math.floor(Math.random() * 30) + 1);
+    // Dans executerLancerDesErER, vérifie bien cette ligne :
+const grandTotal = resultatD30 + 4 + scoreAction;
+const verdict = determinerClasseReussite(grandTotal, resultatD30); // 👈 On passe bien les deux !
 
     const resultat = {
         nomDuChat: charName,
@@ -102,7 +181,6 @@ export function executerLancerDesErER(charName, idAction) {
 
     return resultat;
 }
-
 // 💾 2. La fonction Maîtresse asynchrone pour Firebase (Appelée par AICoachs.js)
 export async function executerEtSauvegarderActionFirebase(charName, idAction, rpId, estCoche) {
     // On force un nouveau calcul propre via la fonction d'origine
@@ -230,29 +308,32 @@ export async function preparerEtInitialiserZoneDes(charName, currentRpId) {
         };
 
         ligneAction.onclick = () => {
-            const idx = actionsSelectionneesPourIA.indexOf(idAction);
-            const indicator = ligneAction.querySelector(".status-indicator");
+    const idx = actionsSelectionneesPourIA.indexOf(idAction);
+    const indicator = ligneAction.querySelector(".status-indicator");
 
-            if (idx === -1) {
-                actionsSelectionneesPourIA.push(idAction);
-                ligneAction.style.color = "#ffcc00";
-                ligneAction.style.background = "rgba(255, 204, 0, 0.08)";
-                if (indicator) {
-                    indicator.innerText = "[ COCHÉ ]";
-                    indicator.style.color = "#ffcc00";
-                }
-            } else {
-                actionsSelectionneesPourIA.splice(idx, 1);
-                ligneAction.style.color = "#b0b0b8";
-                ligneAction.style.background = "rgba(255, 255, 255, 0.01)";
-                if (indicator) {
-                    indicator.innerText = "[ ]";
-                    indicator.style.color = "#444a5a";
-                }
-            }
+    if (idx === -1) {
+        actionsSelectionneesPourIA.push(idAction);
+        ligneAction.style.color = "#ffcc00";
+        ligneAction.style.background = "rgba(255, 204, 0, 0.08)";
+        if (indicator) {
+            indicator.innerText = "[ COCHÉ ]";
+            indicator.style.color = "#ffcc00";
+        }
+    } else {
+        actionsSelectionneesPourIA.splice(idx, 1);
+        ligneAction.style.color = "#b0b0b8";
+        ligneAction.style.background = "rgba(255, 255, 255, 0.01)";
+        if (indicator) {
+            indicator.innerText = "[ ]";
+            indicator.style.color = "#444a5a";
+        }
+    }
 
-            rafraichirAffichageResultatsCumules();
-        };
+    // ✅ Correction : On appelle la bonne fonction globale avec les bons IDs
+    if (typeof window.mettreAJourAffichageDesPourIA === "function") {
+        window.mettreAJourAffichageDesPourIA(actionsSelectionneesPourIA);
+    }
+};
 
         listeEl.appendChild(ligneAction);
     }
@@ -263,36 +344,65 @@ export async function preparerEtInitialiserZoneDes(charName, currentRpId) {
  */
 // 🌟 Rendre la fonction accessible à la modale AICoachs
 // 🌟 Fonction unifiée et accessible pour mettre à jour l'affichage des résultats en bas
-window.mettreAJourAffichageDesPourIA = function() {
-    const resultZone = document.getElementById("diceResultZone"); 
-    if (!resultZone) return;
+window.mettreAJourAffichageDesPourIA = function(selectedIds) {
+    if (!selectedIds) return;
 
-    // On récupère les IDs actuellement cochés par l'utilisateur
-    const selectedIds = window.getActionsSelectionneesPourIA || [];
-
-    if (selectedIds.length === 0) {
-        resultZone.innerHTML = `<span style="color: #666; font-style: italic;">Aucune action sélectionnée pour ce tour.</span>`;
-        return;
-    }
+    const resultZone = document.getElementById("diceResultZone");
+    if (!resultZone) return; 
 
     let htmlContenu = `<div style="width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; font-size: 0.85rem;">`;
     htmlContenu += `<strong style="color: #ffcc00; border-bottom: 1px dashed rgba(255,204,0,0.2); padding-bottom: 4px; margin-bottom: 4px; display: block;">🎯 Actions sélectionnées pour l'IA (${selectedIds.length}) :</strong>`;
 
     selectedIds.forEach(idAction => {
-        // On pioche directement dans l'objet des résultats calculés à l'ouverture
-        const res = resultatsPreCalcules[idAction];
+        if (!idAction) return;
+        
+        const cleanId = idAction.trim().toLowerCase();
+        let res = window.resultatsPreCalcules?.[idAction] || window.resultatsPreCalcules?.[cleanId];
+
         if (!res) return;
 
+        // Détection du type d'action
+        const estSocial = ["persuasion", "bluff", "protection_sociale", "education", "apprentissage"].includes(cleanId) || res.estSocial;
+
+        // 🔄 HARMONISATION STRICTE DES VARIABLES
+        const nomActionAffichee = res.nomAction || res.nom || idAction;
+        
+        // Extraction du dé (gère 'de' et 'lancerDe')
+        const valeurDe = res.de !== undefined ? res.de : (res.lancerDe !== undefined ? res.lancerDe : 0);
+        
+        // Extraction du bonus (gère 'bonus' et 'sa')
+        const valeurBonus = res.bonus !== undefined ? res.bonus : (res.sa !== undefined ? res.sa : 0);
+        
+        const texteDe = estSocial ? "D20" : "D30";
+        const texteBonus = estSocial ? "Psy" : "SA";
+
+        // Extraction du verdict de manière ultra-sécurisée
+        let vTexte = "Calculé";
+        let vCouleur = "#aaa";
+        let vDescription = "";
+
+        if (res.verdict) {
+            if (typeof res.verdict === "object") {
+                vTexte = res.verdict.texte || "Calculé";
+                vCouleur = res.verdict.couleur || "#aaa";
+                vDescription = res.verdict.description || "";
+            } else if (typeof res.verdict === "string") {
+                vTexte = res.verdict;
+                vCouleur = res.verdictCouleur || "#aaa";
+                vDescription = res.verdictDescription || "";
+            }
+        }
+
         htmlContenu += `
-            <div style="background: rgba(0,0,0,0.15); border-left: 3px solid ${res.verdict.couleur}; padding: 5px 8px; border-radius: 4px; margin-bottom: 2px;">
+            <div style="background: rgba(0,0,0,0.15); border-left: 3px solid ${vCouleur}; padding: 5px 8px; border-radius: 4px; margin-bottom: 2px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; color: #fff;">${res.nomAction}</span>
-                    <span style="font-weight: bold; color: ${res.verdict.couleur}; font-size: 0.8rem;">
-                        Total : ${res.total} (${res.verdict.texte})
+                    <span style="font-weight: bold; color: #fff;">${nomActionAffichee}</span>
+                    <span style="font-weight: bold; color: ${vCouleur}; font-size: 0.8rem;">
+                        Total : ${res.total || 0} (${vTexte})
                     </span>
                 </div>
                 <small style="color: #a0a0aa; font-style: italic; display: block; margin-top: 1px;">
-                    ${res.verdict.description} <span style="color:#555a65;">(D30: ${res.lancerDe} + SA: +${res.sa})</span>
+                    ${vDescription} <span style="color:#a777e3;">(Jet : ${texteDe}[${valeurDe}] + ${texteBonus}[${valeurBonus}])</span>
                 </small>
             </div>
         `;

@@ -6,7 +6,8 @@ import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Mark
 import { analyserSituationEtAppliquerMoods } from './MoodAnalyzer.js';
 import { analyserImpactPhysiqueEtMental } from './TraumaAnalyzer.js';
 // 🔄 Remplacer l'ancienne ligne par celle-ci :
-import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER } from './DiceManager.js';
+import { fichesPersonnagesJDR, dictionnaireActionsSociales, executerLancerSocialPrecalcul } from './TraitsDictionnaire.js';
+import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER} from './DiceManager.js';
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
@@ -117,15 +118,16 @@ window.openCoWriteModal = async function(rpId, charName) {
 
 // Tout en bas de la fonction openCoWriteModal, juste avant l'accolade de fermeture :
 // 🎲 Étape 1 : Nettoyage et initialisation de base synchrone
-// 🎲 Étape 1 : Nettoyage et initialisation synchrone
+// 🎲 Étape 1 : Initialisation synchrone
     if (typeof preparerEtInitialiserZoneDes === "function") {
         preparerEtInitialiserZoneDes();
     }
 
-    // 🔥 Étape 2 : Verrouillage strict de l'affichage
+    // 🔥 Étape 2 : Construction de la répartition 7 truqués / 7 normaux
     const diceContainer = document.getElementById("diceActionsList");
     if (diceContainer && typeof dictionnaireActionsErER === "object") {
-        diceContainer.innerHTML = "<div id='diceLoader' style='color: #a777e3; font-style: italic; padding: 10px; font-size: 0.85rem;'>🎲 Calcul et synchronisation des lancers sur Firebase...</div>";
+        // On vide d'abord complètement le conteneur pour éviter les doublons
+        diceContainer.innerHTML = "";
         
         window.getActionsSelectionneesPourIA = [];
 
@@ -133,110 +135,193 @@ window.openCoWriteModal = async function(rpId, charName) {
         const activeCharName = window.currentActiveCharName || charName;
         const listeIdActions = Object.keys(dictionnaireActionsErER);
 
-        console.log("🚀 [Étape A] Début de la synchronisation obligatoire pour :", activeCharName);
+        console.log("--------------------------------------------------");
+        console.log("🚀 [DÉBUT SYNCHRO] Personnage :", activeCharName, " | RP ID :", activeRpId);
+
+        // 🎯 1. Préparation des 6 premiers dés imposés
+        let paquetDeDes = [
+            1, 1,   // 2 Échecs Critiques (Classe 1)
+            12, 12, // 2 Réussites Classiques (Classe 3)
+            30, 30  // 2 Réussites Critiques (Classe 4)
+        ];
+
+        // 🎯 2. Ajout du 7ème dé mystère choisi au hasard parmi les trois classes (1, 12 ou 30)
+        const choixPossibles = [1, 12, 30];
+        const deMystere = choixPossibles[Math.floor(Math.random() * choixPossibles.length)];
+        paquetDeDes.push(deMystere);
+        console.log("🎲 [Config] Dé mystère sélectionné pour le paquet :", deMystere);
+
+        // 🎯 3. Les 7 autres actions restent totalement normales (on met null)
+        while (paquetDeDes.length < 14) {
+            paquetDeDes.push(null);
+        }
+
+        // 🔄 4. Mélange du paquet (Fisher-Yates)
+        for (let i = paquetDeDes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [paquetDeDes[i], paquetDeDes[j]] = [paquetDeDes[j], paquetDeDes[i]];
+        }
+
+        console.log("📦 [Config] Paquet de dés mélangé et prêt à être distribué :", paquetDeDes);
+        console.log("--------------------------------------------------");
 
         try {
-            // Utilisation d'une boucle synchrone linéaire directe attendue par la modale
-            for (const idAction of listeIdActions) {
+            // --- ⚙️ VARIABLE GLOBALE VITALE POUR L'AFFICHAGE ---
+            window.resultatsPreCalcules = window.resultatsPreCalcules || {};
+
+            // ====================================================================
+            // ⚔️ ÉTAPE A.1 : CALCUL ET FIREBASE DES ACTIONS PHYSIQUES
+            // ====================================================================
+            for (let index = 0; index < listeIdActions.length; index++) {
+                const idAction = listeIdActions[index];
                 const action = dictionnaireActionsErER[idAction];
+                const deForce = paquetDeDes[index];
                 
                 let res = null;
                 if (typeof executerLancerDesErER === "function") {
-                    res = executerLancerDesErER(activeCharName, idAction);
+                    res = executerLancerDesErER(activeCharName, idAction, deForce);
+                    window.resultatsPreCalcules[idAction] = res; // On stocke pour l'affichage live
                 }
 
                 if (activeRpId && res) {
                     const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
-                    
-                    // L'exécution attend obligatoirement que Firebase réponde avant de passer à l'action suivante
                     await setDoc(actionDocRef, {
-                        actionId: idAction,
-                        nom: action.nom,
-                        actif: false,
-                        total: Number(res.total) || 0,
-                        lancerDe: Number(res.lancerDe) || 0,
-                        sa: Number(res.sa) || 0,
+                        actionId: idAction, nom: action.nom, actif: false,
+                        total: Number(res.total) || 0, lancerDe: Number(res.lancerDe) || 0, sa: Number(res.sa) || 0,
                         verdictTexte: res.verdict ? res.verdict.texte : "Inconnu",
                         verdictCouleur: res.verdict ? res.verdict.couleur : "#aaa",
                         verdictDescription: res.verdict ? res.verdict.description : "",
                         timestamp: new Date()
                     }, { merge: true });
-
-                    console.log(`🚀 [Firestore] Document '${idAction}' synchronisé.`);
                 }
             }
 
-            console.log("🚀 [Étape B] Firebase est à jour à 100%. Injection des boutons graphiques.");
-            
-            // Nettoyage du loader
-            diceContainer.innerHTML = "";
+            // ====================================================================
+            // 🎭 ÉTAPE A.2 : CALCUL ET FIREBASE DES ACTIONS SOCIALES
+            // ====================================================================
+            const listeIdSociales = Object.keys(dictionnaireActionsSociales || {}).filter(id => id !== "qualites" && id !== "defauts");
+            const chatTraits = window.fichesPersonnagesJDR?.[activeCharName]?.traits || {};
 
-            // Génération des boutons
-            listeIdActions.forEach(idAction => {
-                const action = dictionnaireActionsErER[idAction];
+            for (const idAction of listeIdSociales) {
+                const action = dictionnaireActionsSociales[idAction];
+                if (!action || !action.nom) continue; 
                 
+                let res = null;
+                if (typeof executerLancerSocialPrecalcul === "function") {
+                    res = executerLancerSocialPrecalcul(chatTraits, idAction);
+                    window.resultatsPreCalcules[idAction] = res;
+                }
+
+                if (activeRpId && res) {
+                    const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
+                    await setDoc(actionDocRef, {
+                        actionId: idAction, 
+                        nom: action.nom,
+                        actif: false,
+                        total: Number(res.total) || 0, 
+                        lancerDe: Number(res.de) || 0, 
+                        sa: Number(res.bonus) || 0,    
+                        verdictTexte: res.verdict ? res.verdict.texte : "Inconnu",
+                        verdictCouleur: res.verdict ? res.verdict.couleur : "#aaa",
+                        verdictDescription: res.verdict ? res.verdict.description : "",
+                        timestamp: new Date(),
+                        estSocial: true
+                    }, { merge: true });
+                }
+            }
+
+            // ====================================================================
+            // 🎨 ÉTAPE B : CRÉATION DES BOUTONS GRAPHIQUES (UI)
+            // ====================================================================
+            
+            // Fonction utilitaire pour générer un bouton graphique
+            const creerBoutonAction = (idAction, actionData, couleurTheme) => {
                 const divAction = document.createElement("div");
                 divAction.style.cssText = "padding: 8px 10px; margin: 5px 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #b0b0b8; transition: all 0.2s ease;";
                 divAction.setAttribute("data-action-id", idAction);
                 
                 divAction.innerHTML = `
-                    <span style="font-weight: 500;">${action.nom}</span>
+                    <span style="font-weight: 500;">${actionData.nom}</span>
                     <span class="status-indicator" style="font-family: monospace; color: #444a5a; font-weight: bold;">[ ]</span>
                 `;
                 
                 divAction.addEventListener("click", async () => {
                     const indicator = divAction.querySelector(".status-indicator");
-                    const index = window.getActionsSelectionneesPourIA.indexOf(idAction);
+                    const indexCoche = window.getActionsSelectionneesPourIA.indexOf(idAction);
                     let estCoche = false;
 
-                    if (index === -1) {
+                    if (indexCoche === -1) {
                         window.getActionsSelectionneesPourIA.push(idAction);
                         estCoche = true;
-                        
-                        divAction.style.background = "rgba(167, 119, 227, 0.15)";
-                        divAction.style.borderColor = "#a777e3";
+                        divAction.style.background = `rgba(${couleurTheme}, 0.15)`; // ✅ Corrigé : couleurTheme
+                        divAction.style.borderColor = `rgb(${couleurTheme})`;
                         divAction.style.color = "#fff";
-                        if (indicator) {
-                            indicator.innerText = "[ COCHÉ ]";
-                            indicator.style.color = "#a777e3";
+                        if (indicator) { 
+                            indicator.innerText = "[ COCHÉ ]"; 
+                            indicator.style.color = `rgb(${couleurTheme})`; 
                         }
                     } else {
-                        window.getActionsSelectionneesPourIA.splice(index, 1);
+                        window.getActionsSelectionneesPourIA.splice(indexCoche, 1);
                         estCoche = false;
-
                         divAction.style.background = "rgba(255,255,255,0.03)";
                         divAction.style.borderColor = "rgba(255,255,255,0.05)";
                         divAction.style.color = "#b0b0b8";
-                        if (indicator) {
-                            indicator.innerText = "[ ]";
-                            indicator.style.color = "#444a5a";
+                        if (indicator) { 
+                            indicator.innerText = "[ ]"; 
+                            indicator.style.color = "#444a5a"; 
                         }
                     }
 
                     if (activeRpId) {
-                        try {
-                            const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
-                            await setDoc(actionDocRef, { actif: estCoche }, { merge: true });
-                        } catch (fsErr) {
-                            console.error("❌ Erreur de mise à jour du flag actif :", fsErr);
-                        }
+                        const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
+                        await setDoc(actionDocRef, { actif: estCoche }, { merge: true });
                     }
 
                     if (typeof window.mettreAJourAffichageDesPourIA === "function") {
-                        window.mettreAJourAffichageDesPourIA();
+                        window.mettreAJourAffichageDesPourIA(window.getActionsSelectionneesPourIA);
                     }
                 });
-                
-                diceContainer.appendChild(divAction);
+                return divAction;
+            };
+
+            // ✅ NETTOYAGE DU LOADER AVANT INJECTION DES BOUTONS
+            diceContainer.innerHTML = "";
+
+            // 1. Injection des boutons Physiques (Jaune)
+            const titrePhysique = document.createElement("div");
+            titrePhysique.innerHTML = `<strong style="color:#ffcc00; font-size:0.85rem; margin-top:5px; display:block;">⚔️ Actions Physiques :</strong>`;
+            diceContainer.appendChild(titrePhysique);
+            listeIdActions.forEach(id => {
+                if (dictionnaireActionsErER[id]) {
+                    diceContainer.appendChild(creerBoutonAction(id, dictionnaireActionsErER[id], "255, 204, 0"));
+                }
+            });
+
+            // 2. Injection des boutons Sociaux (Violet)
+            const titreSocial = document.createElement("div");
+            titreSocial.innerHTML = `<strong style="color:#a777e3; font-size:0.85rem; margin-top:15px; display:block;">🎭 Actions Sociales (Sur 50) :</strong>`;
+            diceContainer.appendChild(titreSocial);
+            listeIdSociales.forEach(id => {
+                if (dictionnaireActionsSociales[id]) {
+                    diceContainer.appendChild(creerBoutonAction(id, dictionnaireActionsSociales[id], "167, 119, 227"));
+                }
             });
 
         } catch (err) {
-            console.error("❌ Erreur critique lors de la boucle synchrone :", err);
-            diceContainer.innerHTML = "<div style='color: #ff4a4a; padding: 10px;'>❌ Impossible de synchroniser les documents avec Firebase.</div>";
+            console.error("❌ Erreur critique d'initialisation :", err);
+            diceContainer.innerHTML = "<div style='color: #ff4a4a; padding: 10px;'>❌ Impossible d'initialiser le paquet de dés contrôlé.</div>";
         }
     }
-};
 
+    // 🔄 Forcer l'affichage immédiat des dés physiques et sociaux calculés à l'ouverture de la modale
+    setTimeout(() => {
+        const boutonsCoches = Array.from(document.querySelectorAll('.btn-action-des.selected, .btn-action-sociale.selected'))
+            .map(btn => btn.getAttribute('data-id') || btn.id);
+        if (boutonsCoches.length > 0 && typeof window.mettreAJourAffichageDesPourIA === 'function') {
+            window.mettreAJourAffichageDesPourIA(boutonsCoches);
+        }
+    }, 150);
+};
 /**
  * ============================================================================
  * 2. FONCTION : FERMETURE DE LA MODALE
