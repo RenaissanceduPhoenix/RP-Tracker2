@@ -27,70 +27,74 @@ let dernierPromptJoueur = ""; // Sauvegarde le message ou contexte du joueur
 window.openCoWriteModal = async function(rpId, charName) {
     window.currentActiveRpId = rpId;
     window.currentActiveCharName = charName;
-    
+   
     const modal = document.getElementById("coWriteModal");
     const title = document.getElementById("coWriteModalTitle");
     const historyLog = document.getElementById("rpHistoryLog");
-    const senderSelect = document.getElementById("coWriteSenderName")
-    
+    const senderSelect = document.getElementById("coWriteSenderName");
+   
     if (!modal) return;
-    
+   
     modal.style.display = "flex";
-    title.innerText = `🖋️ Co-Écriture : ${charName}`;
-    if (historyLog) historyLog.innerHTML = "<p style='color:#888; text-align:center;'>Chargement de l'historique du RP...</p>";
+    if (title) {
+        title.innerText = `🖋️ Co-Écriture : ${charName}`;
+    }
+    if (historyLog) {
+        historyLog.innerHTML = "<p style='color:#888; text-align:center;'>Chargement de l'historique du RP...</p>";
+    }
 
-    // 🧼 RESET TOTAL ET SÉCURISÉ : Supprime la classe active de TOUS les boutons de moods
+    // 🧼 RESET TOTAL ET SÉCURISÉ
     document.querySelectorAll(".mood-btn").forEach(btn => {
         btn.classList.remove("active");
     });
 
     // 👁️ GESTION DU PANNEAU PLIABLE
-    const btnToggle = document.getElementById("btnToggleMoods");
-    const contentMoods = document.getElementById("moodSelectorContent");
-    
-    if (btnToggle && contentMoods) {
-        contentMoods.style.display = "none"; 
-        btnToggle.innerText = "👁️ Afficher les Moods";
-        
-        btnToggle.onclick = function(e) {
+    const btnToggleConfig = document.getElementById("btnToggleConfigGlobal");
+    const configGlobalContent = document.getElementById("configGlobalContent");
+
+    if (btnToggleConfig && configGlobalContent) {
+        configGlobalContent.style.display = "none";
+        btnToggleConfig.innerText = "⚙️ Afficher la Configuration des dés et des émotions";
+        btnToggleConfig.style.background = "rgba(167, 119, 227, 0.1)";
+
+        btnToggleConfig.onclick = function(e) {
             e.preventDefault();
-            if (contentMoods.style.display === "none") {
-                contentMoods.style.display = "flex";
-                btnToggle.innerText = "🙈 Masquer les Moods";
+            if (configGlobalContent.style.display === "none" || configGlobalContent.style.display === "") {
+                configGlobalContent.style.display = "flex";
+                btnToggleConfig.innerText = "⚙️ Masquer la Configuration des dés et des émotions";
+                btnToggleConfig.style.background = "rgba(167, 119, 227, 0.2)";
             } else {
-                contentMoods.style.display = "none";
-                btnToggle.innerText = "👁️ Afficher les Moods";
+                configGlobalContent.style.display = "none";
+                btnToggleConfig.innerText = "⚙️ Afficher la Configuration des dés et des émotions";
+                btnToggleConfig.style.background = "rgba(167, 119, 227, 0.1)";
             }
         };
     }
 
-        const contextArea = document.getElementById("coWriteContext");
-        const outputDiv = document.getElementById("coWriteAiOutput");
+    const contextArea = document.getElementById("coWriteContext");
+    const outputDiv = document.getElementById("coWriteAiOutput");
 
-    contextArea.value = "";
-    outputDiv.innerHTML = "Prêt à rédiger avec l'aide de Mistral Large.";
-    historyLog.innerHTML = "<span style='color: #aaa;'>Chargement des données du RP...</span>";
-    
-    modal.style.display = "flex";
+    if (contextArea) contextArea.value = "";
+    if (outputDiv) outputDiv.innerHTML = "Prêt à rédiger avec l'aide de Mistral Large.";
+    if (historyLog) historyLog.innerHTML = "<span style='color: #aaa;'>Chargement des données du RP...</span>";
 
     try {
         const pendingDocRef = doc(db, "rps_received", rpId);
         const pendingSnap = await getDoc(pendingDocRef);
-        
+
         if (pendingSnap.exists()) {
             const pendingData = pendingSnap.data();
             title.innerHTML = `
-    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;">
-        <span>🖋️ Co-Écriture : <span style="color:#a777e3;">${pendingData.title || 'Sans titre'}</span> (${charName})</span>
-        <button onclick="window.ouvrirSommaireHistorique('${rpId}')" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
-            📊 Consulter le Sommaire
-        </button>
-    </div>
-`;
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;">
+                    <span>🖋️ Co-Écriture : <span style="color:#a777e3;">${pendingData.title || 'Sans titre'}</span> (${charName})</span>
+                    <button onclick="window.ouvrirSommaireHistorique('${rpId}')" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+                        📊 Consulter le Sommaire
+                    </button>
+                </div>
+            `;
 
             if (senderSelect) {
-                senderSelect.innerHTML = ""; 
-                
+                senderSelect.innerHTML = "";
                 const optMe = document.createElement("option");
                 optMe.value = charName;
                 optMe.innerText = `${charName} (Moi)`;
@@ -113,12 +117,14 @@ window.openCoWriteModal = async function(rpId, charName) {
 
     await loadOrCreateRpHistory(rpId, charName);
 
-    // Déclenchement de l'analyse isolée dans le nouveau module !
-    analyserSituationEtAppliquerMoods(charName);
+    // 🛡️ OPTIMISATION 1 : On lance l'analyseur de Moods en arrière-plan (sans "await") pour ne pas geler l'affichage
+    if (typeof analyserSituationEtAppliquerMoods === "function") {
+        analyserSituationEtAppliquerMoods(charName).catch(moodErr => {
+            console.error("⚠️ MoodAnalyzer a crashé en arrière-plan :", moodErr);
+        });
+    }
 
-// Tout en bas de la fonction openCoWriteModal, juste avant l'accolade de fermeture :
-// 🎲 Étape 1 : Nettoyage et initialisation de base synchrone
-// 🎲 Étape 1 : Initialisation synchrone
+    // 🎲 Étape 1 : Initialisation synchrone
     if (typeof preparerEtInitialiserZoneDes === "function") {
         preparerEtInitialiserZoneDes();
     }
@@ -126,86 +132,66 @@ window.openCoWriteModal = async function(rpId, charName) {
     // 🔥 Étape 2 : Construction de la répartition 7 truqués / 7 normaux
     const diceContainer = document.getElementById("diceActionsList");
     if (diceContainer && typeof dictionnaireActionsErER === "object") {
-        // On vide d'abord complètement le conteneur pour éviter les doublons
-        diceContainer.innerHTML = "";
-        
         window.getActionsSelectionneesPourIA = [];
 
         const activeRpId = window.currentActiveRpId || rpId;
         const activeCharName = window.currentActiveCharName || charName;
         const listeIdActions = Object.keys(dictionnaireActionsErER);
 
-        console.log("--------------------------------------------------");
-        console.log("🚀 [DÉBUT SYNCHRO] Personnage :", activeCharName, " | RP ID :", activeRpId);
-
-        // 🎯 1. Préparation des 6 premiers dés imposés
-        let paquetDeDes = [
-            1, 1,   // 2 Échecs Critiques (Classe 1)
-            12, 12, // 2 Réussites Classiques (Classe 3)
-            30, 30  // 2 Réussites Critiques (Classe 4)
-        ];
-
-        // 🎯 2. Ajout du 7ème dé mystère choisi au hasard parmi les trois classes (1, 12 ou 30)
+        let paquetDeDes = [1, 1, 12, 12, 30, 30];
         const choixPossibles = [1, 12, 30];
         const deMystere = choixPossibles[Math.floor(Math.random() * choixPossibles.length)];
         paquetDeDes.push(deMystere);
-        console.log("🎲 [Config] Dé mystère sélectionné pour le paquet :", deMystere);
 
-        // 🎯 3. Les 7 autres actions restent totalement normales (on met null)
         while (paquetDeDes.length < 14) {
             paquetDeDes.push(null);
         }
 
-        // 🔄 4. Mélange du paquet (Fisher-Yates)
         for (let i = paquetDeDes.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [paquetDeDes[i], paquetDeDes[j]] = [paquetDeDes[j], paquetDeDes[i]];
         }
 
-        console.log("📦 [Config] Paquet de dés mélangé et prêt à être distribué :", paquetDeDes);
-        console.log("--------------------------------------------------");
-
         try {
-            // --- ⚙️ VARIABLE GLOBALE VITALE POUR L'AFFICHAGE ---
             window.resultatsPreCalcules = window.resultatsPreCalcules || {};
+            
+            // Tableau pour stocker toutes nos promesses Firebase à envoyer en arrière-plan
+            const firebaseUpdates = [];
 
-            // ====================================================================
-            // ⚔️ ÉTAPE A.1 : CALCUL ET FIREBASE DES ACTIONS PHYSIQUES
-            // ====================================================================
+            // ⚔️ ACTIONS PHYSIQUES (Calcul local instantané)
             for (let index = 0; index < listeIdActions.length; index++) {
                 const idAction = listeIdActions[index];
                 const action = dictionnaireActionsErER[idAction];
                 const deForce = paquetDeDes[index];
-                
+
                 let res = null;
                 if (typeof executerLancerDesErER === "function") {
                     res = executerLancerDesErER(activeCharName, idAction, deForce);
-                    window.resultatsPreCalcules[idAction] = res; // On stocke pour l'affichage live
+                    window.resultatsPreCalcules[idAction] = res;
                 }
 
                 if (activeRpId && res) {
                     const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
-                    await setDoc(actionDocRef, {
+                    // OPTIMISATION 2 : On retire le "await" et on pousse la promesse dans le tableau
+                    firebaseUpdates.push(setDoc(actionDocRef, {
                         actionId: idAction, nom: action.nom, actif: false,
                         total: Number(res.total) || 0, lancerDe: Number(res.lancerDe) || 0, sa: Number(res.sa) || 0,
                         verdictTexte: res.verdict ? res.verdict.texte : "Inconnu",
                         verdictCouleur: res.verdict ? res.verdict.couleur : "#aaa",
                         verdictDescription: res.verdict ? res.verdict.description : "",
                         timestamp: new Date()
-                    }, { merge: true });
+                    }, { merge: true }));
                 }
             }
 
-            // ====================================================================
-            // 🎭 ÉTAPE A.2 : CALCUL ET FIREBASE DES ACTIONS SOCIALES
-            // ====================================================================
+            // 🎭 ACTIONS SOCIALES (Calcul local instantané)
             const listeIdSociales = Object.keys(dictionnaireActionsSociales || {}).filter(id => id !== "qualites" && id !== "defauts");
             const chatTraits = window.fichesPersonnagesJDR?.[activeCharName]?.traits || {};
 
             for (const idAction of listeIdSociales) {
                 const action = dictionnaireActionsSociales[idAction];
-                if (!action || !action.nom) continue; 
-                
+                if (!action || !action.nom) continue;
+
                 let res = null;
                 if (typeof executerLancerSocialPrecalcul === "function") {
                     res = executerLancerSocialPrecalcul(chatTraits, idAction);
@@ -214,37 +200,29 @@ window.openCoWriteModal = async function(rpId, charName) {
 
                 if (activeRpId && res) {
                     const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
-                    await setDoc(actionDocRef, {
-                        actionId: idAction, 
-                        nom: action.nom,
-                        actif: false,
-                        total: Number(res.total) || 0, 
-                        lancerDe: Number(res.de) || 0, 
-                        sa: Number(res.bonus) || 0,    
+                    // OPTIMISATION 2 (Suite) : Pas de "await", ajout au tableau de fond
+                    firebaseUpdates.push(setDoc(actionDocRef, {
+                        actionId: idAction, nom: action.nom, actif: false,
+                        total: Number(res.total) || 0, lancerDe: Number(res.de) || 0, sa: Number(res.bonus) || 0,
                         verdictTexte: res.verdict ? res.verdict.texte : "Inconnu",
                         verdictCouleur: res.verdict ? res.verdict.couleur : "#aaa",
                         verdictDescription: res.verdict ? res.verdict.description : "",
-                        timestamp: new Date(),
-                        estSocial: true
-                    }, { merge: true });
+                        timestamp: new Date(), estSocial: true
+                    }, { merge: true }));
                 }
             }
 
-            // ====================================================================
-            // 🎨 ÉTAPE B : CRÉATION DES BOUTONS GRAPHIQUES (UI)
-            // ====================================================================
-            
-            // Fonction utilitaire pour générer un bouton graphique
+            // 🎨 CRÉATION DES BOUTONS GRAPHIQUES (UI) - S'exécute DIRECTEMENT sans attendre Firebase !
             const creerBoutonAction = (idAction, actionData, couleurTheme) => {
                 const divAction = document.createElement("div");
                 divAction.style.cssText = "padding: 8px 10px; margin: 5px 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #b0b0b8; transition: all 0.2s ease;";
                 divAction.setAttribute("data-action-id", idAction);
-                
+
                 divAction.innerHTML = `
                     <span style="font-weight: 500;">${actionData.nom}</span>
                     <span class="status-indicator" style="font-family: monospace; color: #444a5a; font-weight: bold;">[ ]</span>
                 `;
-                
+
                 divAction.addEventListener("click", async () => {
                     const indicator = divAction.querySelector(".status-indicator");
                     const indexCoche = window.getActionsSelectionneesPourIA.indexOf(idAction);
@@ -253,12 +231,12 @@ window.openCoWriteModal = async function(rpId, charName) {
                     if (indexCoche === -1) {
                         window.getActionsSelectionneesPourIA.push(idAction);
                         estCoche = true;
-                        divAction.style.background = `rgba(${couleurTheme}, 0.15)`; // ✅ Corrigé : couleurTheme
+                        divAction.style.background = `rgba(${couleurTheme}, 0.15)`;
                         divAction.style.borderColor = `rgb(${couleurTheme})`;
                         divAction.style.color = "#fff";
-                        if (indicator) { 
-                            indicator.innerText = "[ COCHÉ ]"; 
-                            indicator.style.color = `rgb(${couleurTheme})`; 
+                        if (indicator) {
+                            indicator.innerText = "[ COCHÉ ]";
+                            indicator.style.color = `rgb(${couleurTheme})`;
                         }
                     } else {
                         window.getActionsSelectionneesPourIA.splice(indexCoche, 1);
@@ -266,9 +244,9 @@ window.openCoWriteModal = async function(rpId, charName) {
                         divAction.style.background = "rgba(255,255,255,0.03)";
                         divAction.style.borderColor = "rgba(255,255,255,0.05)";
                         divAction.style.color = "#b0b0b8";
-                        if (indicator) { 
-                            indicator.innerText = "[ ]"; 
-                            indicator.style.color = "#444a5a"; 
+                        if (indicator) {
+                            indicator.innerText = "[ ]";
+                            indicator.style.color = "#444a5a";
                         }
                     }
 
@@ -284,10 +262,8 @@ window.openCoWriteModal = async function(rpId, charName) {
                 return divAction;
             };
 
-            // ✅ NETTOYAGE DU LOADER AVANT INJECTION DES BOUTONS
             diceContainer.innerHTML = "";
 
-            // 1. Injection des boutons Physiques (Jaune)
             const titrePhysique = document.createElement("div");
             titrePhysique.innerHTML = `<strong style="color:#ffcc00; font-size:0.85rem; margin-top:5px; display:block;">⚔️ Actions Physiques :</strong>`;
             diceContainer.appendChild(titrePhysique);
@@ -297,7 +273,6 @@ window.openCoWriteModal = async function(rpId, charName) {
                 }
             });
 
-            // 2. Injection des boutons Sociaux (Violet)
             const titreSocial = document.createElement("div");
             titreSocial.innerHTML = `<strong style="color:#a777e3; font-size:0.85rem; margin-top:15px; display:block;">🎭 Actions Sociales (Sur 50) :</strong>`;
             diceContainer.appendChild(titreSocial);
@@ -307,13 +282,19 @@ window.openCoWriteModal = async function(rpId, charName) {
                 }
             });
 
+            // OPTIMISATION 3 : On balance l'ensemble des écritures Firestore en une seule fois, en tâche de fond
+            Promise.all(firebaseUpdates).then(() => {
+                console.log("🎲 [Sync] Tous les lancers pré-calculés ont été synchronisés sur Firestore !");
+            }).catch(err => {
+                console.error("❌ Erreur lors de la synchronisation Firestore des dés :", err);
+            });
+
         } catch (err) {
-            console.error("❌ Erreur critique d'initialisation :", err);
+            console.error("❌ Erreur critique d'initialisation dés :", err);
             diceContainer.innerHTML = "<div style='color: #ff4a4a; padding: 10px;'>❌ Impossible d'initialiser le paquet de dés contrôlé.</div>";
         }
     }
 
-    // 🔄 Forcer l'affichage immédiat des dés physiques et sociaux calculés à l'ouverture de la modale
     setTimeout(() => {
         const boutonsCoches = Array.from(document.querySelectorAll('.btn-action-des.selected, .btn-action-sociale.selected'))
             .map(btn => btn.getAttribute('data-id') || btn.id);
@@ -321,9 +302,9 @@ window.openCoWriteModal = async function(rpId, charName) {
             window.mettreAJourAffichageDesPourIA(boutonsCoches);
         }
     }, 150);
-
-    
 };
+
+
 /**
  * ============================================================================
  * 2. FONCTION : FERMETURE DE LA MODALE
@@ -765,9 +746,9 @@ document.addEventListener("DOMContentLoaded", () => {
             textInput.value = "";
             
             // On recharge le composant visuel de l'historique pour voir la réplique apparaître
-            if (typeof loadOrCreateRpHistory === "function") {
+            /**if (typeof loadOrCreateRpHistory === "function") {
                 await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
-            }
+            }**/
 
             
 

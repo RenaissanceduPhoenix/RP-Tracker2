@@ -114,51 +114,41 @@
     <script type="module" src="./JavaScript/FeaturesBonus/RpHistorySummary.js?v=2.1"></script>
 
 
-<div id="chartModal" class="chart-modal" style="display: none;">
-    <div class="chart-modal-content">
-        <span class="chart-modal-close">&times;</span>
-        <h2 id="modalChartTitle" style="color: #fff; margin-top: 0; text-align: center;">Graphique Agrandi</h2>
-        <div class="modal-canvas-container" style="position: relative; height: 70vh; width: 100%;">
-            <canvas id="modalChart"></canvas>
-        </div>
-    </div>
-</div>
-
 <div id="coWriteModal" class="chart-modal" style="display: none;">
     <div class="chart-modal-content">
         <span class="chart-modal-close" onclick="closeCoWriteModal()">&times;</span>
         <h2 id="coWriteModalTitle" style="color: #a777e3; margin-top: 0;">🖋️ Salon de Co-Écriture</h2>
         
-            <div id="traumaExclusiveModal" class="exclusive-modal">
-        <div class="trauma-modal">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ff4a4a; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 id="traumaModalStatus" style="margin: 0; color: #ff4a4a; font-size: 1.5rem;">⚡ Analyse de l'impact Physique & Mental</h2>
-                <button id="btnCloseTraumaExclusive" style="background: none; border: none; color: #ff4a4a; font-size: 1.8rem; cursor: pointer; font-weight: bold;">&times;</button>
-            </div>
-            
-            <div id="traumaModalLoading" style="display: none; text-align: center; padding: 30px; font-size: 1.2rem; color: #ffcc00;">
-                ⚡ Le Clan des Étoiles analyse les blessures...
-            </div>
-            
-            <div id="traumaModalContent" style="display: none; flex-direction: column; gap: 20px; flex: 1;">
-                <div style="display: flex; gap: 20px; flex: 1;">
-                    <div style="flex: 1; background: rgba(255,0,0,0.05); border: 1px solid rgba(255,74,74,0.2); padding: 15px; border-radius: 8px;">
-                        <h3 style="color: #ff6b6b; margin-top: 0; border-bottom: 1px solid rgba(255,107,107,0.2); padding-bottom: 5px;">🩸 Blessures Physiques</h3>
-                        <ul id="physicalWoundsList" class="wounds-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
-                    </div>
-                    <div style="flex: 1; background: rgba(167,119,227,0.05); border: 1px solid rgba(167,119,227,0.2); padding: 15px; border-radius: 8px;">
-                        <h3 style="color: #a777e3; margin-top: 0; border-bottom: 1px solid rgba(167,119,227,0.2); padding-bottom: 5px;">🧠 Séquelles Psychologiques</h3>
-                        <ul id="mentalTraumaList" class="trauma-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
-                    </div>
+        <div id="traumaExclusiveModal" class="exclusive-modal" style="display: none;">
+            <div class="trauma-modal">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ff4a4a; padding-bottom: 10px; margin-bottom: 15px;">
+                    <h2 id="traumaModalStatus" style="margin: 0; color: #ff4a4a; font-size: 1.5rem;">⚡ Analyse de l'impact Physique & Mental</h2>
+                    <button id="btnCloseTraumaExclusive" style="background: none; border: none; color: #ff4a4a; font-size: 1.8rem; cursor: pointer; font-weight: bold;">&times;</button>
                 </div>
                 
-                <div style="background: rgba(255,204,0,0.05); border: 1px solid rgba(255,204,0,0.2); padding: 15px; border-radius: 8px; margin-top: 25px;">
-                    <h3 style="color: #ffcc00; margin-top: 0; border-bottom: 1px solid rgba(255,204,0,0.2); padding-bottom: 5px;">🌿 Conseil du Guérisseur</h3>
-                    <p id="guerisseurText" class="healer-advice" style="margin: 10px 0 0 0; font-style: italic; line-height: 1.5; color: #e0e0e0;"></p>
+                <div id="traumaModalLoading" style="display: none; text-align: center; padding: 30px; font-size: 1.2rem; color: #ffcc00;">
+                    ⚡ Le Clan des Étoiles analyse les blessures...
+                </div>
+                
+                <div id="traumaModalContent" style="display: none; flex-direction: column; gap: 20px; flex: 1;">
+                    <div style="display: flex; gap: 20px; flex: 1;">
+                        <div style="flex: 1; background: rgba(255,0,0,0.05); border: 1px solid rgba(255,74,74,0.2); padding: 15px; border-radius: 8px;">
+                            <h3 style="color: #ff6b6b; margin-top: 0; border-bottom: 1px solid rgba(255,107,107,0.2); padding-bottom: 5px;">🩸 Blessures Physiques</h3>
+                            <ul id="physicalWoundsList" class="wounds-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
+                        </div>
+                        <div style="flex: 1; background: rgba(167,119,227,0.05); border: 1px solid rgba(167,119,227,0.2); padding: 15px; border-radius: 8px;">
+                            <h3 style="color: #a777e3; margin-top: 0; border-bottom: 1px solid rgba(167,119,227,0.2); padding-bottom: 5px;">🧠 Séquelles Psychologiques</h3>
+                            <ul id="mentalTraumaList" class="trauma-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255,204,0,0.05); border: 1px solid rgba(255,204,0,0.2); padding: 15px; border-radius: 8px; margin-top: 25px;">
+                        <h3 style="color: #ffcc00; margin-top: 0; border-bottom: 1px solid rgba(255,204,0,0.2); padding-bottom: 5px;">🌿 Conseil du Guérisseur</h3>
+                        <p id="guerisseurText" class="healer-advice" style="margin: 10px 0 0 0; font-style: italic; line-height: 1.5; color: #e0e0e0;"></p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <p style="margin: 0; color: #aaa; font-size: 0.85rem;">Historique du RP (Firestore) :</p>
         <div id="rpHistoryLog" style="background: #101015; border: 1px solid #2c2c35; border-radius: 6px; padding: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem;">
@@ -171,157 +161,145 @@
                 </select>
             </div>
             
-<div id="jdrDiceInterfaceContainer" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 15px; margin-top: 15px; display: flex; flex-direction: column; gap: 12px;">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 204, 0, 0.2); padding-bottom: 6px;">
-        <span style="color: #ffcc00; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">🎲 Dés de Situation</span>
-        <small id="diceActiveCharLabel" style="color: #aaa; font-style: italic;"></small>
-    </div>
+            <div id="jdrDiceInterfaceContainer" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 15px; margin-top: 5px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 204, 0, 0.2); padding-bottom: 6px;">
+                    <span style="color: #ffcc00; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">🎲 Dés de Situation</span>
+                    <small id="diceActiveCharLabel" style="color: #aaa; font-style: italic;"></small>
+                </div>
 
-    <div id="diceActionsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
-        </div>
+                <div class="mood-selector-container">
+                    <button type="button" id="btnToggleConfigGlobal" style="background: rgba(167, 119, 227, 0.1); color: #a777e3; border: 1px solid #a777e3; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                        ⚙️ Afficher la Configuration des dés et des émotions
+                    </button>
 
-    <div id="diceResultZone" style="background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(255, 204, 0, 0.2); border-radius: 6px; padding: 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; color: #888; font-size: 0.95rem; margin-top: 5px;">
-        Aucun dé lancé pour cette action. Cliquez sur une capacité ci-dessus.
-    </div>
-</div>
+                    <div id="configGlobalContent" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #1c1c24; padding-top: 15px;">
+                        
+                        <div class="mood-group">
+                            <span style="color: #ff5e5e; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚔️ COMBAT & PHYSIQUE</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="mood-btn" data-mood="combat">Combat</button>
+                                <button type="button" class="mood-btn" data-mood="adrenaline">Adrénaline</button>
+                                <button type="button" class="mood-btn" data-mood="epuisement">Épuisement</button>
+                                <button type="button" class="mood-btn" data-mood="agonie">Agonie</button>
+                                <button type="button" class="mood-btn" data-mood="douleur">Douleur</button>
+                                <button type="button" class="mood-btn" data-mood="vitesse">Vitesse</button>
+                                <button type="button" class="mood-btn" data-mood="furtivite">Furtivité</button>
+                                <button type="button" class="mood-btn" data-mood="defense">Défense</button>
+                                <button type="button" class="mood-btn" data-mood="faiblesse">Faiblesse</button>
+                                <button type="button" class="mood-btn" data-mood="blessure">Blessure</button>
+                                <button type="button" class="mood-btn" data-mood="reflexe">Réflexe</button>
+                                <button type="button" class="mood-btn" data-mood="endurance">Endurance</button>
+                                <button type="button" class="mood-btn" data-mood="brutalite">Brutalité</button>
+                            </div>
+                        </div>
 
-            <div class="mood-section-wrapper" style="background: #121218; padding: 12px; border-radius: 6px; border: 1px solid #1c1c24; margin-bottom: 15px;">
-    
+                        <div class="mood-group">
+                            <span style="color: #ff9f43; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">😡 HOSTILITÉ & DOMINATION</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="mood-btn" data-mood="colere">Colère</button>
+                                <button type="button" class="mood-btn" data-mood="rage">Rage</button>
+                                <button type="button" class="mood-btn" data-mood="cruaute">Cruauté</button>
+                                <button type="button" class="mood-btn" data-mood="sadisme">Sadisme</button>
+                                <button type="button" class="mood-btn" data-mood="provocation">Provocation</button>
+                                <button type="button" class="mood-btn" data-mood="mepris">Mépris</button>
+                                <button type="button" class="mood-btn" data-mood="arrogance">Arrogance</button>
+                                <button type="button" class="mood-btn" data-mood="vengeance">Vengeance</button>
+                                <button type="button" class="mood-btn" data-mood="menace">Menace</button>
+                                <button type="button" class="mood-btn" data-mood="haine">Haine</button>
+                                <button type="button" class="mood-btn" data-mood="rivalite">Rivalité</button>
+                                <button type="button" class="mood-btn" data-mood="tyrannie">Tyrannie</button>
+                                <button type="button" class="mood-btn" data-mood="defiance">Défi</button>
+                            </div>
+                        </div>
 
-                
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="color: #a777e3; font-size: 0.85rem; font-weight: bold; letter-spacing: 0.5px;">🎭 Configuration psychologique & Ambiance</span>
-        <button type="button" id="btnToggleMoods" style="background: #1c1c24; color: #ffcc00; border: 1px solid #ffcc00; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s;">
-            👁️ Afficher les Moods
-        </button>
-    </div>
+                        <div class="mood-group">
+                            <span style="color: #54a0ff; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">💧 SOUFFRANCE PSYCHOLOGIQUE</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="mood-btn" data-mood="tristesse">Tristesse</button>
+                                <button type="button" class="mood-btn" data-mood="deuil">Deuil</button>
+                                <button type="button" class="mood-btn" data-mood="peur">Peur</button>
+                                <button type="button" class="mood-btn" data-mood="terreur">Terreur</button>
+                                <button type="button" class="mood-btn" data-mood="angoisse">Angoisse</button>
+                                <button type="button" class="mood-btn" data-mood="regret">Regret</button>
+                                <button type="button" class="mood-btn" data-mood="desespoir">Désespoir</button>
+                                <button type="button" class="mood-btn" data-mood="solitude">Solitude</button>
+                                <button type="button" class="mood-btn" data-mood="culpabilite">Culpabilité</button>
+                                <button type="button" class="mood-btn" data-mood="nostalgie">Nostalgie</button>
+                                <button type="button" class="mood-btn" data-mood="abandon">Abandon</button>
+                                <button type="button" class="mood-btn" data-mood="detresse">Détresse</button>
+                                <button type="button" class="mood-btn" data-mood="trauma">Traumatisme</button>
+                            </div>
+                        </div>
 
-    
+                        <div class="mood-group">
+                            <span style="color: #a777e3; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🧠 BLOCAGES, MALAISE & DISCRÉTION</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="mood-btn" data-mood="gene">Gêne</button>
+                                <button type="button" class="mood-btn" data-mood="malaise">Malaise</button>
+                                <button type="button" class="mood-btn" data-mood="hesitation">Hésitation</button>
+                                <button type="button" class="mood-btn" data-mood="honte">Honte</button>
+                                <button type="button" class="mood-btn" data-mood="mefiance">Méfiance</button>
+                                <button type="button" class="mood-btn" data-mood="mystere">Mystère</button>
+                                <button type="button" class="mood-btn" data-mood="folie">Folie</button>
+                                <button type="button" class="mood-btn" data-mood="crise">Crise</button>
+                                <button type="button" class="mood-btn" data-mood="timidite">Timidité</button>
+                                <button type="button" class="mood-btn" data-mood="paranoia">Paranoïa</button>
+                                <button type="button" class="mood-btn" data-mood="confusion">Confusion</button>
+                                <button type="button" class="mood-btn" data-mood="secret">Secret</button>
+                                <button type="button" class="mood-btn" data-mood="perplexite">Perplexité</button>
+                            </div>
+                        </div>
 
-    <div id="moodSelectorContent" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #1c1c24; padding-top: 15px;">
-        
-        <div class="mood-group">
-            <span style="color: #ff5e5e; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚔️ COMBAT & PHYSIQUE</span>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button type="button" class="mood-btn" data-mood="combat">Combat</button>
-                <button type="button" class="mood-btn" data-mood="adrenaline">Adrénaline</button>
-                <button type="button" class="mood-btn" data-mood="epuisement">Épuisement</button>
-                <button type="button" class="mood-btn" data-mood="agonie">Agonie</button>
-                <button type="button" class="mood-btn" data-mood="douleur">Douleur</button>
-                <button type="button" class="mood-btn" data-mood="vitesse">Vitesse</button>
-                <button type="button" class="mood-btn" data-mood="furtivite">Furtivité</button>
-                <button type="button" class="mood-btn" data-mood="defense">Défense</button>
-                <button type="button" class="mood-btn" data-mood="faiblesse">Faiblesse</button>
-                <button type="button" class="mood-btn" data-mood="blessure">Blessure</button>
-                <button type="button" class="mood-btn" data-mood="reflexe">Réflexe</button>
-                <button type="button" class="mood-btn" data-mood="endurance">Endurance</button>
-                <button type="button" class="mood-btn" data-mood="brutalite">Brutalité</button>
-            </div>
-        </div>
+                        <div class="mood-group">
+                            <span style="color: #1dd1a1; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🤝 ATTACHEMENT & INTERACTIONS</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="mood-btn" data-mood="amitie">Amitié</button>
+                                <button type="button" class="mood-btn" data-mood="complicite">Complicité</button>
+                                <button type="button" class="mood-btn" data-mood="drague">Drague</button>
+                                <button type="button" class="mood-btn" data-mood="charme">Charme</button>
+                                <button type="button" class="mood-btn" data-mood="romance">Romance</button>
+                                <button type="button" class="mood-btn" data-mood="tendresse">Tendresse</button>
+                                <button type="button" class="mood-btn" data-mood="malice">Malice</button>
+                                <button type="button" class="mood-btn" data-mood="respect">Respect</button>
+                                <button type="button" class="mood-btn" data-mood="empathie">Empathie</button>
+                                <button type="button" class="mood-btn" data-mood="loyaute">Loyauté</button>
+                                <button type="button" class="mood-btn" data-mood="devoement">Dévouement</button>
+                                <button type="button" class="mood-btn" data-mood="pardon">Pardon</button>
+                            </div>
+                        </div>
 
-        <div class="mood-group">
-            <span style="color: #ff9f43; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">😡 HOSTILITÉ & DOMINATION</span>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button type="button" class="mood-btn" data-mood="colere">Colère</button>
-                <button type="button" class="mood-btn" data-mood="rage">Rage</button>
-                <button type="button" class="mood-btn" data-mood="cruaute">Cruauté</button>
-                <button type="button" class="mood-btn" data-mood="sadisme">Sadisme</button>
-                <button type="button" class="mood-btn" data-mood="provocation">Provocation</button>
-                <button type="button" class="mood-btn" data-mood="mepris">Mépris</button>
-                <button type="button" class="mood-btn" data-mood="arrogance">Arrogance</button>
-                <button type="button" class="mood-btn" data-mood="vengeance">Vengeance</button>
-                <button type="button" class="mood-btn" data-mood="menace">Menace</button>
-                <button type="button" class="mood-btn" data-mood="haine">Haine</button>
-                <button type="button" class="mood-btn" data-mood="rivalite">Rivalité</button>
-                <button type="button" class="mood-btn" data-mood="tyrannie">Tyrannie</button>
-                <button type="button" class="mood-btn" data-mood="defiance">Défi</button>
-            </div>
-        </div>
+                        <div class="mood-group">
+                            <span style="color: #feca57; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚖️ VERTUS & LOGIQUE MENTALE</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="mood-btn" data-mood="solennel">Solennel</button>
+                                <button type="button" class="mood-btn" data-mood="determination">Détermination</button>
+                                <button type="button" class="mood-btn" data-mood="focus">Focus</button>
+                                <button type="button" class="mood-btn" data-mood="bravoure">Bravoure</button>
+                                <button type="button" class="mood-btn" data-mood="courage">Courage</button>
+                                <button type="button" class="mood-btn" data-mood="resilience">Résilience</button>
+                                <button type="button" class="mood-btn" data-mood="fierte">Fierté</button>
+                                <button type="button" class="mood-btn" data-mood="apathie">Apathie</button>
+                                <button type="button" class="mood-btn" data-mood="detachement">Détachement</button>
+                                <button type="button" class="mood-btn" data-mood="froideur">Froideur</button>
+                                <button type="button" class="mood-btn" data-mood="sagesse">Sagesse</button>
+                                <button type="button" class="mood-btn" data-mood="ambition">Ambition</button>
+                                <button type="button" class="mood-btn" data-mood="patience">Patience</button>
+                            </div>
+                        </div>
 
-        <div class="mood-group">
-            <span style="color: #54a0ff; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">💧 SOUFFRANCE PSYCHOLOGIQUE</span>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button type="button" class="mood-btn" data-mood="tristesse">Tristesse</button>
-                <button type="button" class="mood-btn" data-mood="deuil">Deuil</button>
-                <button type="button" class="mood-btn" data-mood="peur">Peur</button>
-                <button type="button" class="mood-btn" data-mood="terreur">Terreur</button>
-                <button type="button" class="mood-btn" data-mood="angoisse">Angoisse</button>
-                <button type="button" class="mood-btn" data-mood="regret">Regret</button>
-                <button type="button" class="mood-btn" data-mood="desespoir">Désespoir</button>
-                <button type="button" class="mood-btn" data-mood="solitude">Solitude</button>
-                <button type="button" class="mood-btn" data-mood="culpabilite">Culpabilité</button>
-                <button type="button" class="mood-btn" data-mood="nostalgie">Nostalgie</button>
-                <button type="button" class="mood-btn" data-mood="abandon">Abandon</button>
-                <button type="button" class="mood-btn" data-mood="detresse">Détresse</button>
-                <button type="button" class="mood-btn" data-mood="trauma">Traumatisme</button>
-            </div>
-        </div>
+                        <div class="mood-group" style="border-top: 1px solid #1c1c24; padding-top: 12px; margin-top: 5px;">
+                            <span style="color: #ffcc00; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🎲 CAPACITÉS & LANCEURS DE DÉS</span>
+                            <div id="diceActionsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
+                            </div>
+                        </div>
 
-        <div class="mood-group">
-            <span style="color: #a777e3; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🧠 BLOCAGES, MALAISE & DISCRÉTION</span>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button type="button" class="mood-btn" data-mood="gene">Gêne</button>
-                <button type="button" class="mood-btn" data-mood="malaise">Malaise</button>
-                <button type="button" class="mood-btn" data-mood="hesitation">Hésitation</button>
-                <button type="button" class="mood-btn" data-mood="honte">Honte</button>
-                <button type="button" class="mood-btn" data-mood="mefiance">Méfiance</button>
-                <button type="button" class="mood-btn" data-mood="mystere">Mystère</button>
-                <button type="button" class="mood-btn" data-mood="folie">Folie</button>
-                <button type="button" class="mood-btn" data-mood="crise">Crise</button>
-                <button type="button" class="mood-btn" data-mood="timidite">Timidité</button>
-                <button type="button" class="mood-btn" data-mood="paranoia">Paranoïa</button>
-                <button type="button" class="mood-btn" data-mood="confusion">Confusion</button>
-                <button type="button" class="mood-btn" data-mood="secret">Secret</button>
-                <button type="button" class="mood-btn" data-mood="perplexite">Perplexité</button>
-            </div>
-        </div>
-
-        <div class="mood-group">
-            <span style="color: #1dd1a1; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🤝 ATTACHEMENT & INTERACTIONS</span>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button type="button" class="mood-btn" data-mood="amitie">Amitié</button>
-                <button type="button" class="mood-btn" data-mood="complicite">Complicité</button>
-                <button type="button" class="mood-btn" data-mood="drague">Drague</button>
-                <button type="button" class="mood-btn" data-mood="charme">Charme</button>
-                <button type="button" class="mood-btn" data-mood="romance">Romance</button>
-                <button type="button" class="mood-btn" data-mood="tendresse">Tendresse</button>
-                <button type="button" class="mood-btn" data-mood="malice">Malice</button>
-                <button type="button" class="mood-btn" data-mood="respect">Respect</button>
-                <button type="button" class="mood-btn" data-mood="empathie">Empathie</button>
-                <button type="button" class="mood-btn" data-mood="loyaute">Loyauté</button>
-                <button type="button" class="mood-btn" data-mood="devoement">Dévouement</button>
-                <button type="button" class="mood-btn" data-mood="pardon">Pardon</button>
-            </div>
-        </div>
-
-        <div class="mood-group">
-            <span style="color: #feca57; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚖️ VERTUS & LOGIQUE MENTALE</span>
-            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                <button type="button" class="mood-btn" data-mood="solennel">Solennel</button>
-                <button type="button" class="mood-btn" data-mood="determination">Détermination</button>
-                <button type="button" class="mood-btn" data-mood="focus">Focus</button>
-                <button type="button" class="mood-btn" data-mood="bravoure">Bravoure</button>
-                <button type="button" class="mood-btn" data-mood="courage">Courage</button>
-                <button type="button" class="mood-btn" data-mood="resilience">Résilience</button>
-                <button type="button" class="mood-btn" data-mood="fierte">Fierté</button>
-                <button type="button" class="mood-btn" data-mood="apathie">Apathie</button>
-                <button type="button" class="mood-btn" data-mood="detachement">Détachement</button>
-                <button type="button" class="mood-btn" data-mood="froideur">Froideur</button>
-                <button type="button" class="mood-btn" data-mood="sagesse">Sagesse</button>
-                <button type="button" class="mood-btn" data-mood="ambition">Ambition</button>
-                <button type="button" class="mood-btn" data-mood="patience">Patience</button>
-            </div>
-        </div>
-
-    </div>
-</div>
-</div>
-            
-            <div style="display: flex; gap: 10px; align-items: stretch;">
+                        <div id="diceResultZone" style="background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(255, 204, 0, 0.2); border-radius: 6px; padding: 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; color: #888; font-size: 0.95rem; margin-top: 5px;">
+                            Aucun dé lancé pour cette action. Cliquez sur une capacité ci-dessus.
+                        </div>
+                    </div> </div> </div> <div style="display: flex; gap: 10px; align-items: stretch; margin-top: 15px;">
                 <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 120px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none; font-family: inherit; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
                 
-                <textarea id="coWriteAiInstructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)" style="flex: 1; height: 120px; background: #101015; border: 1px solid rgba(167, 119, 227, 0.6); color: #fff; padding: 8px; border-radius: 4px; resize: none; font-family: inherit; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
+                <textarea id="coWriteAiInstructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)" style="flex: 1; height: 120px; background: #101015; border: 1px solid rgba(167,119,227,0.6); color: #fff; padding: 8px; border-radius: 4px; resize: none; font-family: inherit; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
                 
                 <div style="display: flex; flex-direction: column; gap: 5px; justify-content: space-between;">
                     <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">💾 Enregistrer au RP</button>
@@ -330,12 +308,11 @@
                     <button id="btnDiagnosticTraumaSidebar" style="background:#ff4a4a; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold; white-space:nowrap;">🩸 Bilan Séquelles (IA)</button>
                 </div>
             </div>
-            <div id="coWriteAiOutput" style="color: #aaa; font-size: 0.85rem; min-height: 40px;">
-            En attente d'une action...
-        </div>
-        </div>
-    </div>
-</div>
+
+            <div id="coWriteAiOutput" style="color: #aaa; font-size: 0.85rem; min-height: 40px; margin-top: 10px;">
+                En attente d'une action...
+            </div>
+        </div> </div> </div> 
 
 
 </body>

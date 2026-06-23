@@ -95,7 +95,7 @@ export function determinerClasseReussite(total, lancerDe) {
     if (lancerDe === 1) {
         return { 
             texte: "Échec Critique 💀", 
-            couleur: "#ff4a4a", 
+            couleur: "#5f0de2", 
             description: "Un désastre total, l'action échoue lamentablement !", 
             code: 1 
         };
@@ -111,7 +111,7 @@ export function determinerClasseReussite(total, lancerDe) {
     if (lancerDe === 30) {
         return { 
             texte: "Réussite Critique ⭐", 
-            couleur: "#ffcc00", 
+            couleur: "#00ffff", 
             description: "Un exploit légendaire et spectaculaire !", 
             code: 6 // Code 6 pour ta réussite critique !
         };
@@ -123,11 +123,11 @@ export function determinerClasseReussite(total, lancerDe) {
         return { 
             texte: "Échec Critique 💀", 
             niveau: 1,
-            couleur: "#ff3333", 
+            couleur: "#5f0de2", 
             description: "Un désastre total, l'action échoue lamentablement !", 
         };
 } else if (total >= 11 && total <= 20) {
-        return { id: "echec_simple", texte: "Échec Standard ❌", niveau: 2, couleur: "#ff6666", description: "Échec simple : l'action est évitée." };
+        return { id: "echec_simple", texte: "Échec Standard ❌", niveau: 2, couleur: "#ff3333", description: "Échec simple : l'action est évitée." };
     } else if (total >= 21 && total <= 30) {
         return { id: "reussite_classique", texte: "Réussite Partielle ⚖️", niveau: 3, couleur: "#ffcc00", description: "L'action est accomplie de manière standard." };
     } else if (total >= 31 && total <= 40) {

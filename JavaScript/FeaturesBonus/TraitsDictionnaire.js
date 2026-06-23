@@ -265,17 +265,17 @@ export function executerLancerSocialPrecalcul(chatTraitsRaw, idAction) {
     const totalFinal = de + Math.round(totalPsy);
 
     // ÉTAPE 5 : Calcul des verdicts selon tes nouveaux paliers et conditions de dé
-    let verdict = { texte: "Échec Standard ❌", couleur: "#ff6666", description: "L'interaction sociale n'obtient pas l'effet escompté." };
+    let verdict = { texte: "Échec Standard ❌", couleur: "#ff3333", description: "L'interaction sociale n'obtient pas l'effet escompté." };
     
-    if (totalFinal <= 10) verdict = { texte: "Échec Critique 💀", couleur: "#ff3333", description: "Un fiasco relationnel total, la situation s'envenime !" };
-    else if (totalFinal <= 20) verdict = { texte: "Échec Standard ❌", couleur: "#ff6666", description: "Le message ne prend pas." };
+    if (totalFinal <= 10) verdict = { texte: "Échec Critique 💀", couleur: "#5f0de2", description: "Un fiasco relationnel total, la situation s'envenime !" };
+    else if (totalFinal <= 20) verdict = { texte: "Échec Standard ❌", couleur: "#ff3333", description: "Le message ne prend pas." };
     else if (totalFinal <= 30) verdict = { texte: "Réussite Partielle ⚖️", couleur: "#ffcc00", description: "Le message passe mais avec d'importantes réserves." };
     else if (totalFinal <= 40) verdict = { texte: "Très Bonne Réussite 🔥", couleur: "#33cc33", description: "Succès de l'interaction !" };
     else verdict = { texte: "Réussite Critique 🌟", couleur: "#00ffff", description: "Une impression mémorable, l'interlocuteur est conquis !" };
 
     // Égalités ou priorités absolues liées à la valeur brute du Dé (1 ou 17+)
     if (de === 1) {
-        verdict = { texte: "Échec Critique 💀", couleur: "#ff3333", description: "Un fiasco relationnel total, la situation s'envenime !" };
+        verdict = { texte: "Échec Critique 💀", couleur: "#5f0de2", description: "Un fiasco relationnel total, la situation s'envenime !" };
     } else if (de >= 17) {
         verdict = { texte: "Réussite Critique 🌟", couleur: "#00ffff", description: "Une impression mémorable, l'interlocuteur est conquis !" };
     }
