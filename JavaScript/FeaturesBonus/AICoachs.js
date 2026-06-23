@@ -321,6 +321,8 @@ window.openCoWriteModal = async function(rpId, charName) {
             window.mettreAJourAffichageDesPourIA(boutonsCoches);
         }
     }, 150);
+
+    
 };
 /**
  * ============================================================================
@@ -793,27 +795,54 @@ dernierPromptJoueur = textInput ? textInput.value.trim() : "";
             const activeMoodBtns = document.querySelectorAll(".mood-btn.active");
             let moodInstruction = "";
 
-            if (activeMoodBtns.length > 0) {
-
-                moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (CONSIGNE ABSOLUE : Chaque attribut ci-dessous est indépendant et cloisonné. Traite-les de manière brute, juxtaposée, SANS JAMAIS faire de compromis, de lien ou de fusion entre eux) :\n";
-
-                    // 🎲 1. RÉCUPÉRATION DU CONTEXTE DES DÉS MULTIPLES (ErER)
-    let contrainteDeDesPrompt = "";
+// 🎲 1. RÉCUPÉRATION DU CONTEXTE DES DÉS MULTIPLES (ErER)
+ let contrainteDeDesPrompt = "";
 
     if (window.getActionsSelectionneesPourIA && Array.isArray(window.getActionsSelectionneesPourIA) && window.getActionsSelectionneesPourIA.length > 0) {
         contrainteDeDesPrompt = `\n[CONTRAINTES DE JEU - ACTIONS ET DÉS MULTIPLES]\n`;
         contrainteDeDesPrompt += `Durant ce tour, le personnage réalise les actions JDR suivantes. Tu DOIS impérativement intégrer et romancer TOUTES ces actions dans ton récit en respectant rigoureusement leur niveau de réussite :\n`;
 
-        window.getActionsSelectionneesPourIA.forEach(d => {
-            contrainteDeDesPrompt += `- Action tentée : ${d.nomAction}\n`;
-            contrainteDeDesPrompt += `  Score obtenu : ${d.total} / 50\n`;
-            contrainteDeDesPrompt += `  Verdict du Clan : ${d.verdict.texte}\n`;
-            contrainteDeDesPrompt += `  Effet requis : ${d.verdict.description}\n\n`;
+        window.getActionsSelectionneesPourIA.forEach(idAction => {
+            // 🔍 On récupère les données pré-calculées correspondantes à l'ID
+            const res = window.resultatsPreCalcules?.[idAction];
+            
+            if (!res) {
+                console.warn(`⚠️ L'action [${idAction}] est cochée mais aucun résultat n'a été trouvé.`);
+                return; // On passe à la suivante sans crasher
+            }
+
+            // 🛡️ Extraction ultra-sécurisée du verdict (physique ou social)
+            let vTexte = "Réussite";
+            let vDesc = "";
+            
+            if (res.verdict && typeof res.verdict === "object") {
+                vTexte = res.verdict.texte || "Calculé";
+                vDesc = res.verdict.description || "";
+            } else if (res.verdictTexte) {
+                vTexte = res.verdictTexte;
+                vDesc = res.verdictDescription || "";
+            }
+
+            const nomActionAffichee = res.nom || idAction;
+            const scoreTotal = res.total || 0;
+
+            // ✍️ Injection propre dans le prompt sans risque de crash
+            contrainteDeDesPrompt += `- Action tentée : ${nomActionAffichee}\n`;
+            contrainteDeDesPrompt += `  Score obtenu : ${scoreTotal} / 50\n`;
+            contrainteDeDesPrompt += `  Verdict du Clan : ${vTexte}\n`;
+            contrainteDeDesPrompt += `  Effet requis : ${vDesc}\n\n`;
         });
 
         contrainteDeDesPrompt += `CONSIGNE NARRATIVE CRUCIALE :
         Insère ces réussites ou ces échecs de manière fluide, sauvage et immersive. Tu ne dois JAMAIS afficher de chiffres, de calculs ou de termes techniques de JDR (bannis les expressions comme "score", "total", "dés", "SA", "échec", "réussite"). Traduis ces données uniquement par des descriptions physiques (ex: un coup qui dévie, une douleur fulgurante, une maladresse, un exploit agile), les ressentis du chat ou des répliques.`;
     }
+
+            if (activeMoodBtns.length > 0) {
+
+                moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (CONSIGNE ABSOLUE : Chaque attribut ci-dessous est indépendant et cloisonné. Traite-les de manière brute, juxtaposée, SANS JAMAIS faire de compromis, de lien ou de fusion entre eux) :\n";
+
+                    
+
 
 const moodDictionary = {
                     // ⚔️ COMBAT & PHYSIQUE (12)
@@ -1148,6 +1177,9 @@ ${maFicheDetaillee}
 
         const textAiHTML = parseRP(textAi);
 
+        
+
+
                     // ============================================================================
                     // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
                     // ============================================================================
@@ -1164,8 +1196,6 @@ ${maFicheDetaillee}
             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                 <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
                 <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
-                <button id="btnOuvrirConsignesMessage" style="background: #34495e; color: #fff; border: none; padding: 3px 6px; font-size: 0.7rem; border-radius: 3px; cursor: pointer; font-weight: bold;">📝 Rédiger les Consignes</button>
-                <button id="btnDiagnosticTrauma" style="background:#ff4a4a; color:white; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer; font-weight:bold;">🩸 Bilan Séquelles (IA)</button>
             </div>
         </div>
         <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
@@ -1184,7 +1214,36 @@ ${maFicheDetaillee}
     </div>
 `;
 
-// ============================================================================
+document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "flex";
+                    });
+
+                    document.getElementById("btnCloseExclusive").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "none";
+                    });
+
+                    document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
+                        if (e.target === this) this.style.display = "none";
+                    });
+                    
+                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
+                        navigator.clipboard.writeText(textAi);
+                        this.innerText = "✓ Copié !";
+                    });
+
+                }
+            } catch (err) { 
+                console.error("❌ Erreur de transmission API Mistral :", err);
+                outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
+            }
+
+        
+        });
+    }
+
+    // ============================================================================
     // GESTION DE LA MODALE EXCLUSIVE DE TRAUMATISMES (VERSION FINALE CORRIGÉE)
     // ============================================================================
     document.addEventListener("click", async function(e) {
@@ -1274,13 +1333,7 @@ ${maFicheDetaillee}
             traumaModal.style.setProperty("display", "none", "important");
         }
     });
-                }
-            } catch (err) { 
-                console.error("❌ Erreur de transmission API Mistral :", err);
-                outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
-            }
-        });
-    }
+
 });
 
 window.clearAiHistory = async function(rpId) {
