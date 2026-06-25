@@ -18,10 +18,24 @@ export function parseRP(text) {
         const trimmed = line.trim();
         if (!trimmed) return '<div style="height:12px"></div>';
         
-        // 💬 GESTION DES DIALOGUES (Lignes commençant par >)
-        if (trimmed.startsWith(">")) {
-            let dialogueText = trimmed.substring(1).trim();
+        // 🔥 DOUBLE DÉTECTION : Lignes commençant par > OU par un tiret (— ou -)
+        const estUnDialogue = trimmed.startsWith(">") || trimmed.startsWith("—") || trimmed.startsWith("-");
+
+        if (estUnDialogue) {
+            // On nettoie le marqueur d'entrée pour ne pas polluer le texte final
+            let dialogueText = trimmed;
+            if (dialogueText.startsWith(">")) dialogueText = dialogueText.substring(1).trim();
             
+            // On s'assure qu'il y a un beau tiret cadratin au début pour le style RP
+            if (!dialogueText.startsWith("—")) {
+                if (dialogueText.startsWith("-")) {
+                    dialogueText = "— " + dialogueText.substring(1).trim();
+                } else {
+                    dialogueText = "— " + dialogueText;
+                }
+            }
+
+            // S'il n'y a aucune étoile double, c'est que toute la ligne est du dialogue direct
             if (!dialogueText.includes("**")) {
                 return `<div class="rp-dialogue"><span class="rp-speech">${parseInline(dialogueText)}</span></div>`;
             }
