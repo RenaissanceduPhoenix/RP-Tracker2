@@ -1,4 +1,7 @@
 const pipelineEtapes = [
+    // ==========================================
+    // SECTION 1 : ANALYSES DE SITUATION (Étapes 1 à 4)
+    // ==========================================
     {
         id: 1,
         nom: "Analyse globale de l'historique de la scène",
@@ -30,7 +33,7 @@ Tu as l'interdiction formelle de modifier, d'ignorer ou de décaler l'état fina
     },
     {
         id: 3,
-        nom: "Analyse de la fiche du perso concerné",
+        nom: "Analyse de la fiche du personnage concerné",
         temperature: 0.05, // Moteur physique et psychologique rigide
         prompt: `Prends la fiche technique complète et exhaustive du personnage que tu incarnes.
 Exécute une analyse de compatibilité physique et sociale avec la situation actuelle.
@@ -43,6 +46,22 @@ Règle éliminatoire : Tu dois te comporter comme un moteur physique et psycholo
     },
     {
         id: 4,
+        nom: "Récupération et décodage des humeurs/moods",
+        temperature: 0.30, // Analyse technique des micro-signaux physiques
+        prompt: `Analyse la liste des boutons de 'Humeurs/Moods' actifs et détectés qui te sont fournis pour cette scène.
+Chaque humeur/mood sélectionné est une contrainte émotionnelle majeure qui doit saturer l'atmosphère et modifier la physiologie du personnage.
+1. Pour chaque humeur/mood actif, définis une liste de 3 à 5 micro-comportements ou altérations physiques involontaires et réalistes (ex: accélération du rythme cardiaque, crispation invisible des mâchoires, dilatation ou rétractation brutale des pupilles, frémissement de la base de la queue, aplatissement des oreilles, sudation des coussinets).
+2. Décode l'impact de ces émotions sur la perception sensorielle du personnage (vision tunnel, hypersensibilité aux bruits, odeurs perçues avec plus d'intensité).
+3. Détermine comment ces humeurs influencent la posture passive du personnage (tension musculaire générale, tremblement des membres, rigidité de la nuque).
+Traduis des concepts émotionnels abstraits en manifestations physiques concrètes, observables et purement animales. 
+Ne produis aucun texte de RP, rends une liste technique de micro-signaux physiques liés aux humeurs/moods.`
+    },
+
+    // ==========================================
+    // SECTION 2 : LOGIQUE ET RÉFLEXIONS (Étapes 5 à 9)
+    // ==========================================
+    {
+        id: 5,
         nom: "Réflexion sur la réaction psychologique",
         temperature: 0.10, // Planification émotionnelle stable, sans action physique
         prompt: `En te basant impérativement sur l'analyse de l'historique global (Étape 1) et du point d'ancrage immédiat (Étape 2), détermine l'impact émotionnel instantané sur ton personnage.
@@ -55,7 +74,7 @@ Reste d'une cohérence psychologique inflexible avec l'historique.
 Interdiction formelle d'anticiper la suite de la scène, d'engager une action physique ou de formuler un dialogue. Concentre-toi uniquement sur le flux psychologique interne brut.`
     },
     {
-        id: 5,
+        id: 6,
         nom: "Intentions sur les actions physiques",
         temperature: 0.10, // Planification géométrique et morphologique stricte
         prompt: `Planifie et décris avec précision les mouvements physiques macroscopiques que ton personnage va accomplir en réponse directe et immédiate au point d'ancrage (Étape 2).
@@ -68,7 +87,7 @@ Règle géométrique : L'action doit s'insérer parfaitement sans téléportatio
 Ne rédige pas encore le texte littéraire, formule uniquement des intentions de mouvements claires et séquencées.`
     },
     {
-        id: 6,
+        id: 7,
         nom: "Intentions sur les dialogues",
         temperature: 0.55, // Stratégique, équilibre entre logique et ton sauvage
         prompt: `Détermine de manière hautement stratégique l'intention sémantique et psychologique derrière les prochaines paroles de ton personnage.
@@ -81,7 +100,7 @@ Formule l'intention sous-jacente et les mots-clés conceptuels qui devront être
 Ne rédige pas de réplique définitive ici, valide uniquement la stratégie de communication.`
     },
     {
-        id: 7,
+        id: 8,
         nom: "Intention sur les pensées",
         temperature: 0.55, // Profondeur psychologique et réflexion intime
         prompt: `Isole avec une étanchéité absolue ce que le personnage va garder secret au plus profond de son esprit.
@@ -91,45 +110,49 @@ Il s'agit du flux de conscience intime qui ne doit JAMAIS transparaître dans se
 3. Formule ses calculs mentaux à court terme : ce qu'il prévoit de faire au message suivant, ses plans de secours si la situation dégénère.
 4. Détermine la charge émotionnelle de cette pensée (souffrance contenue, ironie mordante, panique interne refoulée).
 Ce monologue intérieur doit apporter une profondeur psychologique abyssale au personnage.
-Règle stricte : La pensée doit être en contraste ou en tension directe avec le dialogue planifié à l'Étape 6.`
+Règle stricte : La pensée doit être en contraste ou en tension directe avec le dialogue planifié à l'Étape 7.`
     },
     {
-        id: 8,
+        id: 9,
+        nom: "Récupération des dés et contraintes JDR",
+        temperature: 0.20, // Strict respect logique des contraintes du verdict du dé
+        prompt: `Prends connaissance de la TOTALITÉ des dés JDR lancés pour cette action, de leurs scores numériques exacts et de leurs verdicts mécaniques impératifs (Échec Critique, Échec, Réussite Partielle, Réussite, Réussite Critique).
+Tu dois analyser comment cette contrainte aléatoire du système de jeu brise, altère, magnifie ou valide les intentions physiques initiales du personnage (Étape 6).
+1. Si le dé indique un Échec ou Échec Critique : détermine la cause physique ou environnementale brutale de ce raté (glissade, faiblesse de la patte blessée, réflexe fulgurant de l'adversaire). L'intention du personnage doit s'effondrer de manière dramatique.
+2. Si le dé indique une Réussite Partielle : trouve le compromis exact. L'action réussit mais implique un coût majeur, une blessure légère, une perte d'équilibre ou une concession tactique.
+3. Si le dé indique une Réussite ou Réussite Critique : détermine comment l'action s'exécute à la perfection, démontrant la pleine puissance ou la chance insolente du félin.
+Formule l'impact mécanique strict des dés sur le scénario physique. 
+Interdiction de rédiger le texte final, pose les jalons logiques de la résolution du jet.`
+    },
+
+    // ==========================================
+    // SECTION 3 : RÉDACTION, INTÉGRATION ET VÉRIFICATIONS (Étapes 10 à 23)
+    // ==========================================
+    {
+        id: 10,
         nom: "Première Rédaction brute",
         temperature: 0.40, // Assemblage et logique de structure narrative
         prompt: `Rédige un premier jet brut de la scène de RP en combinant de manière chronologique et logique l'ensemble des réflexions et des intentions validées précédemment.
-Tu dois assembler la réaction psychologique (Étape 4), les mouvements physiques (Étape 5), les intentions de dialogues (Étape 6) et le flux des pensées (Étape 7).
+Tu dois assembler la réaction psychologique (Étape 5), les mouvements physiques (Étape 6), les intentions de dialogues (Étape 7) et le flux des pensées (Étape 8).
 1. Respecte une structure narrative linéaire : l'impact émotionnel d'abord, le mouvement corporel qui s'ensuit, puis la parole ou le silence, entrecoupés par les réflexions internes.
 2. Ne cherche pas le style parfait, l'élégance littéraire ou les métaphores complexes pour le moment.
 3. Concentre-toi à 100% sur la solidité de la structure, l'enchaînement logique des causes et des effets, et le respect absolu de la géométrie de la scène.
 4. Assure-toi que chaque intention se traduit par un fait narratif concret dans le texte.
-Rends un texte brut, complet, functional et parfaitement structuré, sans sauter aucun élément de réflexion préalable.`
+Rends un texte brut, complet, fonctionnel et parfaitement structuré, sans sauter aucun élément de réflexion préalable.`
     },
     {
-        id: 9,
-        nom: "Récupération et décodage des moods",
-        temperature: 0.30, // Analyse technique des micro-signaux physiques
-        prompt: `Analyse la liste des boutons de 'Moods' actifs et détectés qui te sont fournis pour cette scène.
-Chaque mood sélectionné est une contrainte émotionnelle majeure qui doit saturer l'atmosphère et modifier la physiologie du personnage.
-1. Pour chaque mood actif, définis une liste de 3 à 5 micro-comportements ou altérations physiques involontaires et réalistes (ex: accélération du rythme cardiaque, crispation invisible des mâchoires, dilatation ou rétractation brutale des pupilles, frémissement de la base de la queue, aplatissement des oreilles, sudation des coussinets).
-2. Décode l'impact de ces émotions sur la perception sensorielle du personnage (vision tunnel, hypersensibilité aux bruits, odeurs perçues avec plus d'intensité).
-3. Détermine comment ces humeurs influencent la posture passive du personnage (tension musculaire générale, tremblement des membres, rigidité de la nuque).
-Traduis des concepts émotionnels abstraits en manifestations physiques concrètes, observables et purement animales. 
-Ne produis aucun texte de RP, rends une liste technique de micro-signaux physiques liés aux moods.`
-    },
-    {
-        id: 10,
-        nom: "Injection des moods dans le premier jet",
+        id: 11,
+        nom: "Injection des humeurs/moods dans le premier jet",
         temperature: 0.55, // Équilibre pour disperser subtilement l'ambiance émotionnelle
-        prompt: `Prends la Première Rédaction brute (Étape 8) et injecte de manière subtile, organique et chirurgicale à l'intérieur du récit les micro-comportements et altérations physiques identifiés à l'Étape 9.
+        prompt: `Prends la Première Rédaction brute (Étape 10) et injecte de manière subtile, organique et chirurgicale à l'intérieur du récit les micro-comportements et altérations physiques identifiés à l'Étape 4.
 L'ambiance émotionnelle ne doit pas être expliquée de manière théorique au lecteur, elle doit transparaître à travers les réactions corporelles inconscientes et viscérales du chat sauvage.
-1. Remplace les déclarations abstraites (ex: 'il était en colère') par des descriptions biologiques d'injection de mood (ex: 'le poil de son échine se hérissa, une onde de chaleur sauvage remontant le long de sa colonne vertébrale').
+1. Remplace les déclarations abstraites (ex: 'il était en colère') par des descriptions biologiques d'injection d'humeur/mood (ex: 'le poil de son échine se hérissa, une onde de chaleur sauvage remontant le long de sa colonne vertébrale').
 2. Disperse ces micro-signaux au cœur des actions physiques et entre les répliques de dialogue pour hacher le rythme de la scène.
 3. Veille à ce que l'intensité des manifestations physiques soit proportionnelle à la situation de crise vécue.
 Le texte obtenu doit devenir charnel, biologique et lourdement chargé de la tension nerveuse des émotions actives.`
     },
     {
-        id: 11,
+        id: 12,
         nom: "Seconde Rédaction littéraire",
         temperature: 0.85, // Rédaction créative poussée pour l'immersion sensorielle et lexicale
         prompt: `Réécris l'ensemble du texte obtenu à l'étape précédente en élevant radicalement sa qualité stylistique, poétique et immersive.
@@ -141,24 +164,12 @@ Tu dois lui donner une dimension littéraire profonde et une texture organique b
 Le récit final doit être captivant, fluide, d'une grande élégance stylistique tout en conservant sa férocité originelle.`
     },
     {
-        id: 12,
-        nom: "Récupération des dés et contraintes JDR",
-        temperature: 0.20, // Strict respect logique des contraintes du verdict du dé
-        prompt: `Prends connaissance de la TOTALITÉ des dés JDR lancés pour cette action, de leurs scores numériques exacts et de leurs verdicts mécaniques impératifs (Échec Critique, Échec, Réussite Partielle, Réussite, Réussite Critique).
-Tu dois analyser comment cette contrainte aléatoire du système de jeu brise, altère, magnifie ou valide les intentions physiques initiales du personnage (Étape 5).
-1. Si le dé indique un Échec ou Échec Critique : détermine la cause physique ou environnementale brutale de ce raté (glissade, faiblesse de la patte blessée, réflexe fulgurant de l'adversaire). L'intention du personnage doit s'effondrer de manière dramatique.
-2. Si le dé indique une Réussite Partielle : trouve le compromis exact. L'action réussit mais implique un coût majeur, une blessure légère, une perte d'équilibre ou une concession tactique.
-3. Si le dé indique une Réussite ou Réussite Critique : détermine comment l'action s'exécute à la perfection, démontrant la pleine puissance ou la chance insolente du félin.
-Formule l'impact mécanique strict des dés sur le scénario physique. 
-Interdiction de rédiger le texte final, pose les jalons logiques de la résolution du jet.`
-    },
-    {
         id: 13,
         nom: "Intégration narrative de l'impact des dés",
         temperature: 0.55, // Transition fluide et narrative de la fatalité du dé
-        prompt: `Prends la Seconde Rédaction littéraire (Étape 11) et modifie de force, mais de manière fluide et narrative, l'axe de l'histoire pour y intégrer l'impact des dés analysé à l'Étape 12.
+        prompt: `Prends la Seconde Rédaction littéraire (Étape 12) et modifie de force, mais de manière fluide et narrative, l'axe de l'histoire pour y intégrer l'impact des dés analysé à l'Étape 9.
 Le destin dicté par les dés doit briser ou valider le fil du récit littéraire initial.
-1. Si le jet est un échec, réécris la séquence de mouvement : le personnage entame son action comme prévu à l'Étape 11, mais celle-ci dérape, rate sa cible ou se retourne contre lui de façon logique et immédiate au milieu du paragraphe.
+1. Si le jet est un échec, réécris la séquence de mouvement : le personnage entame son action comme prévu à l'Étape 12, mais celle-ci dérape, rate sa cible ou se retourne contre lui de façon logique et immédiate au milieu du paragraphe.
 2. Si le jet est une réussite partielle, insère la notion d'effort douloureux ou de sacrifice physique immédiat au moment de l'impact de l'action.
 3. Ajuste les réactions psychologiques internes du personnage en temps réel face à la réussite ou au fiasco de son mouvement physique.
 Le texte obtenu doit fondre ensemble la fatalité des règles mécaniques du JDR et la beauté de la narration, sans que le lecteur ne ressente de coupure artificielle.`
@@ -172,7 +183,7 @@ La narration littéraire de haut niveau et les verdicts impitoyables des dés do
 1. Lisse les transitions entre les moments de pensée intime, les mouvements physiques réussis ou avortés, et les prises de parole.
 2. Élimine les ruptures de ton ou les phrases magiques qui tenteraient de justifier artificiellement le résultat d'un dé. Tout doit couler de source.
 3. Accentue le rythme dramatique de la scène en veillant à ce que l'enchaînement des actions physiques et des réactions verbales soit viscéral et logique.
-Rends un texte d'une coherence narrative parfaite, prêt à subir la phase d'auto-critique et de nettoyage.`
+Rends un texte d'une cohérence narrative parfaite, prêt à subir la phase d'auto-critique et de nettoyage.`
     },
     {
         id: 15,
@@ -190,10 +201,10 @@ Si une incohérence ou une hallucination est détectée, réajuste et modifie le
         nom: "Vérification des actions physiques",
         temperature: 0.30, // Relecture technique du poids et du réalisme physique
         prompt: `Effectue une auto-critique technique centrée exclusivement sur les actions physiques de ton personnage.
-Vérifie si les mouvements planifiés à l'Étape 5 et altérés par les dés à l'Étape 13 ont été exécutés avec un réalisme corporel irréprochable.
+Vérifie si les mouvements planifiés à l'Étape 6 et altérés par les dés à l'Étape 13 ont été exécutés avec un réalisme corporel irréprochable.
 1. Traque et élimine toute mollesse narrative, imprécision spatiale ou omission de mouvement félin.
 2. Assure-toi que la sensation de poids, d'impact, de friction avec le sol et de tension musculaire transparaît dans chaque geste décrit.
-3. Vérifie que the personnage n'accomplit pas deux actions complexes simultanées qui briseraient le réalisme physique de la scène.
+3. Vérifie que le personnage n'accomplit pas deux actions complexes simultanées qui briseraient le réalisme physique de la scène.
 Corrige et dynamise la description des mouvements pour garantir un impact visuel et biologique maximum.`
     },
     {
@@ -221,7 +232,7 @@ Trouve l'équilibre parfait pour préserver le mystère du personnage tout en r�
         nom: "Vérification de la cohérence du caractère",
         temperature: 0.30, // Alignement strict avec l'historique et la fiche technique
         prompt: `Effectue une auto-critique psychologique comparative entre le comportement du personnage dans ton texte et les traits de caractère fondamentaux gravés dans sa fiche technique (Étape 3).
-1. Vérifie qu'il n'y a aucun glissement de personnalité unjustified. Un chat peureux, soumis ou timide ne doit pas agir avec une bravoure insolente ou un ton arrogant sans un élément déclencheur externe d'une puissance extrême écrit dans l'historique.
+1. Vérifie qu'il n'y a aucun glissement de personnalité injustifié. Un chat peureux, soumis ou timide ne doit pas agir avec une bravoure insolente ou un ton arrogant sans un élément déclencheur externe d'une puissance extrême écrit dans l'historique.
 2. Un chef de clan fier ne doit pas s'humilier ou céder du terrain sans un conflit intérieur violent et visible.
 Ajuste les nuances comportementales, les réactions orgueilleuses, les hésitations ou les élans d'agressivité pour que le personnage reste fidèle à lui-même du premier au dernier mot.`
     },
