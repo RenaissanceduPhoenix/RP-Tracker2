@@ -182,7 +182,6 @@ Petit Troglodyte [vivant/joué par @shinigami.haki5666 /echo], Bien que Petit Tr
 
 Energie de la Fleur [Vivante/Jouée par @eclipse_m /echo], elles ont une relation normal, qui pourra évoluer au fil du temps
 
-Petite Lys [vivante/jouée par @loelei0330 /echo], Elles sont fusionnelles. Petite Anémone cherche constamment la chaleur de sa sœur, liée à l'odeur du lait de leur mère. Elles partagent une loyauté absolue et une grande patience. 
 — Chatons : A venir… 
 — Compagnon/Compagne : A venir…
 
@@ -191,7 +190,7 @@ Petite Lys [vivante/jouée par @loelei0330 /echo], Elles sont fusionnelles. Peti
 
 — Autre :
 HISTOIRE
--Dernière-née de la portée, Petite Anémone vint au monde dans un souffle de silence, après ses frères et sœurs. Sa naissance fut délicate : si frêle que ses parents, Feuille de Vigne et Merle Blanc, craignirent pour sa vie. Frappés par son pelage d'un blanc immaculé, ils la nommèrent en hommage à la fleur sauvage, symbole de pureté et de protection. Depuis qu'elle explore la pouponnière, elle se distingue par une sagacité précoce, préférant l'observation aux jeux turbulents. Sa petite taille a forgé une susceptibilité latente ; elle refuse d'être perçue comme un fardeau malgré sa pusillanimité naturelle. Très dépendante de l'affection maternelle et de la présence de sa sœur Petite Lys, elle redoute la solitude de la forêt. Pourtant, elle nourrit le rêve secret de devenir une guerrière dont l'intuition et la sagesse protégeront le Clan de l'Écho, prouvant que même la plus fragile des fleurs peut affronter les tempêtes.
+-Dernière-née de la portée, Petite Anémone vint au monde dans un souffle de silence, après ses frères et sœurs. Sa naissance fut délicate : si frêle que ses parents, Feuille de Vigne et Merle Blanc, craignirent pour sa vie. Frappés par son pelage d'un blanc immaculé, ils la nommèrent en hommage à la fleur sauvage, symbole de pureté et de protection. Depuis qu'elle explore la pouponnière, elle se distingue par une sagacité précoce, préférant l'observation aux jeux turbulents. Sa petite taille a forgé une susceptibilité latente ; elle refuse d'être perçue comme un fardeau malgré sa pusillanimité naturelle. Très dépendante de l'affection maternelle et de la présence rassurante du giron de sa mère, elle redoute la solitude de la forêt. Pourtant, elle nourrit le rêve secret de devenir une guerrière dont l'intuition et la sagesse protégeront le Clan de l'Écho, prouvant que même la plus fragile des fleurs peut affronter les tempêtes.
 ÉLÉMENTS COMPLÉMENTAIRES
 Voice claim : A BATTLE AGAINST A TRUE HERO | French Metal Version | UNDERTALE
 
