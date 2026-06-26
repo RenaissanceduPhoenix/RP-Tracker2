@@ -11,7 +11,6 @@ import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireAction
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
-const MISTRAL_MODEL = "mistral-large-lastest"
 
 window.currentActiveRpId = null;
 window.currentActiveCharName = null;
@@ -762,602 +761,469 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-if (btnAi) {
-    btnAi.addEventListener("click", async () => {
-        const outputDiv = document.getElementById("coWriteAiOutput");
-        const textInput = document.getElementById("coWriteContext");
+    if (btnAi) {
+        btnAi.addEventListener("click", async () => {
+            const outputDiv = document.getElementById("coWriteAiOutput");
+            const textInput = document.getElementById("coWriteContext");
+            if (!outputDiv || !currentActiveRpId) return;
 
-            // ============================================================================
-// MODIFICATION : TABLEAU PIPELINE ETAPES AVEC TES PROMPTS ORIGINAUX ET LES TEMPÉRATURES ADAPTÉES
-// À remplacer entièrement dans ton code.
-// ============================================================================
+            // 💾 SAUVEGARDE DU PROMPT ACTUEL POUR LE REROLL
+dernierPromptJoueur = textInput ? textInput.value.trim() : "";
 
-const pipelineEtapes = [
-    // ==========================================
-    // SECTION 1 : ANALYSES DE SITUATION (Étapes 1 à 4)
-    // ==========================================
-    {
-        id: 1,
-        nom: "Analyse globale de l'historique de la scène",
-        temperature: 0.05, // Ultra-factuel et clinique
-        prompt: `Analyse avec une rigueur absolue la TOTALITÉ de l'historique textuel fourni de la scène [HISTORIQUE DE LA SCÈNE]. 
-Ton objectif est de dresser une cartographie factuelle et chronologique de la situation.
-1. Détermine le fil conducteur précis : quel est l'événement déclencheur et comment la confrontation ou l'interaction a progressé de message en message.
-2. Évalue l'évolution psychologique de TOUS les personnages en présence : analyse leurs changements de ton, leur réactivité émotionnelle, leurs postures physiques récurrentes et les glissements dans leur comportement du premier au dernier post.
-3. Caractérise précisément l'atmosphère générale (froide, hostile, étouffante, mélancolique, tendue) et liste les facteurs environnementaux actifs.
-4. Identifie le lieu exact de l'action, sa topographie immédiate, les obstacles spatiaux, la luminosité et la temporalité (aube, nuit, intempéries).
-5. Extrais les thématiques majeures abordées (trahison, survie, domination, alliance secrète, deuil).
-Rends un résumé clinique, analytique, profond et purement chronologique de la situation globale.
-Interdiction absolue d'inventer, d'anticiper la suite, d'extrapoler ou de supposer des événements non écrits. 
-Ne produis aucun blabla d'introduction, commence directement par l'analyse factuelle.`
-    },
-    {
-        id: 2,
-        nom: "Focalisation sur le point d'ancrage immédiat",
-        temperature: 0.05, // Précision chirurgicale et millimétrique
-        prompt: `Isole et décortique de manière chirurgicale UNIQUEMENT et exclusivement le tout dernier message écrit par ton interlocuteur dans l'historique. 
-Ce post constitue ta seule et unique balise mécanique d'entrée pour la suite du récit.
-1. Détermine la position physique exacte de l'interlocuteur à la demi-seconde près à la fin de son action (est-il debout, couché, en suspens, à quelle distance exacte se trouve-t-il de ton personnage ?).
-2. Analyse la dynamique de son mouvement : s'agit-il d'une action interrompue, d'une posture figée ou d'une charge cinétique ?
-3. Extrais ses toutes dernières paroles prononcées, son intonation exacte (vibrante, brisée, impérieuse) et le sens littéral de sa réplique.
-4. Repère et liste ses micro-expressions faciales, le positionnement de son regard, de ses oreilles ou de ses membres à la milliseconde où son post se termine.
-Tu dois formuler un rapport de situation spatial et temporel d'une précision millimétrique.
-Règle absolue : Ce point d'ancrage est le seul point de départ autorisé pour ta future réaction physique et verbale. 
-Tu as l'interdiction formelle de modifier, d'ignorer ou de décaler l'état final décrit par l'interlocuteur.`
-    },
-    {
-        id: 3,
-        nom: "Analyse de la fiche du personnage concerné",
-        temperature: 0.05, // Moteur physique et psychologique rigide
-        prompt: `Prends la fiche technique complète et exhaustive du personnage que tu incarnes.
-Exécute une analyse de compatibilité physique et sociale avec la situation actuelle.
-1. Extrais ses forces physiques brutes (puissance musculaire, agilité, endurance) et confronte-les aux contraintes du décor de l'Étape 1.
-2. Identifie ses faiblesses physiques et psychologiques actuelles, ses blessures ouvertes, sa fatigue ou ses limitations sensorielles.
-3. Prends en compte son grade au sein du clan (novice, guerrier, lieutenant, guérisseur, chef) et l'autorité ou la soumission mécanique que ce statut implique face à l'interlocuteur.
-4. Analyse son tempérament global, ses traits de caractère dominants et ses schémas de pensée automatiques.
-Formule une synthèse stricte définissant ce que ce personnage est techniquement et biologiquement capable ou incapable de faire ou de dire dans cette situation précise.
-Règle éliminatoire : Tu dois te comporter comme un moteur physique et psychologique rigide. Un novice ne peut pas manifester l'aisance martiale d'un vétéran, et un personnage blessé aux pattes ne peut pas accomplir un bond prodigieux sans en payer le prix narratif.`
-    },
-    {
-        id: 4,
-        nom: "Récupération et décodage des humeurs/moods",
-        temperature: 0.30, // Analyse technique des micro-signaux physiques
-        prompt: `Analyse la liste des boutons de 'Humeurs/Moods' actifs et détectés qui te sont fournis pour cette scène.
-Chaque humeur/mood sélectionné est une contrainte émotionnelle majeure qui doit saturer l'atmosphère et modifier la physiologie du personnage.
-1. Pour chaque humeur/mood actif, définis une liste de 3 à 5 micro-comportements ou altérations physiques involontaires et réalistes (ex: accélération du rythme cardiaque, crispation invisible des mâchoires, dilatation ou rétractation brutale des pupilles, frémissement de la base de la queue, aplatissement des oreilles, sudation des coussinets).
-2. Décode l'impact de ces émotions sur la perception sensorielle du personnage (vision tunnel, hypersensibilité aux bruits, odeurs perçues avec plus d'intensité).
-3. Détermine comment ces humeurs influencent la posture passive du personnage (tension musculaire générale, tremblement des membres, rigidité de la nuque).
-Traduis des concepts émotionnels abstraits en manifestations physiques concrètes, observables et purement animales. 
-Ne produis aucun texte de RP, rends une liste technique de micro-signaux physiques liés aux humeurs/moods.`
-    },
-
-    // ==========================================
-    // SECTION 2 : LOGIQUE ET RÉFLEXIONS (Étapes 5 à 9)
-    // ==========================================
-    {
-        id: 5,
-        nom: "Réflexion sur la réaction psychologique",
-        temperature: 0.10, // Planification émotionnelle stable, sans action physique
-        prompt: `En te basant impérativement sur l'analyse de l'historique global (Étape 1) et du point d'ancrage immédiat (Étape 2), détermine l'impact émotionnel instantané sur ton personnage.
-Tu dois analyser ce qu'il ressent à la milliseconde exacte où le message de l'interlocuteur se termine, avant même qu'un muscle ne bouge ou qu'une parole ne soit prononcée.
-1. Quelle est l'émotion primaire provoquée (peur panique, colère sourde, sidération, soulagement, méfiance absolue) ?
-2. Comment son passif, ses traumatismes et ses relations antérieures avec cet interlocuteur influencent-ils cette réaction psychologique ?
-3. Identifie le conflit interne immédiat : ce qu'il ressent au plus profond de lui vs ce qu'il veut laisser paraître.
-4. Analyse le traitement cognitif de l'information : comprend-il la portée des paroles de l'autre ou est-il dans l'incompréhension ?
-Reste d'une cohérence psychologique inflexible avec l'historique.
-Interdiction formelle d'anticiper la suite de la scène, d'engager une action physique ou de formuler un dialogue. Concentre-toi uniquement sur le flux psychologique interne brut.`
-    },
-    {
-        id: 6,
-        nom: "Intentions sur les actions physiques",
-        temperature: 0.10, // Planification géométrique et morphologique stricte
-        prompt: `Planifie et décris avec précision les mouvements physiques macroscopiques que ton personnage va accomplir en réponse directe et immédiate au point d'ancrage (Étape 2).
-Cette planification doit être 100% réaliste, biologique et conforme à la morphologie stricte d'un félin sauvage (anatomie, poids, centre de gravité, équilibre).
-1. Décris la répartition de ses appuis au sol : quelles pattes se contractent, comment ses griffes s'ancrent dans la terre ou la roche, comment sa colonne vertébrale fléchit ou se détend.
-2. Spécifie l'orientation exacte de son corps, de ses épaules, de sa tête et de son axe de vision par rapport à l'interlocuteur.
-3. Détermine ses déplacements prévus dans l'espace : recul de sécurité, contournement stratégique, rapprochement intimidant, ou immobilité défensive totale.
-4. Justifie l'énergie et la vitesse cinétique appliquées au mouvement (lenteur calculée, explosion de rapidité, tremblement de tension).
-Règle géométrique : L'action doit s'insérer parfaitement sans téléportation ni incohérence spatiale par rapport aux positions établies à l'Étape 2. 
-Ne rédige pas encore le texte littéraire, formule uniquement des intentions de mouvements claires et séquencées.`
-    },
-    {
-        id: 7,
-        nom: "Intentions sur les dialogues",
-        temperature: 0.55, // Stratégique, équilibre entre logique et ton sauvage
-        prompt: `Détermine de manière hautement stratégique l'intention sémantique et psychologique derrière les prochaines paroles de ton personnage.
-Chaque mot prononcé doit être une arme, un bouclier ou un outil de manipulation sociale au sein du clan.
-1. Quel est le but exact, unique et précis de sa réplique (intimider l'autre, rassurer un subordonné, fuir une question compromettante, avouer un secret douloureux, poser un ultimatum) ?
-2. Choisis le ton exact et les nuances vocales : voix saccadée, murmure feutré, grognement guttural à peine audible, miaulement impérieux.
-3. Définis la structure du langage : interdiction formelle d'utiliser des phrases longues, pompeuses, poétiques ou de type humain civilisé. Pense exclusivement 'sauvage, direct, félin et percutant'.
-4. Détermine la longueur de la prise de parole : un mot unique, une phrase courte, ou un silence lourd de sens qui coupe la parole.
-Formule l'intention sous-jacente et les mots-clés conceptuels qui devront être verbalisés. 
-Ne rédige pas de réplique définitive ici, valide uniquement la stratégie de communication.`
-    },
-    {
-        id: 8,
-        nom: "Intention sur les pensées",
-        temperature: 0.55, // Profondeur psychologique et réflexion intime
-        prompt: `Isole avec une étanchéité absolue ce que le personnage va garder secret au plus profond de son esprit.
-Il s'agit du flux de conscience intime qui ne doit JAMAIS transparaître dans ses actes physiques ni dans ses paroles à haute voix face à son interlocuteur.
-1. Quelle est la vérité crue, le doute toxique ou la peur viscérale qu'il se cache à lui-même ou qu'il refuse catégoriquement de verbaliser dans cette scène précise ?
-2. Analyse ses jugements silencieux et secrets sur l'interlocuteur en face de lui (mépris caché, admiration inavouable, désir de vengeance).
-3. Formule ses calculs mentaux à court terme : ce qu'il prévoit de faire au message suivant, ses plans de secours si la situation dégénère.
-4. Détermine la charge émotionnelle de cette pensée (souffrance contenue, ironie mordante, panique interne refoulée).
-Ce monologue intérieur doit apporter une profondeur psychologique abyssale au personnage.
-Règle stricte : La pensée doit être en contraste ou en tension directe avec le dialogue planifié à l'Étape 7.`
-    },
-    {
-        id: 9,
-        nom: "Récupération des dés et contraintes JDR",
-        temperature: 0.20, // Strict respect logique des contraintes du verdict du dé
-        prompt: `Prends connaissance de la TOTALITÉ des dés JDR lancés pour cette action, de leurs scores numériques exacts et de leurs verdicts mécaniques impératifs (Échec Critique, Échec, Réussite Partielle, Réussite, Réussite Critique).
-Tu dois analyser comment cette contrainte aléatoire du système de jeu brise, altère, magnifie ou valide les intentions physiques initiales du personnage (Étape 6).
-1. Si le dé indique un Échec ou Échec Critique : détermine la cause physique ou environnementale brutale de ce raté (glissade, faiblesse de la patte blessée, réflexe fulgurant de l'adversaire). L'intention du personnage doit s'effondrer de manière dramatique.
-2. Si le dé indique une Réussite Partielle : trouve le compromis exact. L'action réussit mais implique un coût majeur, une blessure légère, une perte d'équilibre ou une concession tactique.
-3. Si le dé indique une Réussite ou Réussite Critique : détermine comment l'action s'exécute à la perfection, démontrant la pleine puissance ou la chance insolente du félin.
-Formule l'impact mécanique strict des dés sur le scénario physique. 
-Interdiction de rédiger le texte final, pose les jalons logiques de la résolution du jet.`
-    },
-
-    // ==========================================
-    // SECTION 3 : RÉDACTION, INTÉGRATION ET VÉRIFICATIONS (Étapes 10 à 23)
-    // ==========================================
-    {
-        id: 10,
-        nom: "Première Rédaction brute",
-        temperature: 0.40, // Assemblage et logique de structure narrative
-        prompt: `Rédige un premier jet brut de la scène de RP en combinant de manière chronologique et logique l'ensemble des réflexions et des intentions validées précédemment.
-Tu dois assembler la réaction psychologique (Étape 5), les mouvements physiques (Étape 6), les intentions de dialogues (Étape 7) et le flux des pensées (Étape 8).
-1. Respecte une structure narrative linéaire : l'impact émotionnel d'abord, le mouvement corporel qui s'ensuit, puis la parole ou le silence, entrecoupés par les réflexions internes.
-2. Ne cherche pas le style parfait, l'élégance littéraire ou les métaphores complexes pour le moment.
-3. Concentre-toi à 100% sur la solidité de la structure, l'enchaînement logique des causes et des effets, et le respect absolu de la géométrie de la scène.
-4. Assure-toi que chaque intention se traduit par un fait narratif concret dans le texte.
-Rends un texte brut, complet, fonctionnel et parfaitement structuré, sans sauter aucun élément de réflexion préalable.`
-    },
-    {
-        id: 11,
-        nom: "Injection des humeurs/moods dans le premier jet",
-        temperature: 0.55, // Équilibre pour disperser subtilement l'ambiance émotionnelle
-        prompt: `Prends la Première Rédaction brute (Étape 10) et injecte de manière subtile, organique et chirurgicale à l'intérieur du récit les micro-comportements et altérations physiques identifiés à l'Étape 4.
-L'ambiance émotionnelle ne doit pas être expliquée de manière théorique au lecteur, elle doit transparaître à travers les réactions corporelles inconscientes et viscérales du chat sauvage.
-1. Remplace les déclarations abstraites (ex: 'il était en colère') par des descriptions biologiques d'injection d'humeur/mood (ex: 'le poil de son échine se hérissa, une onde de chaleur sauvage remontant le long de sa colonne vertébrale').
-2. Disperse ces micro-signaux au cœur des actions physiques et entre les répliques de dialogue pour hacher le rythme de la scène.
-3. Veille à ce que l'intensité des manifestations physiques soit proportionnelle à la situation de crise vécue.
-Le texte obtenu doit devenir charnel, biologique et lourdement chargé de la tension nerveuse des émotions actives.`
-    },
-    {
-        id: 12,
-        nom: "Seconde Rédaction littéraire",
-        temperature: 0.85, // Rédaction créative poussée pour l'immersion sensorielle et lexicale
-        prompt: `Réécris l'ensemble du texte obtenu à l'étape précédente en élevant radicalement sa qualité stylistique, poétique et immersive.
-Tu dois lui donner une dimension littéraire profonde et une texture organique brute.
-1. Améliore la métrique des phrases : alterne judicieusement phrases courtes et percutantes pour les moments de tension, et phrases plus denses pour les descriptions d'états internes.
-2. Enrichis et varie le vocabulaire : banni les verbes ternes (faire, dire, voir, aller, être, avoir) et remplace-les par un lexique précis, viscéral, tellurique et sensoriel.
-3. Supprime impitoyablement toutes les répétitions de mots, les lourdeurs syntaxiques et les tournures de phrases passives ou impersonnelles.
-4. Donne une atmosphère immersive profonde au récit : le texte doit vibrer d'un réalisme animal total, où chaque description évoque la texture du sol, l'odeur du sang, du sanglot ou du vent, et la rudesse de la vie sauvage.
-Le récit final doit être captivant, fluide, d'une grande élégance stylistique tout en conservant sa férocité originelle.`
-    },
-    {
-        id: 13,
-        nom: "Intégration narrative de l'impact des dés",
-        temperature: 0.55, // Transition fluide et narrative de la fatalité du dé
-        prompt: `Prends la Seconde Rédaction littéraire (Étape 12) et modifie de force, mais de manière fluide et narrative, l'axe de l'histoire pour y intégrer l'impact des dés analysé à l'Étape 9.
-Le destin dicté par les dés doit briser ou valider le fil du récit littéraire initial.
-1. Si le jet est un échec, réécris la séquence de mouvement : le personnage entame son action comme prévu à l'Étape 12, mais celle-ci dérape, rate sa cible ou se retourne contre lui de façon logique et immédiate au milieu du paragraphe.
-2. Si le jet est une réussite partielle, insère la notion d'effort douloureux ou de sacrifice physique immédiat au moment de l'impact de l'action.
-3. Ajuste les réactions psychologiques internes du personnage en temps réel face à la réussite ou au fiasco de son mouvement physique.
-Le texte obtenu doit fondre ensemble la fatalité des règles mécaniques du JDR et la beauté de la narration, sans que le lecteur ne ressente de coupure artificielle.`
-    },
-    {
-        id: 14,
-        nom: "Troisième Rédaction (Fusion)",
-        temperature: 0.75, // Harmonisation fluide et lissage du rythme dramatique
-        prompt: `Fusionne, harmonise et réadapte l'ensemble des paragraphes obtenus pour obtenir un texte d'une fluidité absolue et sans couture.
-La narration littéraire de haut niveau et les verdicts impitoyables des dés doivent désormais former un seul et unique récit cohérent, haletant et parfaitement unifié.
-1. Lisse les transitions entre les moments de pensée intime, les mouvements physiques réussis ou avortés, et les prises de parole.
-2. Élimine les ruptures de ton ou les phrases magiques qui tenteraient de justifier artificiellement le résultat d'un dé. Tout doit couler de source.
-3. Accentue le rythme dramatique de la scène en veillant à ce que l'enchaînement des actions physiques et des réactions verbales soit viscéral et logique.
-Rends un texte d'une cohérence narrative parfaite, prêt à subir la phase d'auto-critique et de nettoyage.`
-    },
-    {
-        id: 15,
-        nom: "Vérification de la continuité historique",
-        temperature: 0.10, // Auto-critique rigoureuse pour traquer les hallucinations spatio-temporelles
-        prompt: `Effectue une auto-critique et une correction d'une rigueur absolue concernant la continuité historique et spatiale de la scène.
-Compare méthodiquement ton texte actuel avec l'historique global (Étape 1) et le point d'ancrage (Étape 2).
-1. Est-ce qu'un élément matériel, topographique, spatial, temporel ou logique se contredit entre ton texte et les posts précédents ? (ex: un objet changé de place, une météo oubliée, une distance incohérente).
-2. Vérifie minutieusement qu'aucun personnage absent n'a été inventé ou mentionné par erreur au détour d'une phrase.
-3. Supprime impitoyablement toute tournure de phrase évoquant un événement magique, extravagant, surhumain ou hors du réalisme de l'univers des chats sauvages.
-Si une incohérence ou une hallucination est détectée, réajuste et modifie le paragraphe concerné pour restaurer la vérité stricte de l'historique.`
-    },
-    {
-        id: 16,
-        nom: "Vérification des actions physiques",
-        temperature: 0.30, // Relecture technique du poids et du réalisme physique
-        prompt: `Effectue une auto-critique technique centrée exclusivement sur les actions physiques de ton personnage.
-Vérifie si les mouvements planifiés à l'Étape 6 et altérés par les dés à l'Étape 13 ont été exécutés avec un réalisme corporel irréprochable.
-1. Traque et élimine toute mollesse narrative, imprécision spatiale ou omission de mouvement félin.
-2. Assure-toi que la sensation de poids, d'impact, de friction avec le sol et de tension musculaire transparaît dans chaque geste décrit.
-3. Vérifie que le personnage n'accomplit pas deux actions complexes simultanées qui briseraient le réalisme physique de la scène.
-Corrige et dynamise la description des mouvements pour garantir un impact visuel et biologique maximum.`
-    },
-    {
-        id: 17,
-        nom: "Vérification des dialogues sauvages",
-        temperature: 0.40, // Épuration des structures et polissage du ton de clan sauvage
-        prompt: `Effectue une auto-critique stylistique inflexible sur la totalité des répliques de dialogue prononcées par ton personnage.
-1. Relis chaque réplique à haute voix virtuellement. Est-ce que le chat parle trop comme un être humain civilisé, moderne ou courtois ? Si oui, détruis ces structures.
-2. Est-ce trop bavard, théâtral, explicatif ou pompeux ? Supprime les tirades artificielles.
-3. Raccourcis, épure et densifie le langage : ne garde que l'essence brute, sauvage, instinctive et percutante du dialogue de clan. Un chat sauvage utilise des phrases courtes, des métaphores liées à la nature, et ponctue ses paroles de signaux sonores (grognements, feulements).
-Remplace le vocabulaire humain résiduel par des structures de communication féline sauvage.`
-    },
-    {
-        id: 18,
-        nom: "Vérification du dosage des pensées",
-        temperature: 0.55, // Équilibre dramatique et mystère psychologique du flux intérieur
-        prompt: `Effectue une auto-critique sur le traitement du monologue intérieur et du flux de pensées intimes de ton personnage.
-1. Assure-toi avec certitude que les pensées secrètes apportent une véritable profondeur psychologique, un éclairage nouveau ou une tension dramatique à la scène.
-2. Vérifie qu'elles ne se contentent pas de répéter de manière redondante ce qui est déjà parfaitement visible et explicite dans l'action physique ou dans les dialogues.
-3. Ajuste leur dosage avec précision : trop de pensées alourdissent le rythme de l'action, pas assez de pensées transforment le personnage en coquille vide.
-Trouve l'équilibre parfait pour préserver le mystère du personnage tout en révélant sa complexité interne.`
-    },
-    {
-        id: 19,
-        nom: "Vérification de la cohérence du caractère",
-        temperature: 0.30, // Alignement strict avec l'historique et la fiche technique
-        prompt: `Effectue une auto-critique psychologique comparative entre le comportement du personnage dans ton texte et les traits de caractère fondamentaux gravés dans sa fiche technique (Étape 3).
-1. Vérifie qu'il n'y a aucun glissement de personnalité injustifié. Un chat peureux, soumis ou timide ne doit pas agir avec une bravoure insolente ou un ton arrogant sans un élément déclencheur externe d'une puissance extrême écrit dans l'historique.
-2. Un chef de clan fier ne doit pas s'humilier ou céder du terrain sans un conflit intérieur violent et visible.
-Ajuste les nuances comportementales, les réactions orgueilleuses, les hésitations ou les élans d'agressivité pour que le personnage reste fidèle à lui-même du premier au dernier mot.`
-    },
-    {
-        id: 20,
-        nom: "Vérification du respect des peurs",
-        temperature: 0.20, // Modélisation stricte des stigmates et blocages traumatiques
-        prompt: `Effectue une auto-critique ciblée sur la gestion des traumatismes, des phobies et des peurs viscérales inscrites dans la fiche de ton personnage.
-1. Si la situation actuelle, le décor (ex: feu, eau profonde, espace clos) ou les paroles de l'interlocuteur touchent de près ou de loin à l'une des peurs intimes du personnage, le texte doit impérativement en montrer les stigmates narratifs.
-2. Traque l'absence de réaction face à un déclencheur traumatique : le texte doit montrer des signes de blocage psychologique, de ralentissement de l'action, de panique interne refoulée ou de stress physique violent (pupilles figées, souffle court).
-Ajuste les paragraphes pour honorer la vulnérabilité mécanique et narrative du personnage.`
-    },
-    {
-        id: 21,
-        nom: "Vérification des nuances relationnelles",
-        temperature: 0.30, // Fidélité envers le passif social et émotionnel commun
-        prompt: `Effectue une auto-critique centrée sur l'historique relationnel et le passif social existant entre ton personnage et son interlocuteur.
-1. Le ton employé, le choix des mots, la distance physique maintenue et l'intensité des regards sont-ils parfaitement cohérents avec leur passé commun (rivalité féroce, respect fraternel, amour interdit, méfiance politique, passif de trahison) ?
-2. Élimine toute familiarité excessive si les personnages se détestent, ou toute froideur artificielle s'ils partagent un lien intime et secret.
-Rectifie les nuances comportementales pour que chaque interaction transpire de la vérité historique de leur relation.`
-    },
-    {
-        id: 22,
-        nom: "Vérification et application du dictionnaire félin",
-        temperature: 0.10, // Élimination éliminatoire de tout geste anthropomorphe
-        prompt: `Effectue une auto-critique sémantique et anatomique radicale et éliminatoire.
-Tu dois traquer et éradiquer jusqu'au dernier les tics comportementaux ou expressions corporelles anthropomorphes (humaines) qui se seraient glissés dans le texte.
-1. Remplace impérativement et sans aucune exception les expressions humaines résiduelles telles que 'il sourit', 'elle haussa les épaules', 'il hocha la tête', 'elle croisa les bras', 'il soupira', 'elle fronça les sourcils' par leurs équivalents anatomiques 100% félins et sauvages.
-2. Injecte à la place des expressions corporelles réalistes de félins : mouvements millimétriques des oreilles (rabattues, orientées vers l'arrière, frémissantes), frémissement des moustaches (vibrisses tendues en avant ou plaquées contre les joues), battements, ondulations ou saccades de la queue, allomarquage, retroussement des babines, dévoilement des crocs, plissement des yeux, ou léchage nerveux d'une épaule.
-Le texte final doit être purgé de toute humanité gestuelle pour devenir purement animal.`
-    },
-    {
-        id: 23,
-        nom: "Génération finale du texte structuré et balisé",
-        temperature: 0.95, // Rédaction ultime : créativité maximale, formatage rigide et style haut de gamme
-        prompt: `Rédige maintenant le post de RP final complet, parfait, magnifié et définitif au présent de l'indicatif en combinant et en appliquant l'ensemble des analyses, rédactions et auto-critiques validées au cours du pipeline.
-Tu dois respecter une continuité géométrique, temporelle et narrative parfaite avec la fin de l'historique global et l'action immédiate.
-
-⚠️ DIRECTIVE GÉOMÉTRIQUE ET SYNTAXIQUE STRICTE (RÈGLE ÉLIMINATOIRE DE PRODUCTION) :
-1. Chaque paragraphe ou ligne qui contient un dialogue, une parole dite, un feulement articulé ou une réplique prononcée à haute voix DOIT IMPÉRATIVEMENT commencer dès le tout premier caractère de la ligne par le chevron '> ' suivi d'un espace et d'un tiret cadratin '— ' et se terminer de manière classique.
-Exemple strict à appliquer : > — Bonjour, murmura-t-elle en inclinant ses oreilles vers l'avant.
-2. Ne mets ABSOLUMENT AUCUN astérisque (* ou **) autour des actions ou des descriptions dans ce post final. Écris les actions, descriptions du décor et expressions passives sous la forme de paragraphes textuels normaux, standards, sans aucun chevron de début de ligne.
-3. Il est formellement et strictement interdit d'inclure une introduction, une conclusion, des salutations, des notes techniques, des titres d'étapes, des excuses ou des commentaires hors-RP. 
-Renvoie UNIQUEMENT et exclusivement le récit textuel pur, balisé et formaté selon ces deux règles géométriques. Rien d'autre.`
-    }
-];
-
-        const moodDictionary = {
-            combat: "- COMBAT : Actions physiques offensives, esquives, feintes, attaques directes.\n",
-            adrenaline: "- ADRENALINE : Réflexes accélérés, perception nerveuse aiguë, cœur battant la chamade.\n",
-            epuisement: "- ÉPUISEMENT : Muscles lourds, pattes flageolantes, souffle court, fatigue extrême.\n",
-            agonie: "- AGONIE : Souffrance physique limite, combat biologique instinctif pour rester conscient.\n",
-            douleur: "- DOULEUR : Réaction nerveuse à un coup, crispation physique immédiate, gémissement contenu.\n",
-            vitesse: "- VITESSE : Mouvements fulgurants, course rapide, bonds athlétiques explosifs.\n",
-            furtivite: "- FURTIVITÉ : Pas feutrés, corps au ras du sol, progression invisible et silencieuse.\n",
-            defense: "- DÉFENSE : Posture défensive, parades, interposition pour protéger.\n",
-            faiblesse: "- FAIBLESSE : Perte de force, tremblements, instabilité physique, baisse de régime.\n",
-            blessure: "- BLESSURE : Impact physique localisé, sang déversé, handicap moteur temporaire visible.\n",
-            reflexe: "- RÉFLEXE : Réaction corporelle involontaire et instantanée face à un stimulus soudain.\n",
-            endurance: "- ENDURANCE : Effort prolongé, résistance aux chocs répétés, refus physique de faiblir.\n",
-            colere: "- COLÈRE : Poils dressés, voix forte, gestes brusques, regard noir.\n",
-            rage: "- RAGE : Fureur destructive, impulsivité aveugle, perte des manières courtoises.\n",
-            cruaute: "- CRUAUTÉ : Volonté malveillante de faire souffrir, absence totale de remords.\n",
-            sadisme: "- SADISME : Plaisir affiché devant le malheur d'autrui, sourire en coin pervers.\n",
-            provocation: "- PROVOCATION : Attitude insolente, gestes de défi provocateurs, bravade ouverte.\n",
-            mepris: "- MÉPRIS : Regard condescendant, dédain manifeste, ignorer délibérément l'interlocuteur.\n",
-            arrogance: "- ARROGANCE : Posture hautaine, assurance excessive, sentiment de supériorité flagrant.\n",
-            vengeance: "- VENGEANCE : Rendre le tort subi, focalisation obsessionnelle sur le châtiment.\n",
-            menace: "- MENACE : Posture d'intimidation, grognement sourd, promesse implicite de représailles.\n",
-            haine: "- HAINE : Animosité viscérale profonde, rancune destructrice, hostilité absolue.\n",
-            rivalite: "- RIVALITÉ : Esprit de compétition agressif, désir permanent de surpasser son vis-à-vis.\n",
-            tyrannie: "- TYRANNIE : Comportement autoritaire abusif, volonté d'imposer sa domination par la force.\n",
-            tristesse: "- TRISTESSE : Regard bas, abattement postural, épaules affaissées, mouvements lents.\n",
-            deuil: "- DEUIL : Douleur morale liée à une perte affective, mélancolie lancinante.\n",
-            peur: "- PEUR : Instinct d'évitement, hypervigilance, tension interne face au danger.\n",
-            terreur: "- TERREUR : Sidération, pupilles dilatées au maximum, poils hérissés par l'effroi.\n",
-            angoisse: "- ANGOISSE : Pressentiment sombre, oppression mentale, sensation de danger imminent.\n",
-            regret: "- REGRET : Remords intérieurs, culpabilité, amertume face à une action passée.\n",
-            desespoir: "- DÉSESPOIR : Sentiment d'impuissance totale, abandon psychologique de la lutte.\n",
-            solitude: "- SOLITUDE : Sentiment d'isolement, repli sur soi, détachement social subi.\n",
-            culpabilite: "- CULPABILITÉ : Auto-accusation, poids moral écrasant, sentiment d'être le responsable.\n",
-            nostalgie: "- NOSTALGIE : Regret mélancolique d'une époque ou d'un bonheur révolu.\n",
-            abandon: "- ABANDON : Sensation de trahison affective, délaissement, détresse de se retrouver seul.\n",
-            detresse: "- DÉTRESSE : Appel à l'aide tacite, désemparé face à une situation insurmontable.\n",
-            gene: "- GÊNE : Trouble relationnel, mouvements gauches, attitude inconfortable.\n",
-            malaise: "- MALAISE : Tension palpable, silence lourd, embarras situationnel flagrant.\n",
-            hesitation: "- HÉSITATION : Posture indécise, flottement avant d'agir, gestes interrompus.\n",
-            honte: "- HONTE : Profil bas, oreilles plaquées, évitement systématique du regard.\n",
-            mefiance: "- MÉFIANCE : Prudence extrême, observation suspicieuse, analyse des arrières-pensées.\n",
-            mystere: "- MYSTÈRE : Comportement énigmatique, secrets gardés, non-dits volontaires.\n",
-            folie: "- FOLIE : Regard erratique, instabilité mentale, incohérence comportementale.\n",
-            crise: "- CRISE : Explosion émotionnelle, saturation nerveuse, perte de contrôle psychologique.\n",
-            timidite: "- TIMIDITÉ : Posture réservée, effacement volontaire, hésitation à prendre la parole.\n",
-            paranoia: "- PARANOÏA : Sentiment injustifié de persécution, voir des ennemis partout.\n",
-            confusion: "- CONFUSION : Esprit embrouillé, désorientation intellectuelle, incompréhension des événements.\n",
-            secret: "- SECRET : Rétention volontaire d'informations cruciales, dissimulation stratégique.\n",
-            obsessif: "- OBSESSIF : Idée fixe, comportement compulsif focalisé sur un détail unique.\n",
-            amitie: "- AMITIÉ : Posture détendue, proximité fraternelle rassurante, ton ouvert.\n",
-            complicite: "- COMPLICITÉ : Connexion immédiate, regards entendus, accord sans paroles.\n",
-            drague: "- DRAGUE : Intention de séduction, pas feutrés et port de tête fier.\n",
-            charme: "- CHARME : Charisme naturel envoûtant, magnétisme comportemental.\n",
-            romance: "- ROMANCE : Intimité amoureuse, queue enlacée, bulle de tendresse.\n",
-            tendresse: "- TENDRESSE : Gestes lents, contact physique affectueux, douceur.\n",
-            malice: "- MALICE : Regard taquin, comportement espiègle, envie de plaisanter.\n",
-            respect: "- RESPECT : Déférence polie, maintien des distances requises, considération.\n",
-            empathie: "- EMPATHIE : Sensibilité face à la douleur d'autrui, écoute attentive.\n",
-            loyaute: "- LOYAUTÉ : Fidélité indéfectible, respect absolu de la parole donnée.\n",
-            devoement: "- DÉVOUEMENT : Sacrifice de soi au profit d'une cause ou d'un individu.\n",
-            protection: "- PROTECTION : Posture défensive active pour abriter un allié du danger.\n",
-            solennel: "- SOLENNEL : Posture droite, respect rigide des rituels et des lois du Code.\n",
-            determination: "- DÉTERMINATION : Mâchoire serrée, pas ancrés au sol, focus inébranlable.\n",
-            focus: "- FOCUS : Concentration extrême sur une tâche précise, isolation sensorielle.\n",
-            bravoure: "- BRAVOURE : Affronter le danger de face de manière héroïque et visible.\n",
-            courage: "- COURAGE : Surmonter activement une trouille interne pour accomplir l'action.\n",
-            resilience: "- RÉSILIENCE : Capacité à encaisser les échecs et se remettre d'aplomb aussitôt.\n",
-            fierte: "- FIERTÉ : Torse bombé, tête haute, refus de montrer ses vulnérabilités.\n",
-            apatie: "- APATHIE : Indifférence clinique, absence totale de réaction émotionnelle.\n",
-            detachement: "- DÉTACHEMENT : Prendre de la distance intellectuelle, esprit ailleurs.\n",
-            froideur: "- FROIDEUR : Logique pure, ton tranchant, absence totale d'empathie relationnelle.\n",
-            sagesse: "- SAGESSE : Calme philosophique, recul stratégique avant toute parole.\n",
-            ambition: "- AMBITION : Volonté de grandeur, soif de pouvoir, calcul opportuniste.\n",
-            neutralite: "- NEUTRALITÉ : Objectivité totale, refus de prendre parti dans le conflit.\n",
-            patience: "- PATIENCE : Calme devant l'attente, maîtrise du timing, acceptation sereine du temps.\n"
-        };
-
-        if (!outputDiv || !currentActiveRpId) return;
-
-        outputDiv.innerHTML = `
-            <div style="padding:15px; text-align:center;">
-                <span class='blink' style='color:#ffcc00; font-weight:bold;'>🗄️ Extraction de l'historique global...</span>
-            </div>
-        `;
-
-        try {
-            // ─── GÉNÉRATION DU HORODATAGE DE L'APPEL ───
-            const maintenant = new Date();
-            const dateAppelFormatee = maintenant.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const heureAppelFormatee = maintenant.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const labelSession = `Appel du ${dateAppelFormatee} à ${heureAppelFormatee}`;
-
-            // ─── LECTURE ET ADAPTATION DE L'HISTORIQUE DEPUIS FIREBASE ───
-            let toutLhistorique = "";
-            let historiqueLogsIA = "Aucun historique d'IA enregistré pour ce RP.\n";
-
-            if (typeof db !== "undefined" && currentActiveRpId) {
-                // A. Messages du RP
-                const messagesRef = collection(db, "rps_pending", currentActiveRpId, "messages");
-                const qMessages = query(messagesRef, orderBy("date", "asc"));
-                const messagesSnapshot = await getDocs(qMessages);
-
-                if (!messagesSnapshot.empty) {
-                    messagesSnapshot.forEach(docMsg => {
-                        const msgData = docMsg.data();
-                        const auteur = msgData.auteur || msgData.author || "Auteur Inconnu";
-                        const texte = msgData.texte || msgData.text || "";
-                        toutLhistorique += `[${auteur}] : ${texte}\n\n`;
-                    });
-                } else {
-                    toutLhistorique = "Aucun message trouvé dans l'historique de ce RP.\n";
-                }
-
-                // B. Lecture adaptée et récursive de l'historique IA
-                const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
-                const qAi = query(aiHistoryRef, orderBy("timestampRef", "desc"), limit(3));
-                const aiSnapshot = await getDocs(qAi);
-
-                if (!aiSnapshot.empty) {
-                    historiqueLogsIA = "";
-                    for (const docAi of aiSnapshot.docs) {
-                        const aiData = docAi.data();
-                        historiqueLogsIA += `--- ${aiData.labelSession || "ESSAI ANCIEN"} ---\n`;
-                        historiqueLogsIA += `Prompt Joueur : ${aiData.promptEntreeJoueur || "Aucun"}\n`;
-                        
-                        try {
-                            const subEtapesRef = collection(db, "rps_pending", currentActiveRpId, "ai_history", docAi.id, "etapes_run");
-                            const subEtapesSnapshot = await getDocs(query(subEtapesRef, orderBy("etapeId", "asc")));
-                            if (!subEtapesSnapshot.empty) {
-                                historiqueLogsIA += `[Raisonnement de cet appel] :\n`;
-                                subEtapesSnapshot.forEach(subDoc => {
-                                    const subData = subDoc.data();
-                                    historiqueLogsIA += `  -> Étape ${subData.etapeId} (${subData.etapeNom}) : ${subData.resultat.substring(0, 120)}...\n`;
-                                });
-                            }
-                        } catch (subErr) {
-                            console.warn("Erreur lecture sous-étapes passées :", subErr);
-                        }
-                        historiqueLogsIA += `Réponse finale : ${aiData.reponseBruteIA || "Aucune"}\n\n`;
-                    }
-                }
-            }
-
-            // Capture des données et paramètres globaux du DOM
-            const dernierPromptJoueur = textInput ? textInput.value.trim() : "";
             const aiInstructionsElement = document.getElementById("coWriteAiInstructions");
             const instructions = aiInstructionsElement ? aiInstructionsElement.value.trim() : "";
-            const charData = charactersDB[window.currentActiveCharName] || { complete: "Fiche indisponible." };
-            const dictionnaireFelinBrut = JSON.stringify(catBehaviorKnowledge, null, 2);
 
-            // Capture dynamique des Moods
-            let moodInstruction = "";
             const activeMoodBtns = document.querySelectorAll(".mood-btn.active");
-            activeMoodBtns.forEach(btn => {
-                const moodKey = btn.getAttribute("data-mood");
-                if (moodDictionary[moodKey]) {
-                    moodInstruction += moodDictionary[moodKey];
-                }
-            });
-            if (!moodInstruction) moodInstruction = "Aucun mood spécifique sélectionné (Ton standard).\n";
+            let moodInstruction = "";
 
-            // Capture des Dés JDR
-            let contrainteDeDesPrompt = "";
-            if (window.getActionsSelectionneesPourIA && Array.isArray(window.getActionsSelectionneesPourIA) && window.getActionsSelectionneesPourIA.length > 0) {
-                window.getActionsSelectionneesPourIA.forEach(action => {
-                    let verdictTexte = action.verdict && typeof action.verdict === "object" ? action.verdict.texte : action.verdict;
-                    contrainteDeDesPrompt += `- Action tentée : ${action.nom}\n   ↳ Dé : D50 [Jet : ${action.valeurDe}] |\n   Score Total : ${action.total || action.scoreTotal}\n   ↳ VERDICT IMPÉRATIF : ${verdictTexte || "Résultat Standard"}\n\n`;
-                });
-            } else {
-                contrainteDeDesPrompt = "Aucun dé JDR n'impacte ce tour. L'action est libre.\n";
+// 🎲 1. RÉCUPÉRATION DU CONTEXTE DES DÉS MULTIPLES (ErER)
+ let contrainteDeDesPrompt = "";
+
+    if (window.getActionsSelectionneesPourIA && Array.isArray(window.getActionsSelectionneesPourIA) && window.getActionsSelectionneesPourIA.length > 0) {
+        contrainteDeDesPrompt = `\n[CONTRAINTES DE JEU - ACTIONS ET DÉS MULTIPLES]\n`;
+        contrainteDeDesPrompt += `Durant ce tour, le personnage réalise les actions JDR suivantes. Tu DOIS impérativement intégrer et romancer TOUTES ces actions dans ton récit en respectant rigoureusement leur niveau de réussite :\n`;
+
+        window.getActionsSelectionneesPourIA.forEach(idAction => {
+            // 🔍 On récupère les données pré-calculées correspondantes à l'ID
+            const res = window.resultatsPreCalcules?.[idAction];
+            
+            if (!res) {
+                console.warn(`⚠️ L'action [${idAction}] est cochée mais aucun résultat n'a été trouvé.`);
+                return; // On passe à la suivante sans crasher
             }
 
-            // ─── CRÉATION DE LA RÉFÉRENCE DE DOCUMENT POUR CET APPEL PRÉCIS ───
-            let currentAiHistoryRef = null;
-            if (typeof db !== "undefined" && currentActiveRpId) {
-                const idUniqueSession = `Session_${maintenant.toISOString().replace(/[:.]/g, "-")}`;
-                currentAiHistoryRef = doc(db, "rps_pending", currentActiveRpId, "ai_history", idUniqueSession);
+            // 🛡️ Extraction ultra-sécurisée du verdict (physique ou social)
+            let vTexte = "Réussite";
+            let vDesc = "";
+            
+            if (res.verdict && typeof res.verdict === "object") {
+                vTexte = res.verdict.texte || "Calculé";
+                vDesc = res.verdict.description || "";
+            } else if (res.verdictTexte) {
+                vTexte = res.verdictTexte;
+                vDesc = res.verdictDescription || "";
             }
 
-            // ─── INITIALISATION SÉCURISÉE DU WEB WORKER ───
-            const workerCode = `(${workerPipelineLogic.toString()})();`;
-            const blob = new Blob([workerCode], { type: "application/javascript" });
-            const workerUrl = URL.createObjectURL(blob);
-            const pipelineWorker = new Worker(workerUrl);
+            const nomActionAffichee = res.nom || idAction;
+            const scoreTotal = res.total || 0;
 
-            pipelineWorker.postMessage({
-                historique: toutLhistorique,
-                historiqueLogsIA: historiqueLogsIA,
-                currentActiveCharName: window.currentActiveCharName,
-                instructions: instructions,
-                dernierPromptJoueur: dernierPromptJoueur,
-                charDataComplete: charData.complete,
-                contrainteDeDesPrompt: contrainteDeDesPrompt,
-                moodInstruction: moodInstruction,
-                dictionnaireFelinBrut: dictionnaireFelinBrut,
-                pipelineEtapes: pipelineEtapes,
-                apiKey: MISTRAL_API_KEY,
-                apiUrl: MISTRAL_URL,
-                apiModel: MISTRAL_MODEL
-
-            });
-
-            let memoireCollectiveFinale = "";
-
-            // ─── ÉCOUTE DES COMMUNICATIONS DU WORKER ───
-            pipelineWorker.onmessage = async (e) => {
-                const { type, etapeId, etapeNom, totalEtapes, progress, text, memoireEtape, memoireCumulative, err } = e.data;
-
-                if (type === "PROGRESS") {
-                    outputDiv.innerHTML = `
-                        <div style="display:flex; flex-direction:column; gap:12px; padding:15px; background:rgba(167, 119, 227, 0.05); border:1px solid rgba(167, 119, 227, 0.2); border-radius:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span class='blink' style='color:#a777e3; font-weight:bold; font-size:1.1em;'>🔮 Pensée du Clan en cours...</span>
-                                <span style='color:#888; font-size:0.9em;'>Étape ${etapeId} / ${totalEtapes}</span>
-                            </div>
-                            <div style="color:#f0f0f0; font-size:0.95em; background:rgba(0,0,0,0.2); padding:8px; border-radius:4px; border-left:3px solid #a777e3;">
-                                Action actuelle : <strong>${etapeNom}</strong>
-                            </div>
-                            <div style="width:100%; background:#222; height:8px; border-radius:4px; overflow:hidden; border:1px solid #333;">
-                                <div style="width:${progress}%; background:linear-gradient(90deg, #a777e3, #e74c3c); height:100%; transition: width 0.4s ease;"></div>
-                            </div>
-                            <small style="color:#666; text-align:center; font-style:italic;">Vous pouvez changer d'onglet, le traitement est géré par un Worker isolé à 100%.</small>
-                        </div>
-                    `;
-                }
-                else if (type === "STEP_DONE") {
-                    console.log(`📥 [Firebase Sync] Étape ${etapeId} finalisée. Archivage dans la session...`);
-                    try {
-    if (currentAiHistoryRef) {
-        // 🔄 MODIFICATION : On formate l'id sur 2 chiffres (ex: 1 devient "01", 10 reste "10")
-        const etapeIdFormate = String(etapeId).padStart(2, '0');
-        
-        const etapeDocRef = doc(
-            collection(db, "rps_pending", currentActiveRpId, "ai_history", currentAiHistoryRef.id, "etapes_run"), 
-            `etape_${etapeIdFormate}` // <-- Utilise la version formatée ici pour le nom du doc
-        );
-        
-        await setDoc(etapeDocRef, {
-            etapeId: etapeId, // On garde le chiffre brut à l'intérieur pour tes statistiques ou tris numériques
-            etapeNom: etapeNom,
-            date: new Date().toISOString(),
-            resultat: memoireEtape
+            // ✍️ Injection propre dans le prompt sans risque de crash
+            contrainteDeDesPrompt += `- Action tentée : ${nomActionAffichee}\n`;
+            contrainteDeDesPrompt += `  Score obtenu : ${scoreTotal} / 50\n`;
+            contrainteDeDesPrompt += `  Verdict du Clan : ${vTexte}\n`;
+            contrainteDeDesPrompt += `  Effet requis : ${vDesc}\n\n`;
         });
+
+        contrainteDeDesPrompt += `CONSIGNE NARRATIVE CRUCIALE :
+        Insère ces réussites ou ces échecs de manière fluide, sauvage et immersive. Tu ne dois JAMAIS afficher de chiffres, de calculs ou de termes techniques de JDR (bannis les expressions comme "score", "total", "dés", "SA", "échec", "réussite"). Traduis ces données uniquement par des descriptions physiques (ex: un coup qui dévie, une douleur fulgurante, une maladresse, un exploit agile), les ressentis du chat ou des répliques.`;
     }
-} catch (fsErr) {
-                        console.error(`⚠️ Impossible d'enregistrer l'étape ${etapeId} :`, fsErr);
+
+            if (activeMoodBtns.length > 0) {
+
+                moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (CONSIGNE ABSOLUE : Chaque attribut ci-dessous est indépendant et cloisonné. Traite-les de manière brute, juxtaposée, SANS JAMAIS faire de compromis, de lien ou de fusion entre eux) :\n";
+
+                    
+
+
+const moodDictionary = {
+                    // ⚔️ COMBAT & PHYSIQUE (12)
+                    combat: "- COMBAT : Actions physiques offensives, esquives, feintes, attaques directes.\n",
+                    adrenaline: "- ADRENALINE : Réflexes accélérés, perception nerveuse aiguë, cœur battant la chamade.\n",
+                    epuisement: "- ÉPUISEMENT : Muscles lourds, pattes flageolantes, souffle court, fatigue extrême.\n",
+                    agonie: "- AGONIE : Souffrance physique limite, combat biologique instinctif pour rester conscient.\n",
+                    douleur: "- DOULEUR : Réaction nerveuse à un coup, crispation physique immédiate, gémissement contenu.\n",
+                    vitesse: "- VITESSE : Mouvements fulgurants, course rapide, bonds athlétiques explosifs.\n",
+                    furtivite: "- FURTIVITÉ : Pas feutrés, corps au ras du sol, progression invisible et silencieuse.\n",
+                    defense: "- DÉFENSE : Posture défensive, parades, interposition pour protéger.\n",
+                    faiblesse: "- FAIBLESSE : Perte de force, tremblements, instabilité physique, baisse de régime.\n",
+                    blessure: "- BLESSURE : Impact physique localisé, sang déversé, handicap moteur temporaire visible.\n",
+                    reflexe: "- RÉFLEXE : Réaction corporelle involontaire et instantanée face à un stimulus soudain.\n",
+                    endurance: "- ENDURANCE : Effort prolongé, résistance aux chocs répétés, refus physique de faiblir.\n",
+
+                    // 😡 HOSTILITÉ & DOMINATION (12)
+                    colere: "- COLÈRE : Poils dressés, voix forte, gestes brusques, regard noir.\n",
+                    rage: "- RAGE : Fureur destructive, impulsivité aveugle, perte des manières courtoises.\n",
+                    cruaute: "- CRUAUTÉ : Volonté malveillante de faire souffrir, absence totale de remords.\n",
+                    sadisme: "- SADISME : Plaisir affiché devant le malheur d'autrui, sourire en coin pervers.\n",
+                    provocation: "- PROVOCATION : Attitude insolente, gestes de défi provocateurs, bravade ouverte.\n",
+                    mepris: "- MÉPRIS : Regard condescendant, dédain manifeste, ignorer délibérément l'interlocuteur.\n",
+                    arrogance: "- ARROGANCE : Posture hautaine, assurance excessive, sentiment de supériorité flagrant.\n",
+                    vengeance: "- VENGEANCE : Rendre le tort subi, focalisation obsessionnelle sur le châtiment.\n",
+                    menace: "- MENACE : Posture d'intimidation, grognement sourd, promesse implicite de représailles.\n",
+                    haine: "- HAINE : Animosité viscérale profonde, rancune destructrice, hostilité absolue.\n",
+                    rivalite: "- RIVALITÉ : Esprit de compétition agressif, désir permanent de surpasser son vis-à-vis.\n",
+                    tyrannie: "- TYRANNIE : Comportement autoritaire abusif, volonté d'imposer sa domination par la force.\n",
+
+                    // 💧 SOUFFRANCE PSYCHOLOGIQUE (12)
+                    tristesse: "- TRISTESSE : Regard bas, abattement postural, épaules affaissées, mouvements lents.\n",
+                    deuil: "- DEUIL : Douleur morale liée à une perte affective, mélancolie lancinante.\n",
+                    peur: "- PEUR : Instinct d'évitement, hypervigilance, tension interne face au danger.\n",
+                    terreur: "- TERREUR : Sidération, pupilles dilatées au maximum, poils hérissés par l'effroi.\n",
+                    angoisse: "- ANGOISSE : Pressentiment sombre, oppression mentale, sensation de danger imminent.\n",
+                    regret: "- REGRET : Remords intérieurs, culpabilité, amertume face à une action passée.\n",
+                    desespoir: "- DÉSESPOIR : Sentiment d'impuissance totale, abandon psychologique de la lutte.\n",
+                    solitude: "- SOLITUDE : Sentiment d'isolement, repli sur soi, détachement social subi.\n",
+                    culpabilite: "- CULPABILITÉ : Auto-accusation, poids moral écrasant, sentiment d'être le responsable.\n",
+                    nostalgie: "- NOSTALGIE : Regret mélancolique d'une époque ou d'un bonheur révolu.\n",
+                    abandon: "- ABANDON : Sensation de trahison affective, délaissement, détresse de se retrouver seul.\n",
+                    detresse: "- DÉTRESSE : Appel à l'aide tacite, désemparé face à une situation insurmontable.\n",
+
+                    // 🧠 BLOCAGES & DISCRÉTION (13)
+                    gene: "- GÊNE : Trouble relationnel, mouvements gauches, attitude inconfortable.\n",
+                    malaise: "- MALAISE : Tension palpable, silence lourd, embarras situationnel flagrant.\n",
+                    hesitation: "- HÉSITATION : Posture indécise, flottement avant d'agir, gestes interrompus.\n",
+                    honte: "- HONTE : Profil bas, oreilles plaquées, évitement systématique du regard.\n",
+                    mefiance: "- MÉFIANCE : Prudence extrême, observation suspicieuse, analyse des arrières-pensées.\n",
+                    mystere: "- MYSTÈRE : Comportement énigmatique, secrets gardés, non-dits volontaires.\n",
+                    folie: "- FOLIE : Regard erratique, instabilité mentale, incohérence comportementale.\n",
+                    crise: "- CRISE : Explosion émotionnelle, saturation nerveuse, perte de contrôle psychologique.\n",
+                    timidite: "- TIMIDITÉ : Posture réservée, effacement volontaire, hésitation à prendre la parole.\n",
+                    paranoia: "- PARANOÏA : Sentiment injustifié de persécution, voir des ennemis partout.\n",
+                    confusion: "- CONFUSION : Esprit embrouillé, désorientation intellectuelle, incompréhension des événements.\n",
+                    secret: "- SECRET : Rétention volontaire d'informations cruciales, dissimulation stratégique.\n",
+                    obsessif: "- OBSESSIF : Idée fixe, comportement compulsif focalisé sur un détail unique.\n",
+
+                    // 🤝 ATTACHEMENT & INTERACTIONS (12)
+                    amitie: "- AMITIÉ : Posture détendue, proximité fraternelle rassurante, ton ouvert.\n",
+                    complicite: "- COMPLICITÉ : Connexion immédiate, regards entendus, accord sans paroles.\n",
+                    drague: "- DRAGUE : Intention de séduction, pas feutrés et port de tête fier.\n",
+                    charme: "- CHARME : Charisme naturel envoûtant, magnétisme comportemental.\n",
+                    romance: "- ROMANCE : Intimité amoureuse, queue enlacée, bulle de tendresse.\n",
+                    tendresse: "- TENDRESSE : Gestes lents, contact physique affectueux, douceur.\n",
+                    malice: "- MALICE : Regard taquin, comportement espiègle, envie de plaisanter.\n",
+                    respect: "- RESPECT : Déférence polie, maintien des distances requises, considération.\n",
+                    empathie: "- EMPATHIE : Sensibilité face à la douleur d'autrui, écoute attentive.\n",
+                    loyaute: "- LOYAUTÉ : Fidélité indéfectible, respect absolu de la parole donnée.\n",
+                    devoement: "- DÉVOUEMENT : Sacrifice de soi au profit d'une cause ou d'un individu.\n",
+                    protection: "- PROTECTION : Posture défensive active pour abriter un allié du danger.\n",
+
+                    // ⚖️ VERTUS & LOGIQUE MENTALE (14)
+                    solennel: "- SOLENNEL : Posture droite, respect rigide des rituels et des lois du Code.\n",
+                    determination: "- DÉTERMINATION : Mâchoire serrée, pas ancrés au sol, focus inébranlable.\n",
+                    focus: "- FOCUS : Concentration extrême sur une tâche précise, isolation sensorielle.\n",
+                    bravoure: "- BRAVOURE : Affronter le danger de face de manière héroïque et visible.\n",
+                    courage: "- COURAGE : Surmonter activement une trouille interne pour accomplir l'action.\n",
+                    resilience: "- RÉSILIENCE : Capacité à encaisser les échecs et se remettre d'aplomb aussitôt.\n",
+                    fierte: "- FIERTÉ : Torse bombé, tête haute, refus de montrer ses vulnérabilités.\n",
+                    apatie: "- APATHIE : Indifférence clinique, absence totale de réaction émotionnelle.\n",
+                    detachement: "- DÉTACHEMENT : Prendre de la distance intellectuelle, esprit ailleurs.\n",
+                    froideur: "- FROIDEUR : Logique pure, ton tranchant, absence totale d'empathie relationnelle.\n",
+                    sagesse: "- SAGESSE : Calme philosophique, recul stratégique avant toute parole.\n",
+                    ambition: "- AMBITION : Volonté de grandeur, soif de pouvoir, calcul opportuniste.\n",
+                    neutralite: "- NEUTRALITÉ : Objectivité totale, refus de prendre parti dans le conflit.\n",
+                    patience: "- PATIENCE : Calme devant l'attente, maîtrise du timing, acceptation sereine du temps.\n"
+                };
+
+                activeMoodBtns.forEach(btn => {
+
+                    const moodKey = btn.getAttribute("data-mood");
+
+                    if (moodDictionary[moodKey]) moodInstruction += moodDictionary[moodKey];
+
+                });
+
+            }
+
+            outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
+
+            const charData = charactersDB[currentActiveCharName] || {};
+            const skillsText = charData.competences ? charData.competences.join(", ") : "Guerrier standard";
+            
+            let maFicheDetaillee = "Pas de fiche spécifique trouvée. Respecte le tempérament de base.";
+            if (fiches) {
+                for (const key in fiches) {
+                    if (currentActiveCharName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(currentActiveCharName.toLowerCase())) {
+                        maFicheDetaillee = (fiches[key].resume || "") + "\n" + (fiches[key].complete || "");
+                        break;
                     }
                 }
-                else if (type === "SUCCESS") {
-                    let texteBalisé = text;
-                    memoireCollectiveFinale = memoireCumulative;
+            }
 
-                    if (typeof nettoyerSyntaxeDialogue === "function") {
-                        texteBalisé = await nettoyerSyntaxeDialogue(texteBalisé);
+            let catLorePrompt = "GUIDE COMPORTEMENTAL FÉLIN (À utiliser pour enrichir le langage corporel) :\n";
+            if (typeof catBehaviorKnowledge === "object") {
+                for (const category in catBehaviorKnowledge) {
+                    for (const behavior in catBehaviorKnowledge[category]) {
+                        catLorePrompt += `- ${behavior.replace(/_/g, ' ').toUpperCase()} : ${catBehaviorKnowledge[category][behavior]}\n`;
                     }
+                }
+            } else {
+                catLorePrompt += "Comportement instinctif basé sur les sens, les oreilles, les feulements et les mouvements de queue.\n";
+            }
 
-                    const parseurMarkdown = window.parseRP || parseRP;
-                    if (typeof parseurMarkdown === "function") {
-                        outputDiv.innerHTML = parseurMarkdown(texteBalisé);
-                    } else {
-                        outputDiv.innerHTML = `<div style="white-space: pre-wrap; color:#f0f0f0;">${texteBalisé}</div>`;
-                    }
+            let systemPrompt = `Tu es un coach d'écriture expert et un joueur d'élite pour un forum RPG écrit basé sur l'univers de La Guerre des Clans. 
+Tu rédiges au nom du personnage suivant : ${currentActiveCharName}.
 
-                    try {
-                        if (currentAiHistoryRef) {
-                            await setDoc(currentAiHistoryRef, {
-                                timestampRef: maintenant.getTime(),
-                                labelSession: labelSession,
-                                date: maintenant.toISOString(),
-                                promptEntreeJoueur: dernierPromptJoueur,
-                                consignesAide: instructions,
-                                memoireCompletePipeline: memoireCollectiveFinale,
-                                reponseBruteIA: text,
-                                reponseNettoyeelARobot: texteBalisé
+Fiche technique du personnage :
+- Compétences et caractéristiques clés : ${skillsText}
+- Profil psychologique & Histoire :
+${maFicheDetaillee}
+
+<consignes_syntaxe_markdown>
+⚠️ DIRECTIVES DE SYNTAXE IMPÉRATIVES (CRUCIAL POUR LE PARSEUR DU SITE) :
+Tu dois appliquer scrupuleusement la structure suivante, paragraphe par paragraphe. Si tu ne respectes pas ces règles au caractère près, le site crash. Ne mélange JAMAIS les styles d'astérisques au hasard.
+
+1. PARAGRAPHES D'ACTIONS (En gras intégral) :
+Tout paragraphe qui décrit un mouvement, un déplacement, un état physique ou une description environnementale DOIT commencer par "**" et se terminer par "**". Rien d'autre dans le paragraphe.
+-> Exemple exact : **Étincelle de Vie sentit ses griffes s’enfoncer dans la mousse sans même qu’elle en ait conscience.**
+
+2. PARAGRAPHES DE PENSÉES (En italique intégral) :
+Tout paragraphe (ou phrase isolée sur sa propre ligne) représentant une pensée ou un monologue intérieur secret DOIT commencer par "*" et se terminer par "*".
+-> Exemple exact : *Trop. C’est trop.*
+
+3. DIALOGUES SIMPLES :
+Toutes les répliques prononcées à haute voix doivent obligatoirement commencer par le chevron ">" suivi d'un espace simple au tout début de la ligne. Le texte parlé doit être brut (SANS astérisques).
+-> Exemple exact : > Oh, par le Clan.
+
+4. DIALOGUES COMPLEXES AVEC INCISES NARRATIVES (RÈGLE CRUCIALE) :
+Dans une ligne de dialogue commençant par "> ", si le personnage coupe sa parole pour faire une action ou si un verbe de parole est inséré (une incise), cette incise narrative DOIT être isolée en étant entourée de doubles astérisques (**). 
+⚠️ INTERDICTION DE METTRE DES ASTÉRISQUES SUR LES PAROLES PARLÉES.
+-> Exemple exact à calquer : > Oh, par le Clan. **Sa voix claqua comme une branche sèche sous une patte.** Vous allez vraiment me faire ça aujourd’hui ?
+-> Autre exemple exact : > Écoutez-moi bien, tous les deux. **Elle s’arrêta net, les pattes avant légèrement fléchies.** Ombre, tu arrêtes ton cinéma.
+
+❌ INTERDICTIONS FORMELLES :
+- Ne mets JAMAIS d'astérisques (**) autour du texte parlé dans un dialogue. Le texte parlé est BRUT.
+- Ne fais JAMAIS ceci : > **Bonjour !** **Elle sourit.** **Ça va ?** (C'est interdit et faux).
+- Fais TOUJOURS ceci : > Bonjour ! **Elle sourit.** Ça va ?
+- Ne laisse jamais d'astérisques non fermés en fin de paragraphe.
+- Ne commence jamais une action par un seul astérisque (*). L'action c'est toujours (**).
+- Ne mets pas le symbole ">" au milieu d'un texte, uniquement tout au début de la ligne de dialogue.
+</consignes_syntaxe_markdown>
+
+⚠️ RAPPEL DE FIN IMMÉDIAT (SÉCURITÉ ANTI-CRASH) :
+Regarde ta ligne de dialogue avant de répondre. Si le texte parlé commence par "**", ta syntaxe est FAUSSE. Les astérisques servent UNIQUEMENT à encapsuler les actions au milieu du dialogue. Écris les paroles en texte normal après le "> ".`;
+
+            if (instructions) {
+                systemPrompt += `👉 DIRECTIVE DE SCÉNARIO ET DE STYLE :
+Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cette demande de l'utilisateur : "${instructions}"
+Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage Markdown et l'identité du personnage.\n\n`;
+            }
+
+            if (contrainteDeDesPrompt) {
+    systemPrompt += `${contrainteDeDesPrompt}\n`;
+}
+
+if (moodInstruction) {
+    systemPrompt += `${moodInstruction}\n`;
+}
+
+            systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) :
+1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
+2. LIMITE DU RÔLE : Tu joues UNIQUEMENT "${currentActiveCharName}". Tu ne dois JAMAIS faire parler, agir, réagir ou penser les personnages des autres partenaires. Reste centré sur mon personnage.
+3. FORMATAGE TEXTE : Utilise intelligemment le formatage Markdown standard du RP (des astérisques pour l'italique lors des actions, du texte brut ou des guillemets pour les paroles).
+
+5. MÉTRIQUES D'ÉCRITURE HUMAINE (BURSTINESS & PERPLEXITY) :
+- VARIABILITÉ DU RYTHME : Alterne brutalement la structure et la longueur de tes phrases. Fais de longues descriptions poétiques, suivies immédiatement d'une phrase ultra-courte de deux ou trois mots pour marké un impact, une hésitation ou une rupture. Ne garde JAMAIS le même rythme d'un paragraphe à l'autre.
+- DÉVIATION DE PROBABILITÉ : Évite les structures de transition trop parfaite et répétitives au début de tes paragraphes (bannit les listes de "Puis, d'un geste...", "Soudain...", "Un frisson..."). Entre directement dans l'action, la pensée brute ou la sensation physique.
+- IMPERFECTIONS NATURELLES : Incorpore des tics de langage corporel réalistes et parfois abrupts propres à l'univers félin (un miaulement étouffé, un coup de langue nerveux, un silence lourd, une hésitation dans le dialogue).
+- CONCLUSION ORGANIQUE : Ne cherche pas à faire une "belle phrase de fin de chapitre" clichée. Termine sur un geste suspendu, un regard, ou une réplique directe.
+
+🐱 NUANCES COMPORTEMENTALES :
+${catLorePrompt}
+
+🔥 PROFIL PSYCHOLOGIQUE OBLIGATOIRE :
+<FICHE_PERSONNAGE>
+${maFicheDetaillee}
+</FICHE_PERSONNAGE>\n\n`;
+
+            let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
+            try {
+                const messagesRef = collection(db, "rps_pending", currentActiveRpId, "messages");
+                const q = query(messagesRef, orderBy("createdAt", "asc"));
+                const snap = await getDocs(q);
+                snap.forEach(d => {
+                    const m = d.data();
+                    historiqueContext += `[${m.sender}]: ${m.text}\n`;
+                });
+            } catch (e) { console.error(e); }
+
+            systemPrompt += historiqueContext;
+
+            console.log("%c=== 🚀 DÉBUT DE LA RECONSTRUCTION DU PROMPT MISTRAL ===", "color: #a777e3; font-weight: bold;");
+            let mistralMessages = [
+                { role: "system", content: systemPrompt }
+            ];
+
+            try {
+                const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
+                const qAi = query(aiHistoryRef, orderBy("createdAt", "asc"));
+                const snapAi = await getDocs(qAi);
+                
+                if (!snapAi.empty) {
+                    snapAi.forEach(d => {
+                        const m = d.data();
+                        const messageContent = m.content || m.text || "";
+                        if (m.role && messageContent) {
+                            mistralMessages.push({
+                                role: m.role,
+                                content: messageContent
                             });
-                            console.log("💾 [Firebase] Session d'appel close et archivée ! ID :", currentAiHistoryRef.id);
                         }
-                    } catch (firebaseErr) {
-                        console.error("⚠️ Échec de l'archivage de la session dans ai_history :", firebaseErr);
-                    }
-
-                    pipelineWorker.terminate();
-                    URL.revokeObjectURL(workerUrl);
-                    console.log("🚀 [Worker] Libération de la mémoire système effectuée.");
+                    });
                 }
-                else if (type === "ERROR") {
-                    outputDiv.innerHTML = `
-                        <div style="padding:15px; border:1px solid #e74c3c; background:rgba(231, 76, 60, 0.1); border-radius:8px; color:#e74c3c;">
-                            <strong>❌ Le pipeline a échoué :</strong><br><small>${err}</small>
-                        </div>
-                    `;
-                    pipelineWorker.terminate();
-                    URL.revokeObjectURL(workerUrl);
-                }
-            };
+            } catch (e) { 
+                console.error("❌ Erreur lors du chargement de l'historique IA:", e); 
+            }
 
-            console.log("✨ Moteur de Worker paré et synchronisé.");
-        } catch (err) {
-            console.error("Erreur dans le déroulement du pipeline :", err);
-            outputDiv.innerHTML = `<span style='color:#e74c3c;'>❌ Erreur critique lors de l'exécution : ${err.message}</span>`;
+            let currentPrompt = "";
+            if (textInput && textInput.value.trim()) {
+                currentPrompt += `[Note ou action contextuelle récente transmise par le joueur] : ${textInput.value.trim()}\n`;
+            }
+
+            currentPrompt += `\nTu dois maintenant rédiger la réplique suivante pour mon personnage "${currentActiveCharName}".
+
+⚠️ RAPPEL DES DIRECTIVES ABSOLUES POUR CETTE RÉPLIQUE :
+- Incarne EXCLUSIVEMENT "${currentActiveCharName}". Reste fidèle à sa fiche technique.
+- Écris IMPÉRATIVEMENT à la 3ème personne du singulier.
+- Respecte scrupuleusement la charte Markdown : Action entière entre (**), Pensée entière entre (*), Dialogue en (> ).
+- Génère UNIQUEMENT le texte du RP, sans commentaires annexes.`;
+
+            mistralMessages.push({ role: "user", content: currentPrompt });
+
+           try {
+    const response = await fetch(MISTRAL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
+        body: JSON.stringify({ 
+            model: "mistral-large-latest", 
+            messages: mistralMessages, 
+            temperature: 0.8 
+        })
+    });
+    
+    if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
+
+    const data = await response.json();
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+        let textAiRaw = data.choices[0].message.content;
+        
+        outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
+        
+        let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
+
+        // 🧹 NETTOYAGE DES DÉS SELECTIONNÉS
+    window.getActionsSelectionneesPourIA = [];
+
+    const lignesDes = document.querySelectorAll("#diceActionsList > div");
+    lignesDes.forEach(ligne => {
+        ligne.style.color = "#b0b0b8";
+        ligne.style.background = "rgba(255, 255, 255, 0.01)";
+        const indicator = ligne.querySelector(".status-indicator");
+        if (indicator) {
+            indicator.innerText = "[ ]";
+            indicator.style.color = "#444a5a";
         }
     });
-}
+
+    const zoneResultatDes = document.getElementById("diceResultZone");
+    if (zoneResultatDes) {
+        zoneResultatDes.innerHTML = "Aucune action sélectionnée pour ce tour.";
+    }
+
+        // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (SÉCURISÉ ET UNIQUE)
+        try {
+            // 🔒 SÉCURITÉ : Référence du document parent principal
+            const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
+
+            // Force l'existence réelle du parent pour éviter le bug des "collections fantômes"
+            await setDoc(pendingDocRef, { 
+                lastUpdated: serverTimestamp(),
+                character: window.currentActiveCharName || "Inconnu"
+            }, { merge: true });
+
+            // Référence vers la sous-collection ai_history
+            const aiHistoryRef = collection(pendingDocRef, "ai_history");
+            
+            // Sauvegarde UNIQUE du prompt de l'utilisateur
+            await addDoc(aiHistoryRef, {
+                role: "user",
+                text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
+                content: instructions || "[Demande de suite]",
+                createdAt: serverTimestamp()
+            });
+            
+            // Sauvegarde UNIQUE de la réponse de l'assistant IA
+            await addDoc(aiHistoryRef, {
+                role: "assistant",
+                text: textAi,
+                content: textAi,
+                createdAt: serverTimestamp()
+            });
+
+            console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
+        } catch (dbErr) { 
+            console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
+        }
+
+        if (aiInstructionsElement) aiInstructionsElement.value = "";
+
+        const textAiHTML = parseRP(textAi);
+
+        
+
+
+                    // ============================================================================
+                    // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
+                    // ============================================================================
+                    outputDiv.innerHTML = `
+    <style>
+        .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
+        .rp-speech { color: #dfb56c; font-family: Georgia, serif; font-size: 1.4rem !important; }
+        .rp-incise { font-weight: bold; color: #ffffff; font-family: Georgia, serif; font-size: 1.4rem !important; }
+    </style>
+
+    <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
+                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+            </div>
+        </div>
+        <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
+    </div>
+
+    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
+        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
+                <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
+                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+                ${textAiHTML}
+            </div>
+        </div>
+    </div>
+`;
+
+document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "flex";
+                    });
+
+                    document.getElementById("btnCloseExclusive").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "none";
+                    });
+
+                    document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
+                        if (e.target === this) this.style.display = "none";
+                    });
+                    
+                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
+                        navigator.clipboard.writeText(textAi);
+                        this.innerText = "✓ Copié !";
+                    });
+
+                }
+            } catch (err) { 
+                console.error("❌ Erreur de transmission API Mistral :", err);
+                outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
+            }
+
+        
+        });
+    }
+
     // ============================================================================
     // GESTION DE LA MODALE EXCLUSIVE DE TRAUMATISMES (VERSION FINALE CORRIGÉE)
     // ============================================================================
@@ -1993,130 +1859,3 @@ window.relireLaScene = async function() {
         }
     });
 })();
-
-// ============================================================================
-// LOGIQUE COMPLÈTE DU WORKER DU CLAN DES ÉTOILES (MULTI-THREAD ARRIÈRE-PLAN)
-// ============================================================================
-function workerPipelineLogic() {
-    self.onmessage = async function (e) {
-        const { 
-            historique, historiqueLogsIA, currentActiveCharName, instructions, 
-            dernierPromptJoueur, charDataComplete, contrainteDeDesPrompt, 
-            moodInstruction, dictionnaireFelinBrut, pipelineEtapes, apiKey, apiUrl 
-        } = e.data;
-
-        // On rebâtit proprement la mémoire collective à l'intérieur du thread isolé
-        let memoirePipeline = `
-[CONTEXTE DE LA SESSION ACTUELLE]
-- Personnage joué : ${currentActiveCharName || "Inconnu"}
-- Consignes spécifiques : ${instructions}
-- TON PROMPT D'ENTRÉE ACTUEL (À APPLIQUER) : ${dernierPromptJoueur}
-
-===========================================================================
-📚 HISTORIQUE DES ESSAIS IA PRÉCÉDENTS (SOUS-COLLECTION ai_history)
-===========================================================================
-${historiqueLogsIA}
-
-===========================================================================
-📖 HISTORIQUE DES MESSAGES DU RP (SOUS-COLLECTION messages)
-===========================================================================
-${historique}
-
-===========================================================================
-FICHE TECHNIQUE ET CONTRAINTES (Perso, Dés, Comportements)
-===========================================================================
-- Fiche Perso : ${charDataComplete}
-- Dés JDR : ${contrainteDeDesPrompt}
-- Configuration Psychologique (Moods) : ${moodInstruction}
-- Comportements Félins : ${dictionnaireFelinBrut}
-`;
-
-        try {
-            for (const etape of pipelineEtapes) {
-                // 📢 1. On avertit le site que l'étape commence (pour la barre de progression)
-                self.postMessage({
-                    type: "PROGRESS",
-                    etapeId: etape.id,
-                    etapeNom: etape.nom,
-                    totalEtapes: pipelineEtapes.length,
-                    progress: (etape.id / pipelineEtapes.length) * 100
-                });
-
-                const promptEtape = `
-Tu es un moteur d'écriture de JDR textuel haut de gamme.
-Tu opères à l'étape suivante du pipeline de réflexion :
-[ÉTAPE ACTUELLE] : Étape ${etape.id} - ${etape.nom}
-
-[CONSIGNE IMPÉRATIVE POUR CETTE ÉTAPE] :
-${etape.prompt}
-
-Voici toute la mémoire accumulée jusqu'ici :
-===========================================================================
-${memoirePipeline}
-===========================================================================
-Génère ton analyse ou ta production pour cette étape. Reste concis, précis et factuel.
-`;
-
-                let reponseMistralOk = false;
-                let tentative = 0;
-                const maxTentatives = 5;
-                let resultatEtape = "";
-
-                while (!reponseMistralOk && tentative < maxTentatives) {
-                    try {
-                        tentative++;
-                        const response = await fetch(apiUrl, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": `Bearer ${apiKey}`
-                            },
-                            body: JSON.stringify({
-                                model: "mistral-large-latest",
-                                messages: [
-                                    { role: "system", content: "Tu es un assistant de co-écriture strict. Tu gères le jeu au présent de l'indicatif sans jamais extrapoler de faits passés." },
-                                    { role: "user", content: promptEtape }
-                                ],
-                                temperature: etape.id === pipelineEtapes.length ? 0.99 : 0.05
-                            })
-                        });
-
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-                        const data = await response.json();
-                        resultatEtape = data.choices[0].message.content.trim();
-                        reponseMistralOk = true;
-
-                    } catch (fetchErr) {
-                        if (tentative >= maxTentatives) {
-                            throw new Error(`Échec de connexion API à l'étape ${etape.id} (${etape.nom}) : ${fetchErr.message}`);
-                        }
-                        await new Promise(res => setTimeout(res, 4000));
-                    }
-                }
-
-                // On ajoute le résultat de cette étape à la mémoire interne du Worker
-                memoirePipeline += `\n\n[RÉSULTAT ÉTAPE ${etape.id} - ${etape.nom}]\n${resultatEtape}\n`;
-
-                // 📢 2. On envoie le résultat brut au script principal pour qu'il l'ajoute direct dans Firebase 'etapes_run'
-                self.postMessage({
-                    type: "STEP_DONE",
-                    etapeId: etape.id,
-                    etapeNom: etape.nom,
-                    memoireEtape: resultatEtape
-                });
-
-                // 📢 3. Si c'est l'étape 23, on clôture tout et on transmet le bloc final rédigé
-                if (etape.id === pipelineEtapes.length) {
-                    self.postMessage({
-                        type: "SUCCESS",
-                        text: resultatEtape,
-                        memoireCumulative: memoirePipeline
-                    });
-                }
-            }
-        } catch (globalErr) {
-            self.postMessage({ type: "ERROR", err: globalErr.message });
-        }
-    };
-}
