@@ -9,7 +9,7 @@ import { analyserImpactPhysiqueEtMental } from './TraumaAnalyzer.js';
 import { fichesPersonnagesJDR, dictionnaireActionsSociales, executerLancerSocialPrecalcul } from './TraitsDictionnaire.js';
 import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER} from './DiceManager.js';
 // ⚠️ CONFIGURATION MISTRAL
-const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT"; 
+const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY; 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
 window.currentActiveRpId = null;
