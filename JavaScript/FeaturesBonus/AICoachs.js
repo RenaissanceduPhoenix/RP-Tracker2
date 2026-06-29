@@ -8,8 +8,9 @@ import { analyserImpactPhysiqueEtMental } from './TraumaAnalyzer.js';
 // 🔄 Remplacer l'ancienne ligne par celle-ci :
 import { fichesPersonnagesJDR, dictionnaireActionsSociales, executerLancerSocialPrecalcul } from './TraitsDictionnaire.js';
 import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER} from './DiceManager.js';
+import { executerConsidolationTotaleMemoire } from './MemoryManager.js';
 // ⚠️ CONFIGURATION MISTRAL
-const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY; 
+const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT";  
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
 window.currentActiveRpId = null;
@@ -85,13 +86,16 @@ window.openCoWriteModal = async function(rpId, charName) {
         if (pendingSnap.exists()) {
             const pendingData = pendingSnap.data();
             title.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;">
-                    <span>🖋️ Co-Écriture : <span style="color:#a777e3;">${pendingData.title || 'Sans titre'}</span> (${charName})</span>
-                    <button onclick="window.ouvrirSommaireHistorique('${rpId}')" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
-                        📊 Consulter le Sommaire
-                    </button>
-                </div>
-            `;
+    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;">
+        <span>🖋️ Co-Écriture : <span style="color:#a777e3;">${pendingData.title || 'Sans titre'}</span> (${charName})</span>
+        <button onclick="window.ouvrirSommaireHistorique('${rpId}')" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+            📊 Consulter le Sommaire
+        </button>
+        <button onclick="window.executerConsidolationTotaleMemoire()" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+            Réécrire la mémoire
+        </button>
+    </div>
+`;
 
             if (senderSelect) {
                 senderSelect.innerHTML = "";
@@ -469,8 +473,36 @@ Exemple :
 export async function nettoyerSyntaxeDialogue(texteBrutIA) {
     if (!texteBrutIA) return "";
 
+    // 🌟 INJECTION DE SÉPARATEUR "_ _" ENTRE ABSOLUMENT TOUS LES PARAGRAPHES (DISCORD BBCODE)
+    // On nettoie les espaces parasites et on découpe le texte par bloc de paragraphe (\n\n)
+    let paragraphes = texteBrutIA.split(/\n\s*\n/);
+    let nouveauxParagraphes = [];
+
+    for (let i = 0; i < paragraphes.length; i++) {
+        let pActuel = paragraphes[i].trim();
+        if (pActuel.length === 0) continue;
+
+        // On conserve le paragraphe actuel (qu'il commence par **, * ou >)
+        nouveauxParagraphes.push(pActuel);
+
+        // RÈGLE UNIVERSELLE : S'il y a un paragraphe après celui-ci, on glisse le séparateur !
+        if (i < paragraphes.length - 1) {
+            // Vérification de sécurité pour s'assurer que le paragraphe suivant n'est pas vide
+            let pSuivant = paragraphes[i + 1].trim();
+            if (pSuivant.length > 0) {
+                nouveauxParagraphes.push("_ _");
+            }
+        }
+    }
+    
+    // On réassemble le tout avec des sauts de ligne BBCode parfaits pour Discord
+    texteBrutIA = nouveauxParagraphes.join('\n\n');
+
+
     // 1. Récupération des bases de données dynamiques (Actions & Dialogues) depuis Firestore
     const dicoComplet = await autoApprendreEtEnrichirDico(texteBrutIA);
+    
+    // (La suite de ton code avec 'const verbesAction = ...' reste exactement pareille !)
     
     // Listes de secours par défaut au cas où Firebase a un ralentissement
     const verbesAction = dicoComplet?.actions?.join(", ") || "pivota, pivotait, fit, faisait, recula, s'avança, tourna, agita, roula, frémirent, s'enfoncer, atterrissant, tendirent";
@@ -491,9 +523,9 @@ export async function nettoyerSyntaxeDialogue(texteBrutIA) {
                 messages: [
                     {
                         role: "system",
-                        content: `Tu es un automate de restructuration syntaxique pour un parser RPG. Tu prends un texte de jeu de rôle mal formaté et tu en corriges les astérisques (* et **) en appliquant des règles sémantiques strictes et sans failles.
+                        content: `Tu es un automate de restructuration syntaxique pour un parser RPG. Tu prends un texte de jeu de rôle mal formaté et tu en corriges les astérisques (* et **) en appliquant des règles sémantiques strictes, basées sur une analyse PHRASE PAR PHRASE. Une phrase ne peut appartenir qu'à une seule catégorie à la fois.
 
-Voici tes dictionnaires de référence pour analyser la nature de chaque mot :
+Voici tes dictionnaires de référence pour analyser la nature de chaque mot/phrase :
 
 ================================================================================
 📚 DICO 1 : INCISES ET ACTIONS DE DIALOGUE (Dans les lignes "> ", sous doubles astérisques : **Texte**)
@@ -511,26 +543,72 @@ ${marqueursParoles}
 ${lexiquePenseesFixe}
 
 ================================================================================
-🧠 PROTOCOLE DE TRAITEMENT PARAGRAPHE PAR PARAGRAPHE :
+🧠 PROTOCOLE DE TRAITEMENT UNIFIÉ :
 
-1. 💬 SI LE PARAGRAPHE COMMENCE PAR ">" (Dialogue) :
-   - Extrais le texte après "> ". Supprime TOUTES les étoiles qu'il contient pour avoir la phrase à nu.
-   - Découpe la ligne en morceaux logiques.
-   - Si un morceau utilise le DICO 2 (paroles prononcées, questions, "tu", "je", "moi") -> Laisse-le en TEXTE BRUT (ZÉRO ÉTOILE).
-   - Pour TOUT autre morceau (descriptions, mouvements, voix qui vibre) -> Mets-le OBLIGATOIREMENT entre doubles étoiles (**Texte**).
-   - Reconstruis la ligne sous la forme exacte : "> Paroles **Action** Paroles **Action**".
-   - ⚠️ SÉCURITÉ DIALOGUE : Si une pensée (DICO 3) apparaît dans une ligne de dialogue (commençant par ">"), considère-la obligatoirement comme une action narrative / incise descriptive et englobe-la dans les doubles astérisques (**). Pas d'étoile simple ici.
+1. 💬 SI LA LIGNE COMMENCE PAR ">" (Ligne de Dialogue direct) :
+   - Extrais le texte après "> ". Supprime TOUTES les étoiles qu'il contient pour travailler à nu.
+   - Découpe la ligne en segments logiques (propositions/morceaux de phrases).
+   - Si un segment utilise le DICO 2 (paroles dites, questions, "tu", "je") -> Laisse-le en TEXTE BRUT (ZÉRO ÉTOILE).
+   - Pour TOUT autre segment (descriptions, mouvements, incises) -> Mets-le OBLIGATOIREMENT entre doubles étoiles (**Texte**).
+   - Reconstruis la ligne sous la forme exacte : "> Paroles **Action** Paroles".
+   - ⚠️ SÉCURITÉ DIALOGUE : Si des mots du DICO 3 (pensées) apparaissent au milieu d'une ligne de dialogue, traite ce segment comme une incise narrative classique : englobe-le obligatoirement dans les doubles astérisques (**). Pas d'étoile simple ici.
 
-2. 💭 SI LE PARAGRAPHE EST UNE PENSÉE GLOBALE (Pas de ">", mais contient des mots du DICO 3) :
-   - Nettoie toutes les étoiles d'origine.
-   - ⚠️ REGLE DE CASSURE GÉOMÉTRIQUE STRICTE : Si une action physique (DICO 1) se trouve au milieu ou à la fin de cette pensée, tu as l'INTERDICTION ABSOLUE d'imbriquer les étoiles. Tu dois fermer la pensée, AJOUTER UN RETOUR À LA LIGNE COMPLET (un saut de ligne), puis ouvrir le gras pour l'action afin d'en faire un paragraphe distinct.
-   - Exemple requis : "*Texte de la pensée*\n\n**Action physique séparée**"
+2. 🪓 POUR LE TEXTE HORS-DIALOGUE (Pas de ">" au début) :
+   - Supprime toutes les étoiles existantes du paragraphe pour nettoyer le texte brut.
+   - Découpe obligatoirement le bloc en PHRASES INDIVIDUELLES (en te basant sur la ponctuation : ., !, ?).
+   - Analyse chaque phrase de manière isolée selon la règle absolue : UNE PHRASE N'EST QU'UN SEUL TRUC À LA FOIS.
 
-3. 🏃 SI LE PARAGRAPHE EST UNE ACTION GLOBALE / DESCRIPTION (Pas de ">" au début et aucun marqueur de pensée du DICO 3) :
-   - ⚠️ BLINDAGE TOTAL : C'est une description pure hors-dialogue. Supprime TOUTES les étoiles intérieures sans exception. Encapsule l'INTÉGRALITÉ du paragraphe avec des doubles astérisques au début et à la fin (**Texte complet de l'action globale**). Il ne doit y avoir aucun trou de texte brut et aucune étoile simple au milieu.
+   A) 💭 SI LA PHRASE EST UNE PENSÉE UNIQUE (Contient des mots-clés du DICO 3) :
+      - Encapsule TOUTE la phrase entre des astérisques simples (*Texte de la pensée.*).
+      - Elle ne doit contenir aucun morceau en gras à l'intérieur.
 
+   B) 🏃 SI LA PHRASE EST UNE ACTION / DESCRIPTION UNIQUE (Aucun marqueur du DICO 3) :
+      - Encapsule l'INTÉGRALITÉ de la phrase entre des doubles astérisques (**Texte de l'action.**).
+      - Elle ne doit contenir aucun texte brut sans étoiles et aucune étoile simple.
+
+3. 📐 RÈGLE DE STRUCTURATION ET CASSURE GÉOMÉTRIQUE :
+   - Après avoir balisé chaque phrase de manière hermétique, si deux phrases consécutives changent de nature (Exemple : une phrase *Pensée* suivie d'une phrase **Action**), tu as l'INTERDICTION ABSOLUE de les laisser coller sur la même ligne.
+   - Tu dois OBLIGATOIREMENT insérer un double retour à la ligne entre elles pour créer des paragraphes distincts selon leur nature.
+
+================================================================================
+⭐ EXEMPLE DE RÉFÉRENCE ABSOLUE AVEC EXPLICATIONS ANATOMIQUES :
+(Analyse comment chaque bloc est découpé et commenté)
+
+[NOTE AUTOMATE : Bloc 1 - Entièrement composé d'actions et de descriptions physiques à la 3e personne. Aucune pensée intime ou parole directe. Donc l'intégralité est enveloppée sous doubles étoiles.]
+**Nuage de Lynx resta figée, les pattes ancrées dans la terre comme si le sol venait de se dérober sous elle. Les mots d'Ombre Audacieuse résonnaient dans son crâne avec la violence d'un coup de griffe en plein museau.**
+
+[NOTE AUTOMATE : Bloc 2 - Suite narrative physique immédiate. Pas de rupture de style, on continue le bloc d'action pure.]
+**Elle sentit son pelage se hérisser, non pas de colère, mais d'une honte brûlante qui lui remonta jusqu'aux oreilles. Elle avait été percée à jour. Exposée. Vulnérable.**
+
+[NOTE AUTOMATE : Bloc 3 - Dernières phrases d'actions narratives pures avant une transition interne.]
+**Ses griffes s'enfoncèrent dans la boue, traçant des sillons profonds tandis qu'elle serrait les mâchoires à s'en faire mal. Elle aurait dû s'en douter. Ombre Audacieuse avait toujours eu ce don pour lire en elle comme dans un parchemin ouvert. Et maintenant, il venait de lui balancer ses propres désirs à la figure, devant Court Pensée, devant le ciel entier, comme une proie qu'on jette aux pieds d'un chasseur.**
+
+[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - La phrase suivante bascule sur un monologue intérieur impératif (DICO 3 : "Ne fuis pas"). Double retour à la ligne obligatoire, protection par étoile simple.]
+*Respire. Ne fuis pas. Pas cette fois.*
+
+[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - Retour soudain à de la description physique ("tourna lentement", "fixait"). Passage immédiat à la ligne, verrouillage sous doubles étoiles.]
+**Elle tourna lentement la tête vers Court Pensée, son regard doré brûlant d'une intensité presque insoutenable. Le matou la fixait, les oreilles légèrement penchées, l'air aussi perdu qu'un chaton dans une tempête. Elle aurait voulu lui hurler que non, ce n'était pas ce qu'elle voulait...**
+
+[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - Le texte rebascule dans un flux de questionnements intimes profonds (DICO 3: "Pourquoi", "peur", "choisir"). Séparation physique par une ligne blanche, protection par astérisque unique.]
+*... ou peut-être que si ? Pourquoi est-ce que ça fait si mal d'y penser ? Pourquoi est-ce que son cœur s'emballe à l'idée d'être sa compagne dans trois lunes, quand je serai guerrière, quand je pourrai choisir sans que le Clan me regarde comme une apprentie écervelée ?*
+
+[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - Fin des doutes intérieurs, reprise des mouvements anatomiques physiques ("se rapprocha", "frôlent"). Ligne blanche, application des doubles étoiles.]
+**Elle se rapprocha imperceptiblement de Court Pensée, assez pour que leurs épaules se frôlent, assez pour que la chaleur de son pelage traverse l'humidité qui colle encore à sa fourrure.**
+
+[NOTE AUTOMATE : BLOC DIALOGUE DIRECT - La ligne commence par le marqueur ">". Le texte parlé direct ("Si un jour...") reste brut sans étoiles. L'incise descriptive physique au milieu ("Elle désigna", "Elle marqua") est extraite et emprisonnée de force entre doubles étoiles.]
+> **Elle désigna Court Pensée d'un mouvement de tête brusque.** Si un jour—*un jour*, tu comprends ?—je décide que c’est toi que je veux… **Elle marqua une pause, le temps de laisser ses mots s'imprégner dans l'air lourd de la mi-journée.** Ce sera parce que j’aurai choisi. Pas parce que le Clan l’aura décidé.
+
+[NOTE AUTOMATE : RETOUR NARRATIF - Fin du dialogue, description de la posture corporelle globale à la 3e personne. Double astérisque.]
+**Elle se redressa soudain, secouant violemment son pelage pour chasser les dernières gouttes d'eau et la tension qui l'habitait. Sa queue fouetta l'air avec une énergie presque sauvage, comme pour balayer les doutes et les regards indiscrets.**
+
+> Maintenant, si vous voulez bien m’excuser, **ajouta-t-elle d’un ton sec, sans même accorder un regard à Ombre Audacieuse,** j’ai une course à faire. Seule.
+
+**Sans attendre de réponse, elle s'élança vers les fourrés, ses pattes martelant le sol avec une force qui trahissait son besoin désespéré de fuir. Mais au moment où elle franchissait la lisière des arbres, elle jeta un dernier regard par-dessus son épaule, croisant brièvement les yeux de Court Pensée. Et dans ce regard, il y avait tout ce qu'elle n'oserait jamais dire.**
+
+================================================================================
 ⚠️ SÉCURITÉ DE PRODUCTION :
 - Ne change, ne supprime et n'ajoute AUCUN mot ou virgule de l'histoire originale.
+- Ignore et supprime les balises explicatives [NOTE AUTOMATE] lors du rendu final, elles ne servent que de guides logiques pour tes calculs.
 - Renvoie uniquement le texte final corrigé, sans commentaires ni balises de bloc Markdown.`
                     },
                     {
@@ -546,7 +624,31 @@ ${lexiquePenseesFixe}
         const data = await response.json();
         if (data.choices && data.choices[0] && data.choices[0].message) {
             console.log("%c🛡️ [Robot Nettoyeur Hybride] Balisage et cassures géométriques validés !", "color: #2ecc71; font-weight:bold;");
-            return data.choices[0].message.content;
+            
+            // 🌟 1. On récupère le texte propre renvoyé par l'IA
+            let texteNettoye = data.choices[0].message.content;
+
+            // 🌟 2. Découpage par bloc de paragraphe (\n\n) pour injecter les "_ _"
+            let paragraphes = texteNettoye.split(/\n\s*\n/);
+            let nouveauxParagraphes = [];
+
+            for (let i = 0; i < paragraphes.length; i++) {
+                let pActuel = paragraphes[i].trim();
+                if (pActuel.length === 0) continue;
+
+                nouveauxParagraphes.push(pActuel);
+
+                // RÈGLE UNIVERSELLE : On met le séparateur si un paragraphe suit
+                if (i < paragraphes.length - 1) {
+                    let pSuivant = paragraphes[i + 1].trim();
+                    if (pSuivant.length > 0) {
+                        nouveauxParagraphes.push("_ _");
+                    }
+                }
+            }
+
+            // 🌟 3. On réassemble avec les doubles sauts de ligne BBCode pour Discord
+            return nouveauxParagraphes.join('\n\n');
         }
         return texteBrutIA;
     } catch (err) {
@@ -926,6 +1028,73 @@ const moodDictionary = {
 
             outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
 
+            // ⚡ 1. Détermination du nom exact du document dans Firestore
+const CORRESPONDANCE = { "Nuage de Lynx": "Frasques du Lynx" };
+const firestoreDocId = CORRESPONDANCE[window.currentActiveCharName] || window.currentActiveCharName;
+
+// ⚡ 2. Initialisation de tes variables individuelles (vides au départ)
+let etatPhysique = "Non spécifié";
+let humeurGenerale = "Neutre";
+let evenementsMarquants = []; // Ce sera un tableau (Array)
+let relationsData = null;     // Ce sera un objet contenant les liens
+
+try {
+    // ⚡ 3. Création de la référence et appel à Firebase
+    const charDocRef = doc(db, "characters", firestoreDocId);
+    const charSnap = await getDoc(charDocRef);
+    
+    // ⚡ 4. Extraction et distribution dans chaque variable individuelle
+    if (charSnap.exists()) {
+        const charData = charSnap.data();
+        
+        // Extraction de la partie "evolution" propriété par propriété
+        if (charData.evolution) {
+            if (charData.evolution.etat_physique) {
+                etatPhysique = charData.evolution.etat_physique;
+            }
+            if (charData.evolution.humeur_generale) {
+                humeurGenerale = charData.evolution.humeur_generale;
+            }
+            if (charData.evolution.evenements_marquants) {
+                evenementsMarquants = charData.evolution.evenements_marquants;
+            }
+        }
+
+        // 🌟 LA LIGNE À RAJOUTER ICI : Extraction des relations depuis Firebase
+        if (charData.relations) {
+            relationsData = charData.relations;
+        }
+        
+        console.log("✅ Variables individuelles chargées :", { etatPhysique, humeurGenerale, evenementsMarquants, relationsData });
+    } else {
+        console.warn(`⚠️ Le document "${firestoreDocId}" n'existe pas.`);
+    }
+} catch (error) {
+    console.error("❌ Erreur lors de l'appel Firebase :", error);
+}
+
+// =========================================================================
+// ✨ LE CORRECTIONS : DEPLACE CES LIGNES ICI, JUSTE AVANT LA CREATION DE TON PROMPT
+// =========================================================================
+const listeEvenementsTexte = evenementsMarquants.length > 0 
+    ? "\n- " + evenementsMarquants.join("\n- ") 
+    : "Aucun événement marquant enregistré pour le moment.";
+
+let listeRelationsTexte = "";
+if (relationsData && Object.keys(relationsData).length > 0) {
+    for (const [nomPerso, descriptionLien] of Object.entries(relationsData)) {
+        listeRelationsTexte += `\n- Lien avec ${nomPerso} : ${descriptionLien}`;
+    }
+} else {
+    listeRelationsTexte = "Aucune relation majeure enregistrée pour le moment.";
+}
+
+// À partir d'ici, tu peux utiliser directement :
+// - etatPhysique (chaîne de caractères)
+// - humeurGenerale (chaîne de caractères)
+// - evenementsMarquants (un tableau, par exemple pour faire un .join("\n"))
+// - relationsData (l'objet complet des relations)
+
             const charData = charactersDB[currentActiveCharName] || {};
             const skillsText = charData.competences ? charData.competences.join(", ") : "Guerrier standard";
             
@@ -957,6 +1126,22 @@ Fiche technique du personnage :
 - Compétences et caractéristiques clés : ${skillsText}
 - Profil psychologique & Histoire :
 ${maFicheDetaillee}
+
+<etat_physique>
+- Voici l'état physique du personnage concernée : ${etatPhysique}
+</etat_physique>
+
+<humeur_generale>
+- Voici l'humeur générale du personnage suite à ses différentes interventions : ${humeurGenerale}
+</humeur_generale>
+
+<evenement_marquants>
+- Voici la liste des évenements marquants du personnage, TU DOIS ABSOLUMENT LES PRENDRE EN COMPTE SAUF CONTRE-ORDRE DANS MES INSTRUCTIONS : ${listeEvenementsTexte}
+</evenement_marquants>
+
+<relations>
+- Voici la liste des relations du personnage, tu dois les respecter, s'il n'y a pas la relation avec un personnage en façe tu improvises, je te reprendrai s'il te faut : ${listeRelationsTexte}
+</relations>
 
 <consignes_syntaxe_markdown>
 ⚠️ DIRECTIVES DE SYNTAXE IMPÉRATIVES (CRUCIAL POUR LE PARSEUR DU SITE) :
@@ -1209,10 +1394,60 @@ document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
                         if (e.target === this) this.style.display = "none";
                     });
                     
-                    document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
-                        navigator.clipboard.writeText(textAi);
-                        this.innerText = "✓ Copié !";
-                    });
+                    // =========================================================================
+                    // 💣 COPIE CHENILLE NETTE : COLLAGE DU SÉPARATEUR SANS SAUT DE LIGNE VIDE
+                    // =========================================================================
+                    // 1. On découpe le texte final à chaque fois qu'on croise le marqueur "_ _"
+                    let blocsBruts = textAi.split("_ _");
+                    let morceauxDiscord = [];
+
+                    for (let i = 0; i < blocsBruts.length; i++) {
+                        let texteBloc = blocsBruts[i].trim();
+                        if (texteBloc.length === 0) continue;
+
+                        // 🌟 CORRECTION : On met un seul \n pour coller le "_ _" juste en dessous du texte
+                        if (i < blocsBruts.length - 1) {
+                            texteBloc = texteBloc + "\n_ _";
+                        }
+                        
+                        morceauxDiscord.push(texteBloc);
+                    }
+
+                    let indexBlocActuel = 0;
+                    const btnCopier = document.getElementById("btnCopierCoWrite");
+                    
+                    // ... (Le reste de ton addEventListener avec indexBlocActuel++ et btnCopier.innerText reste identique !)
+                    
+                    if (btnCopier && morceauxDiscord.length > 0) {
+                        btnCopier.innerText = `Copier Bloc 1/${morceauxDiscord.length}`;
+                        btnCopier.style.background = "#ffcc00";
+                        btnCopier.style.color = "#000";
+
+                        btnCopier.replaceWith(btnCopier.cloneNode(true));
+                        const nouveauBtnCopier = document.getElementById("btnCopierCoWrite");
+
+                        nouveauBtnCopier.addEventListener("click", function() {
+                            if (indexBlocActuel < morceauxDiscord.length) {
+                                // On copie le bloc qui contient MAINTENANT le texte ET son "_ _"
+                                let texteACopier = morceauxDiscord[indexBlocActuel];
+                                navigator.clipboard.writeText(texteACopier);
+                                
+                                indexBlocActuel++;
+
+                                if (indexBlocActuel < morceauxDiscord.length) {
+                                    this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
+                                    this.style.background = "#a777e3";
+                                    this.style.color = "#fff";
+                                } else {
+                                    this.innerText = "🎉 Tout est copié !";
+                                    this.style.background = "#2ecc71";
+                                    this.style.color = "#fff";
+                                    indexBlocActuel = 0; // Reset
+                                }
+                            }
+                        });
+                    }
+                    // =========================================================================
 
                 }
             } catch (err) { 
@@ -1859,3 +2094,34 @@ window.relireLaScene = async function() {
         }
     });
 })();
+
+/**
+ * ⏰ ROUTINE DE CONSOLIDATION HORAIRE (00h00 & 12h00)
+ * Scanne l'intégralité du site à chaque changement de créneau horaire
+ */
+async function verifierEtLancerRoutineHoraire() {
+    const maintenant = new Date();
+    const heureActuelle = maintenant.getHours();
+    
+    // Déterminer le créneau cible (00h ou 12h)
+    let cibleDerniereRoutine = "";
+    if (heureActuelle >= 12) {
+        cibleDerniereRoutine = `${maintenant.toLocaleDateString()}-12h`;
+    } else {
+        cibleDerniereRoutine = `${maintenant.toLocaleDateString()}-00h`;
+    }
+
+    // Si la routine globale a déjà tourné pour ce créneau, on s'arrête
+    if (localStorage.getItem("derniereRoutineMemoire") === cibleDerniereRoutine) {
+        return; 
+    }
+
+    // 🌟 APPEL DE LA MÉMOIRE GLOBALE POUR TOUT LE MONDE
+    await executerConsidolationTotaleMemoire();
+
+    // Enregistrer que le créneau est validé
+    localStorage.setItem("derniereRoutineMemoire", cibleDerniereRoutine);
+}
+
+// Lancement automatique à l'ouverture du tableau de bord
+verifierEtLancerRoutineHoraire();

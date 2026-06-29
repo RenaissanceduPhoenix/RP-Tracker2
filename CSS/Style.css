@@ -14,7 +14,8 @@ body {
     display: flex; 
     flex-direction: column; 
     gap: 20px; 
-    max-width: 1500px; 
+    width: 95vw;             /* S'étend sur 95% de la largeur de l'écran disponible */
+    max-width: 1800px;       /* Limite repoussée pour laisser les boîtes respirer au dézoom */
     margin: 0 auto; 
 }
 
@@ -148,12 +149,30 @@ button:hover {
     text-shadow: 0 0 8px rgba(167, 119, 227, 0.3);
 }
 
-/* Conteneur graphique Chart.js */
+/* ==========================================================================
+   CORRECTIF GRAPHIQUE - .CANVAS-CONTAINER (REZOOM & DÉZOOM)
+   ========================================================================= */
 .canvas-container {
     position: relative;
-    width: 100%;
-    height: 300px; /* Force une hauteur fixe pour que Chart.js n'ait pas à la recalculer en boucle */
-    overflow: hidden;
+    width: 100% !important;
+    
+    /* 🌟 PROPORTIONNEL ET FLEXIBLE : Évite les bugs de recalcul en boucle */
+    height: 35vh !important;       /* Prend 35% de la hauteur de l'écran visible */
+    max-height: 350px !important;  /* Limite maximale pour que ça reste compact */
+    min-height: 220px !important;  /* Limite minimale pour que ce soit lisible */
+    
+    margin: 15px 0;
+    overflow: hidden !important;   /* Bloque les débordements de Chart.js */
+    display: block !important;
+}
+
+/* On force le canvas à s'adapter au conteneur de manière stricte */
+.canvas-container canvas {
+    position: absolute !important; /* Découple le canvas pour stopper sa croissance infinie */
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* ==========================================================================
@@ -631,20 +650,24 @@ select.select-tag-toggle:focus {
 }
 
 /* Style spécifique pour le contenu de la modale de co-écriture */
+/* La grande boîte qui contient tout le module Co-Write */
 #coWriteModal .chart-modal-content {
     background: #111116;
     border: 1px solid #a777e3;
     box-shadow: 0 0 30px rgba(167, 119, 227, 0.2);
     color: #f0f0f0;
     border-radius: 8px;
-    padding: 20px;
+    padding: 25px;
     
-    /* 🛠️ CORRECTIF SCROLL : Limite stricte de la boîte blanche/sombre */
-    max-height: 85vh;           /* Reste sous la barre des 90% de l'écran */
-    width: calc(100vw - 400px);
+    /* 🌟 Force le parent à être géant au dézoom */
+    width: 95vw !important;       /* 95% de la largeur de l'écran */
+    height: 88vh !important;      /* 88% de la hauteur de l'écran */
+    max-width: 1600px !important; /* Limite maximale très large */
+    
     display: flex;
-    flex-direction: column;     /* Permet de structurer l'intérieur verticalement */
-    overflow-y: auto;           /* Force l'apparition du scroll global de la modale */
+    flex-direction: column;     
+    overflow: hidden;             /* Empêche la grande boîte de casser */
+    box-sizing: border-box;
 }
 
 /* 🛠️ CORRECTIF PARENT : On s'assure que le fond noir transparent gère le positionnement */
@@ -809,20 +832,69 @@ select.select-tag-toggle:focus {
 }
 
 /* ==========================================================================
-   GESTION DES MODALES EXCLUSIVES (TRAUMA, CO-WRITE, ETC.)
+   GESTION DES MODALES EXCLUSIVES (VISIONNAGE RP)
    ========================================================================== */
 .exclusive-modal {
-    display: none; /* Caché par défaut */
+    display: none; 
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.75); /* Fond sombre transparent */
-    z-index: 9999; /* Reste toujours au-dessus de tout le site */
+    background-color: rgba(10, 10, 15, 0.9); /* Fond sombre uniforme */
+    z-index: 9999; 
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(4px); /* Léger flou en arrière-plan */
+    backdrop-filter: blur(5px); 
+}
+
+/* Le boîtier interne qui contient ton texte de RP */
+.exclusive-modal .rp-reader {
+    background: #0d0d14 !important;
+    border: 2px solid #a777e3 !important; 
+    box-shadow: 0 0 35px rgba(167, 119, 227, 0.4) !important;
+    border-radius: 12px !important;
+    
+    /* 🌟 PROPORTIONS DYNAMIQUES AU DÉZOOM */
+    width: 95vw !important;             /* Occupe 95% de la largeur visuelle */
+    max-width: 1480px !important;      /* S'aligne sur la largeur max de ton dashboard */
+    height: 85vh !important;           /* Occupe 85% de la hauteur visuelle */
+    
+    display: flex !important;
+    flex-direction: column !important;
+    color: #f0f0f0 !important;
+    padding: 30px !important;          
+    box-sizing: border-box !important; 
+}
+
+/* Ajustement de la zone de texte interne pour qu'elle prenne toute la place */
+.exclusive-modal .rp-display-content {
+    flex: 1;                           /* Force le texte à occuper tout l'espace vertical restant */
+    max-height: 100% !important;       /* Libère la limite fixe de pixels */
+    overflow-y: auto;                  /* Active le scroll propre si le RP est long */
+    padding-right: 15px;
+    font-size: 1.1rem;                 /* Légèrement plus grand pour le confort de lecture */
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   ZONE DE VISIONNAGE EXCLUSIVE - SORTIE IA (CO-WRITE)
+   ========================================================================== */
+/* La boîte générée à l'intérieur */
+.co-write-display {
+    border-left: 4px solid #a777e3; 
+    padding: 20px !important;
+    background: rgba(167, 119, 227, 0.03) !important;
+    border-radius: 6px;
+    margin-top: 15px;
+
+    /* 🌟 S'adapte à 100% de la taille de son parent agrandi */
+    width: 100% !important;        /* Prend toute la largeur interne du parent */
+    flex: 1 !important;            /* Force la boîte à s'étirer vers le bas pour remplir le parent */
+    
+    /* Gestion du défilement du texte */
+    overflow-y: auto !important;   /* Si le texte de l'IA est long, on scroll ici dedans */
+    box-sizing: border-box !important;
 }
 
 
