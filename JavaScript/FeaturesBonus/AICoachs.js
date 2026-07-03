@@ -9,6 +9,8 @@ import { analyserImpactPhysiqueEtMental } from './TraumaAnalyzer.js';
 import { fichesPersonnagesJDR, dictionnaireActionsSociales, executerLancerSocialPrecalcul } from './TraitsDictionnaire.js';
 import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER} from './DiceManager.js';
 import { executerConsidolationTotaleMemoire } from './MemoryManager.js';
+import { initialiserEtTraiterMemoiresManquantes, verifierDeclenchementMemoire, reecrireMemoireModalParId  } from './memoireHierarchique.js';
+
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT";  
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
@@ -16,6 +18,13 @@ const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 window.currentActiveRpId = null;
 window.currentActiveCharName = null;
 let dernierPromptJoueur = ""; // Sauvegarde le message ou contexte du joueur
+// Variable globale pour garder une trace du salon actuellement affiché dans la modale
+// ✅ Correct & Global : On attache les variables à window pour que le onclick du HTML puisse les lire !
+window.currentActiveSalonId = null;
+window.currentActiveSalonTexte = null;
+
+// Rendre la fonction accessible au HTML globalement
+window.reecrireMemoireModalParId = reecrireMemoireModalParId;
 
 /**
  * ============================================================================
@@ -28,6 +37,34 @@ let dernierPromptJoueur = ""; // Sauvegarde le message ou contexte du joueur
 window.openCoWriteModal = async function(rpId, charName) {
     window.currentActiveRpId = rpId;
     window.currentActiveCharName = charName;
+
+    window.openCoWriteModal = async function(RpID, CharName) {
+    // 🌟 Sauvegarde globale de l'ID
+    window.currentActiveSalonId = RpID; 
+    window.currentActiveSalonTexte = ""; 
+
+    console.log(`📂 [Modale] Ouverture pour le salon (RpID) : ${RpID} (Personnage : ${CharName})`);
+    
+    try {
+        const messagesRef = collection(db, "rps_pending", RpID, "messages");
+        const messagesSnapshot = await getDocs(messagesRef);
+        
+        let texteAssemble = "";
+        messagesSnapshot.forEach((msgDoc) => {
+            const msgData = msgDoc.data();
+            let contenuMsg = msgData.text || msgData.content || "";
+            if (contenuMsg) {
+                texteAssemble += `${contenuMsg}\n`;
+            }
+        });
+
+        // 🌟 Sauvegarde globale du texte complet
+        window.currentActiveSalonTexte = texteAssemble;
+        console.log(`📖 [Modale] Historique extrait avec succès : ${texteAssemble.length} caractères récupérés.`);
+
+    } catch (error) {
+        console.error("❌ Erreur lors de l'extraction de l'historique pour la modale :", error);
+    }
    
     const modal = document.getElementById("coWriteModal");
     const title = document.getElementById("coWriteModalTitle");
@@ -94,6 +131,9 @@ window.openCoWriteModal = async function(rpId, charName) {
         <button onclick="window.executerConsidolationTotaleMemoire()" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
             Réécrire la mémoire
         </button>
+        <button onclick="window.reecrireMemoireModalParId(window.currentActiveSalonId, window.currentActiveSalonTexte)" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+    Réécrire la mémoire de la Modal
+</button>
     </div>
 `;
 
@@ -224,7 +264,7 @@ window.openCoWriteModal = async function(rpId, charName) {
 
                 divAction.innerHTML = `
                     <span style="font-weight: 500;">${actionData.nom}</span>
-                    <span class="status-indicator" style="font-family: monospace; color: #444a5a; font-weight: bold;">[ ]</span>
+                    <span class="status-indicator" style="color: #444a5a; font-weight: bold;">[ ]</span>
                 `;
 
                 divAction.addEventListener("click", async () => {
@@ -306,6 +346,7 @@ window.openCoWriteModal = async function(rpId, charName) {
             window.mettreAJourAffichageDesPourIA(boutonsCoches);
         }
     }, 150);
+}
 };
 
 
@@ -375,7 +416,7 @@ async function loadOrCreateRpHistory(rpId, charName) {
             historyLog.innerHTML += `
                 <div style="margin-bottom: 12px; border-bottom: 1px solid #1c1c24; padding-bottom: 8px;">
                     <div style="color: ${badgeColor}; font-weight: bold; margin-bottom: 3px;">[${msg.sender}] :</div>
-                    <div style="color: #e0e0e0; font-size: 0.9rem; line-height: 1.4; font-family: Georgia, serif;">${textHTML}</div>
+                    <div style="color: #e0e0e0; font-size: 0.9rem; line-height: 1.4;">${textHTML}</div>
                 </div>
             `;
         });
@@ -671,7 +712,7 @@ function assurerExistenceModaleConsignes() {
     if (document.getElementById("modalConsignes")) return;
 
     const modalHTML = `
-    <div id="modalConsignes" style="display: none; position: fixed; z-index: 300000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center; font-family:'Segoe UI', sans-serif;">
+    <div id="modalConsignes" style="display: none; position: fixed; z-index: 300000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
         <div style="background: #0c0c10; border: 1px solid #a777e3; box-shadow: 0 0 25px rgba(167, 119, 227, 0.2); width: 50vw; max-width: 600px; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; color: #fff;">
             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.2); display: flex; justify-content: space-between; align-items: center; background: #121218;">
                 <h3 style="margin: 0; color: #a777e3; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">📝 Écriture des Consignes</h3>
@@ -684,7 +725,7 @@ function assurerExistenceModaleConsignes() {
                         🤖 Écrire avec l'IA
                     </button>
                 </div>
-                <textarea id="textareaConsignes" placeholder="Écris tes consignes, contraintes ou contexte récent ici..." style="width: 100%; height: 200px; background: #121218; border: 1px solid #2a2a35; border-radius: 4px; color: #fff; padding: 10px; font-family: sans-serif; resize: none; box-sizing: border-box;"></textarea>
+                <textarea id="textareaConsignes" placeholder="Écris tes consignes, contraintes ou contexte récent ici..." style="width: 100%; height: 200px; background: #121218; border: 1px solid #2a2a35; border-radius: 4px; color: #fff; padding: 10px; resize: none; box-sizing: border-box;"></textarea>
                 <button type="button" onclick="window.fermerModaleConsignes()" style="background: #a777e3; color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">
                     💾 ENREGISTRER ET QUITTER
                 </button>
@@ -750,6 +791,8 @@ function brancherEvenementIAPilote() {
  * ============================================================================
  */
 document.addEventListener("DOMContentLoaded", () => {
+    // Lance l'analyse et la génération des mémoires manquantes de la plus longue à la plus courte
+initialiserEtTraiterMemoiresManquantes();
     const btnSave = document.getElementById("btnSaveContext");
     const btnAi = document.getElementById("btnAiCoWrite");
 
@@ -1334,6 +1377,9 @@ ${maFicheDetaillee}
                 createdAt: serverTimestamp()
             });
 
+            // Exemple : totalMessages est le nombre de posts du salon actuel, derniersMessages est le tableau des textes
+await verifierDeclenchementMemoire(totalMessages, derniersMessages);
+
             console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
         } catch (dbErr) { 
             console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
@@ -1352,8 +1398,8 @@ ${maFicheDetaillee}
                     outputDiv.innerHTML = `
     <style>
         .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
-        .rp-speech { color: #dfb56c; font-family: Georgia, serif; font-size: 1.4rem !important; }
-        .rp-incise { font-weight: bold; color: #ffffff; font-family: Georgia, serif; font-size: 1.4rem !important; }
+        .rp-speech { color: #dfb56c;  font-size: 1.4rem !important; }
+        .rp-incise { font-weight: bold; color: #ffffff; font-size: 1.4rem !important; }
     </style>
 
     <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
@@ -1364,16 +1410,16 @@ ${maFicheDetaillee}
                 <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
             </div>
         </div>
-        <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
+        <div style="color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
     </div>
 
     <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
         <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
-                <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
+                <h3 style="margin: 0; color: #ffcc00;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
                 <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
             </div>
-            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
                 ${textAiHTML}
             </div>
         </div>
@@ -1802,7 +1848,7 @@ ${maFicheDetaillee}
                             <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
                         </div>
                     </div>
-                    <div style="color:#fff; font-size:1.2rem; font-family:Georgia, serif; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
+                    <div style="color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
                 </div>
                 `;
 
@@ -1905,11 +1951,11 @@ window.relireLaScene = async function() {
                     <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
         <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
-                <h3 style="margin: 0; color: #ffcc00; font-family: 'Segoe UI', sans-serif;">📖 Visionnage Résumé</h3>
+                <h3 style="margin: 0; color: #ffcc00;">📖 Visionnage Résumé</h3>
                 <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
                 
                 </div>
-            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-family: Georgia, serif; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
                 ${reponsePropre}
             </div>
         </div>

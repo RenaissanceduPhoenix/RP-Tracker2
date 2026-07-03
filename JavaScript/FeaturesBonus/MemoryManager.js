@@ -125,7 +125,7 @@ async function compilerHistoriqueAvecIA(charName, historiqueGlobal, memoireActue
                 "Authorization": `Bearer ${MISTRAL_API_KEY}` 
             },
             body: JSON.stringify({ 
-                model: "mistral-large-latest", 
+                model: "codestral-latest", 
                 response_format: { type: "json_object" }, 
                 messages: [
                     {

@@ -149,7 +149,7 @@ window.filtrerHistoriqueParPerso = function(nomPerso) {
         readerDiv.innerHTML += `
             <div style="margin-bottom: 30px; background:#121218; padding:15px; border-radius:6px; border:1px solid #1c1c24;">
                 <div style="color:#a777e3; font-size:0.8rem; font-weight:bold; margin-bottom:8px; border-bottom:1px dotted #2c2c35; padding-bottom:4px;">RÉPLIQUE N°${index + 1} — Ajoutée le ${msg.date}</div>
-                <div style="color:#f0f0f0; font-family:Georgia, serif; font-size:1.25rem; line-height:1.5;">${parsedHTML}</div>
+                <div style="color:#f0f0f0; font-size:1.25rem; line-height:1.5;">${parsedHTML}</div>
             </div>
         `;
     });
@@ -206,14 +206,14 @@ window.chargerPostDansLeLecteur = async function(msgId) {
             <div style="border-bottom:1px solid rgba(167,119,227,0.3); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <span style="color:#777; font-size:0.8rem;">AUTEUR DE LA RÉPLIQUE</span>
-                    <h2 style="margin:0; color:#ffcc00; font-family:'Segoe UI', sans-serif; font-size:1.3rem;">${nomAuteur}</h2>
+                    <h2 style="margin:0; color:#ffcc00; font-size:1.3rem;">${nomAuteur}</h2>
                 </div>
                 <div style="text-align:right;">
                     <span style="color:#777; font-size:0.8rem;">DATE DU POST</span>
                     <div style="color:#aaa; font-size:0.9rem; font-weight:bold;">${msgBase.date || "Inconnue"}</div>
                 </div>
             </div>
-            <div class="rp-post-content" style="flex:1; overflow-y:auto; padding-right:10px; color:#f0f0f0; font-family:Georgia, serif; font-size:1.35rem; line-height:1.6;">
+            <div class="rp-post-content" style="flex:1; overflow-y:auto; padding-right:10px; color:#f0f0f0; font-size:1.35rem; line-height:1.6;">
                 ${parsedHTML}
             </div>
         </div>
@@ -254,7 +254,7 @@ function assurerExistenceModaleSommaire() {
     document.head.appendChild(styleElement);
 
     const modalHTML = `
-    <div id="rpSummaryModal" style="display: none; position: fixed; z-index: 200000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center; font-family:'Segoe UI', sans-serif;">
+    <div id="rpSummaryModal" style="display: none; position: fixed; z-index: 200000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.95); backdrop-filter: blur(10px); justify-content: center; align-items: center;">
         <div style="background: #0c0c10; border: 1px solid #ffcc00; box-shadow: 0 0 35px rgba(255, 204, 0, 0.15); width: 95vw; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
             
             <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255, 204, 0, 0.2); display: flex; justify-content: space-between; align-items: center; background: #121218;">

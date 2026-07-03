@@ -30,7 +30,7 @@ export async function analyserSituationEtAppliquerMoods(charName) {
                 "Authorization": `Bearer ${MISTRAL_API_KEY}` 
             },
             body: JSON.stringify({ 
-                model: "mistral-large-latest", 
+                model: "codestral-latest", 
                 messages: [
                     {
                         role: "system",

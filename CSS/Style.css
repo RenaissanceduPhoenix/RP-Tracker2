@@ -1,3 +1,13 @@
+/* 1. L'importation (Obligatoirement TOUT EN HAUT de ton fichier CSS) */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+
+/* 2. L'application globale ULTRA-STRICTE à tout ton projet */
+*, html, body, input, textarea, button, select, .rp-speech, .rp-incise {
+    font-family: "Merriweather", serif !important;
+    font-optical-sizing: auto;
+}
+
+
 /* ==========================================================================
    1. BASE & DISPOSITION GENERALE
    ========================================================================== */
@@ -5,7 +15,7 @@ body {
     background: #0b0b0e url('darkv3.jpg') no-repeat center center fixed;
     background-size: cover;
     color: #f0f0f0;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    /* ✅ Nettoyé : Ligne font-family supprimée pour éviter les conflits */
     margin: 0; 
     padding: 20px;
 }
@@ -69,7 +79,7 @@ input, textarea, select {
     margin-bottom: 12px;
     border-radius: 6px;
     box-sizing: border-box;
-    font-family: inherit;
+
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -303,14 +313,14 @@ button:hover {
         }
         .rp-speech {
             color: #dfb56c;
-            font-family: Georgia, serif;
+
             font-size: 1.4rem !important;
             font-style: normal;
         }
         .rp-incise {
             font-weight: bold;
             color: #ffffff;
-            font-family: Georgia, serif;
+
             font-size: 1.4rem !important;
             font-style: normal;
         }
@@ -666,7 +676,7 @@ select.select-tag-toggle:focus {
     
     display: flex;
     flex-direction: column;     
-    overflow: hidden;             /* Empêche la grande boîte de casser */
+    overflow: auto;             /* Empêche la grande boîte de casser */
     box-sizing: border-box;
 }
 

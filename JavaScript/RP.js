@@ -425,12 +425,12 @@ window.updateStats = async function() {
 
         // Injection brute des 3 structures séparées dans le DOM
         statsContainer.innerHTML = `
-            <h2 style="font-family: 'Cinzel', serif; color: #a777e3; margin-bottom: 25px;">⚔️ Quartier Général des Statistiques</h2>
+            <h2 style=" color: #a777e3; margin-bottom: 25px;">⚔️ Quartier Général des Statistiques</h2>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                 
                 <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid #2a2a35; padding: 20px; border-radius: 6px; color: #e0e0e0;">
-                    <h3 style="color: #ffcc00; margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">📊 RELEVÉ 7 JOURS</h3>
+                    <h3 style="color: #ffcc00; margin-top: 0;  border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">📊 RELEVÉ 7 JOURS</h3>
                     <ul style="list-style: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
                         <li>⚡ <b>XP :</b> <span style="color: #ffcc00; font-weight: bold;">${resSemaine.totalXp.toLocaleString()} XP</span></li>
                         <li>🏆 <b>Champion :</b> <span>${resSemaine.topChar}</span></li>
@@ -449,7 +449,7 @@ window.updateStats = async function() {
                 </div>
 
                 <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid #2a2a35; padding: 20px; border-radius: 6px; color: #e0e0e0;">
-                    <h3 style="color: #3498db; margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">🦅 RELEVÉ 30 JOURS</h3>
+                    <h3 style="color: #3498db; margin-top: 0; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">🦅 RELEVÉ 30 JOURS</h3>
                     <ul style="list-style: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
                         <li>⚡ <b>XP :</b> <span style="color: #ffcc00; font-weight: bold;">${resMois.totalXp.toLocaleString()} XP</span></li>
                         <li>🏆 <b>Champion :</b> <span>${resMois.topChar}</span></li>
@@ -468,7 +468,7 @@ window.updateStats = async function() {
                 </div>
 
                 <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid #2a2a35; padding: 20px; border-radius: 6px; color: #e0e0e0;">
-                    <h3 style="color: #2ecc71; margin-top: 0; font-family: 'Cinzel', serif; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">👑 HISTORIQUE GLOBAL</h3>
+                    <h3 style="color: #2ecc71; margin-top: 0; border-bottom: 1px solid #2a2a35; padding-bottom: 8px;">👑 HISTORIQUE GLOBAL</h3>
                     <ul style="list-style: none; padding: 0; line-height: 1.8; font-size: 0.9rem;">
                         <li>⚡ <b>XP :</b> <span style="color: #ffcc00; font-weight: bold;">${resGlobal.totalXp.toLocaleString()} XP</span></li>
                         <li>🏆 <b>Champion :</b> <span>${resGlobal.topChar}</span></li>
