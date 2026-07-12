@@ -10,6 +10,10 @@ import { fichesPersonnagesJDR, dictionnaireActionsSociales, executerLancerSocial
 import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireActionsErER} from './DiceManager.js';
 import { executerConsidolationTotaleMemoire } from './MemoryManager.js';
 import { initialiserEtTraiterMemoiresManquantes, verifierDeclenchementMemoire, reecrireMemoireModalParId  } from './memoireHierarchique.js';
+import { nettoyerSyntaxeDialogue, autoApprendreEtEnrichirDico } from './Robot.js?v=2.1';
+import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
+import { genererMessagesMistral } from './Prompt.js?v=2.1';
+
 
 // ⚠️ CONFIGURATION MISTRAL
 const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT";  
@@ -26,6 +30,40 @@ window.currentActiveSalonTexte = null;
 // Rendre la fonction accessible au HTML globalement
 window.reecrireMemoireModalParId = reecrireMemoireModalParId;
 
+// ==========================================================================
+// 🌡️ GESTION GLOBALE DE LA TEMPÉRATURE MISTRAL
+// ==========================================================================
+window.currentMistralTemperature = 0.7;
+
+window.mettreAJourTemperature = function(nouvelleValeur) {
+    const valeurNum = parseFloat(nouvelleValeur);
+    window.currentMistralTemperature = valeurNum;
+    
+    // Mise à jour de l'affichage du texte à côté du slider
+    const indicateur = document.getElementById("valeurTemperature");
+    if (indicateur) {
+        indicateur.innerText = valeurNum.toFixed(2);
+    }
+    console.log(`🌡️ [Température] Valeur mise à jour : ${valeurNum}`);
+};
+
+// ==========================================================================
+// 🗂️ GESTION GLOBALE DU NOMBRE DE BLOCS DEMANDÉS
+// ==========================================================================
+window.currentNombreBlocsDemande = 4; // Valeur par défaut (ex: 4 blocs)
+
+window.mettreAJourNombreBlocs = function(nouvelleValeur) {
+    const valeurNum = parseInt(nouvelleValeur, 10);
+    window.currentNombreBlocsDemande = valeurNum;
+    
+    // Mise à jour de l'affichage du texte à côté du slider
+    const indicateur = document.getElementById("valeurNombreBlocs");
+    if (indicateur) {
+        indicateur.innerText = valeurNum;
+    }
+    console.log(`🗂️ [Structure] Nombre de blocs demandé mis à jour : ${valeurNum}`);
+};
+
 /**
  * ============================================================================
  * 1. FONCTION : OUVERTURE DE LA MODALE
@@ -37,16 +75,14 @@ window.reecrireMemoireModalParId = reecrireMemoireModalParId;
 window.openCoWriteModal = async function(rpId, charName) {
     window.currentActiveRpId = rpId;
     window.currentActiveCharName = charName;
-
-    window.openCoWriteModal = async function(RpID, CharName) {
     // 🌟 Sauvegarde globale de l'ID
-    window.currentActiveSalonId = RpID; 
+    window.currentActiveSalonId = rpId; 
     window.currentActiveSalonTexte = ""; 
 
-    console.log(`📂 [Modale] Ouverture pour le salon (RpID) : ${RpID} (Personnage : ${CharName})`);
+    console.log(`📂 [Modale] Ouverture pour le salon (RpID) : ${rpId} (Personnage : ${charName})`);
     
     try {
-        const messagesRef = collection(db, "rps_pending", RpID, "messages");
+        const messagesRef = collection(db, "rps_pending", rpId, "messages");
         const messagesSnapshot = await getDocs(messagesRef);
         
         let texteAssemble = "";
@@ -346,7 +382,6 @@ window.openCoWriteModal = async function(rpId, charName) {
             window.mettreAJourAffichageDesPourIA(boutonsCoches);
         }
     }, 150);
-}
 };
 
 
@@ -428,275 +463,7 @@ async function loadOrCreateRpHistory(rpId, charName) {
     }
 }
 
-// Assure-toi d'ajouter updateDoc et arrayUnion dans tes imports Firebase au début du fichier si besoin :
-// import { doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/**
- * 🧠 1. ANALYSE ET ENRICHISSEMENT DYNAMIQUE (UNIQUEMENT ACTIONS ET DIALOGUES)
- * Enregistre et apprend les nouveaux verbes/mots de parole dans Firestore. Les pensées restent fixes.
- */
-async function autoApprendreEtEnrichirDico(texteBrutIA) {
-    try {
-        const response = await fetch(MISTRAL_URL, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json", 
-                "Authorization": `Bearer ${MISTRAL_API_KEY}` 
-            },
-            body: JSON.stringify({ 
-                model: "mistral-large-latest", 
-                messages: [
-                    {
-                        role: "system",
-                        content: `Tu es un analyseur grammatical JDR. Extrais le lexique de ce texte.
-Tu dois répondre STRICTEMENT avec un objet JSON valide (sans balises Markdown, sans blabla) contenant exactement 2 tableaux :
-- "actions" : Verbes à la 3e personne (singulier/pluriel, présent/imparfait/passé) décrivant des mouvements, gestes, expressions, postures ou bruits physiques.
-- "dialogues" : Pronoms (je, tu, moi, nous, vous...), déterminants (mon, ton, votre...) et verbes conjugués hors 3e personne du singulier (langage parlé direct).
-
-Exemple :
-{"actions":["pivota","ancrées","frémirent"],"dialogues":["tu","veux","parlez"]}`
-                    },
-                    { role: "user", content: texteBrutIA }
-                ],
-                temperature: 0.2
-            })
-        });
-
-        if (!response.ok) return null;
-        const data = await response.json();
-        if (!data.choices || !data.choices[0]) return null;
-
-        let cleanJson = data.choices[0].message.content.replace(/```json|```/g, "").trim();
-        const lexiqueExtrait = JSON.parse(cleanJson);
-
-        // Connexion à ton document Firestore existant
-        const docRef = doc(db, "dictionnaires", "rpg_feline");
-        const docSnap = await getDoc(docRef);
-
-        let dicoFinal = { actions: [], dialogues: [] };
-
-        if (docSnap.exists()) {
-            const currentData = docSnap.data();
-            
-            // On isole uniquement les nouveaux mots pour optimiser les écritures Firebase
-            const nouvellesActions = (lexiqueExtrait.actions || []).filter(m => !currentData.actions?.includes(m));
-            const nouveauxDialogues = (lexiqueExtrait.dialogues || []).filter(m => !currentData.dialogues?.includes(m));
-
-            // Si du nouveau vocabulaire est détecté, mise à jour instantanée en tâche de fond
-            if (nouvellesActions.length > 0 || nouveauxDialogues.length > 0) {
-                await updateDoc(docRef, {
-                    actions: arrayUnion(...(lexiqueExtrait.actions || [])),
-                    dialogues: arrayUnion(...(lexiqueExtrait.dialogues || []))
-                });
-                console.log("%c🔥 [Firestore] Apprentissage des actions & dialogues synchronisé !", "color: #e67e22; font-weight: bold;");
-            }
-
-            // Fusion de l'historique et des mots du post actuel pour le Robot Nettoyeur
-            dicoFinal.actions = [...new Set([...(currentData.actions || []), ...(lexiqueExtrait.actions || [])])];
-            dicoFinal.dialogues = [...new Set([...(currentData.dialogues || []), ...(lexiqueExtrait.dialogues || [])])];
-        } else {
-            console.warn("⚠️ Document 'rpg_feline' introuvable dans Firestore.");
-            return lexiqueExtrait;
-        }
-
-        return dicoFinal;
-
-    } catch (err) {
-        console.error("❌ Erreur d'auto-apprentissage partiel Firestore :", err);
-        return null;
-    }
-}
-
-/**
- * 🛡️ 2. ROBOT NETTOYEUR SÉMANTIQUE (VERSION HYBRIDE ULTIME)
- * Actions & Dialogues = Firestore Auto-apprenant | Pensées = Dico Code Fixe Ultra-Solide
- */
-export async function nettoyerSyntaxeDialogue(texteBrutIA) {
-    if (!texteBrutIA) return "";
-
-    // 🌟 INJECTION DE SÉPARATEUR "_ _" ENTRE ABSOLUMENT TOUS LES PARAGRAPHES (DISCORD BBCODE)
-    // On nettoie les espaces parasites et on découpe le texte par bloc de paragraphe (\n\n)
-    let paragraphes = texteBrutIA.split(/\n\s*\n/);
-    let nouveauxParagraphes = [];
-
-    for (let i = 0; i < paragraphes.length; i++) {
-        let pActuel = paragraphes[i].trim();
-        if (pActuel.length === 0) continue;
-
-        // On conserve le paragraphe actuel (qu'il commence par **, * ou >)
-        nouveauxParagraphes.push(pActuel);
-
-        // RÈGLE UNIVERSELLE : S'il y a un paragraphe après celui-ci, on glisse le séparateur !
-        if (i < paragraphes.length - 1) {
-            // Vérification de sécurité pour s'assurer que le paragraphe suivant n'est pas vide
-            let pSuivant = paragraphes[i + 1].trim();
-            if (pSuivant.length > 0) {
-                nouveauxParagraphes.push("_ _");
-            }
-        }
-    }
-    
-    // On réassemble le tout avec des sauts de ligne BBCode parfaits pour Discord
-    texteBrutIA = nouveauxParagraphes.join('\n\n');
-
-
-    // 1. Récupération des bases de données dynamiques (Actions & Dialogues) depuis Firestore
-    const dicoComplet = await autoApprendreEtEnrichirDico(texteBrutIA);
-    
-    // (La suite de ton code avec 'const verbesAction = ...' reste exactement pareille !)
-    
-    // Listes de secours par défaut au cas où Firebase a un ralentissement
-    const verbesAction = dicoComplet?.actions?.join(", ") || "pivota, pivotait, fit, faisait, recula, s'avança, tourna, agita, roula, frémirent, s'enfoncer, atterrissant, tendirent";
-    const marqueursParoles = dicoComplet?.dialogues?.join(", ") || "je, tu, moi, toi, nous, vous, me, te, mon, ton, ma, veux, fais, es, parlez, devez";
-    
-    // 🔒 LE DICO DES PENSÉES COMPLÈTEMENT SÉCURISÉ ET GRAVÉ EN DUR (Ultra-hermétique et étendu)
-    const lexiquePenseesFixe = "Pourquoi, comment, trop, toujours, jamais, encore, si mal, ça brûle, non, impossible, j'aurais dû, si seulement, qu'ai-je fait, imbécile, lourd, amertume, regret, trop tard, déjà, sentait, s'entretuer, concerne, pion, dispute, mêmes, seule, instable, dangereuse, raison, plie, docile, jugeaient, importait, peu, l'ombre, voulaient, baisse, yeux, pensait, songea, croyait, imaginait, doutait, esprit, tête, conscience, flux, secret, fardeau, honte, peur, haine, colère, lâche, lâcheté, trahison, mensonge, vérité, espoir, désespoir, vide, pourquoi moi, qu'ils, s'ils, s'elle, qu'elle, s'il, qu'il, s'en, qu'en, tout ça, à quoi bon, finir, recommencer, fuir, faire face";
-
-    try {
-        const response = await fetch(MISTRAL_URL, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json", 
-                "Authorization": `Bearer ${MISTRAL_API_KEY}` 
-            },
-            body: JSON.stringify({ 
-                model: "mistral-large-latest", 
-                messages: [
-                    {
-                        role: "system",
-                        content: `Tu es un automate de restructuration syntaxique pour un parser RPG. Tu prends un texte de jeu de rôle mal formaté et tu en corriges les astérisques (* et **) en appliquant des règles sémantiques strictes, basées sur une analyse PHRASE PAR PHRASE. Une phrase ne peut appartenir qu'à une seule catégorie à la fois.
-
-Voici tes dictionnaires de référence pour analyser la nature de chaque mot/phrase :
-
-================================================================================
-📚 DICO 1 : INCISES ET ACTIONS DE DIALOGUE (Dans les lignes "> ", sous doubles astérisques : **Texte**)
-- Verbes physiques, mouvements, anatomies, descriptions d'états physiques et décors (Auto-appris depuis Firestore) :
-${verbesAction}
-
-================================================================================
-📚 DICO 2 : LE LANGAGE PARLÉ DIRECT (Dans les lignes "> ", en TEXTE BRUT, SANS ÉTOILES)
-- Marqueurs de dialogue direct, pronoms, questions et verbes hors 3e pers. (Auto-appris depuis Firestore) :
-${marqueursParoles}
-
-================================================================================
-📚 DICO 3 : PENSÉES INTÉRIEURES ET FLUX DE CONSCIENCE (Sous un seul astérisque : *Texte*)
-- Lexique IMMUABLE et STRICT du monologue intérieur secret, du doute, du regret, des questions existentielles ou du jugement mental personnel :
-${lexiquePenseesFixe}
-
-================================================================================
-🧠 PROTOCOLE DE TRAITEMENT UNIFIÉ :
-
-1. 💬 SI LA LIGNE COMMENCE PAR ">" (Ligne de Dialogue direct) :
-   - Extrais le texte après "> ". Supprime TOUTES les étoiles qu'il contient pour travailler à nu.
-   - Découpe la ligne en segments logiques (propositions/morceaux de phrases).
-   - Si un segment utilise le DICO 2 (paroles dites, questions, "tu", "je") -> Laisse-le en TEXTE BRUT (ZÉRO ÉTOILE).
-   - Pour TOUT autre segment (descriptions, mouvements, incises) -> Mets-le OBLIGATOIREMENT entre doubles étoiles (**Texte**).
-   - Reconstruis la ligne sous la forme exacte : "> Paroles **Action** Paroles".
-   - ⚠️ SÉCURITÉ DIALOGUE : Si des mots du DICO 3 (pensées) apparaissent au milieu d'une ligne de dialogue, traite ce segment comme une incise narrative classique : englobe-le obligatoirement dans les doubles astérisques (**). Pas d'étoile simple ici.
-
-2. 🪓 POUR LE TEXTE HORS-DIALOGUE (Pas de ">" au début) :
-   - Supprime toutes les étoiles existantes du paragraphe pour nettoyer le texte brut.
-   - Découpe obligatoirement le bloc en PHRASES INDIVIDUELLES (en te basant sur la ponctuation : ., !, ?).
-   - Analyse chaque phrase de manière isolée selon la règle absolue : UNE PHRASE N'EST QU'UN SEUL TRUC À LA FOIS.
-
-   A) 💭 SI LA PHRASE EST UNE PENSÉE UNIQUE (Contient des mots-clés du DICO 3) :
-      - Encapsule TOUTE la phrase entre des astérisques simples (*Texte de la pensée.*).
-      - Elle ne doit contenir aucun morceau en gras à l'intérieur.
-
-   B) 🏃 SI LA PHRASE EST UNE ACTION / DESCRIPTION UNIQUE (Aucun marqueur du DICO 3) :
-      - Encapsule l'INTÉGRALITÉ de la phrase entre des doubles astérisques (**Texte de l'action.**).
-      - Elle ne doit contenir aucun texte brut sans étoiles et aucune étoile simple.
-
-3. 📐 RÈGLE DE STRUCTURATION ET CASSURE GÉOMÉTRIQUE :
-   - Après avoir balisé chaque phrase de manière hermétique, si deux phrases consécutives changent de nature (Exemple : une phrase *Pensée* suivie d'une phrase **Action**), tu as l'INTERDICTION ABSOLUE de les laisser coller sur la même ligne.
-   - Tu dois OBLIGATOIREMENT insérer un double retour à la ligne entre elles pour créer des paragraphes distincts selon leur nature.
-
-================================================================================
-⭐ EXEMPLE DE RÉFÉRENCE ABSOLUE AVEC EXPLICATIONS ANATOMIQUES :
-(Analyse comment chaque bloc est découpé et commenté)
-
-[NOTE AUTOMATE : Bloc 1 - Entièrement composé d'actions et de descriptions physiques à la 3e personne. Aucune pensée intime ou parole directe. Donc l'intégralité est enveloppée sous doubles étoiles.]
-**Nuage de Lynx resta figée, les pattes ancrées dans la terre comme si le sol venait de se dérober sous elle. Les mots d'Ombre Audacieuse résonnaient dans son crâne avec la violence d'un coup de griffe en plein museau.**
-
-[NOTE AUTOMATE : Bloc 2 - Suite narrative physique immédiate. Pas de rupture de style, on continue le bloc d'action pure.]
-**Elle sentit son pelage se hérisser, non pas de colère, mais d'une honte brûlante qui lui remonta jusqu'aux oreilles. Elle avait été percée à jour. Exposée. Vulnérable.**
-
-[NOTE AUTOMATE : Bloc 3 - Dernières phrases d'actions narratives pures avant une transition interne.]
-**Ses griffes s'enfoncèrent dans la boue, traçant des sillons profonds tandis qu'elle serrait les mâchoires à s'en faire mal. Elle aurait dû s'en douter. Ombre Audacieuse avait toujours eu ce don pour lire en elle comme dans un parchemin ouvert. Et maintenant, il venait de lui balancer ses propres désirs à la figure, devant Court Pensée, devant le ciel entier, comme une proie qu'on jette aux pieds d'un chasseur.**
-
-[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - La phrase suivante bascule sur un monologue intérieur impératif (DICO 3 : "Ne fuis pas"). Double retour à la ligne obligatoire, protection par étoile simple.]
-*Respire. Ne fuis pas. Pas cette fois.*
-
-[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - Retour soudain à de la description physique ("tourna lentement", "fixait"). Passage immédiat à la ligne, verrouillage sous doubles étoiles.]
-**Elle tourna lentement la tête vers Court Pensée, son regard doré brûlant d'une intensité presque insoutenable. Le matou la fixait, les oreilles légèrement penchées, l'air aussi perdu qu'un chaton dans une tempête. Elle aurait voulu lui hurler que non, ce n'était pas ce qu'elle voulait...**
-
-[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - Le texte rebascule dans un flux de questionnements intimes profonds (DICO 3: "Pourquoi", "peur", "choisir"). Séparation physique par une ligne blanche, protection par astérisque unique.]
-*... ou peut-être que si ? Pourquoi est-ce que ça fait si mal d'y penser ? Pourquoi est-ce que son cœur s'emballe à l'idée d'être sa compagne dans trois lunes, quand je serai guerrière, quand je pourrai choisir sans que le Clan me regarde comme une apprentie écervelée ?*
-
-[NOTE AUTOMATE : RUPTURE GÉOMÉTRIQUE - Fin des doutes intérieurs, reprise des mouvements anatomiques physiques ("se rapprocha", "frôlent"). Ligne blanche, application des doubles étoiles.]
-**Elle se rapprocha imperceptiblement de Court Pensée, assez pour que leurs épaules se frôlent, assez pour que la chaleur de son pelage traverse l'humidité qui colle encore à sa fourrure.**
-
-[NOTE AUTOMATE : BLOC DIALOGUE DIRECT - La ligne commence par le marqueur ">". Le texte parlé direct ("Si un jour...") reste brut sans étoiles. L'incise descriptive physique au milieu ("Elle désigna", "Elle marqua") est extraite et emprisonnée de force entre doubles étoiles.]
-> **Elle désigna Court Pensée d'un mouvement de tête brusque.** Si un jour—*un jour*, tu comprends ?—je décide que c’est toi que je veux… **Elle marqua une pause, le temps de laisser ses mots s'imprégner dans l'air lourd de la mi-journée.** Ce sera parce que j’aurai choisi. Pas parce que le Clan l’aura décidé.
-
-[NOTE AUTOMATE : RETOUR NARRATIF - Fin du dialogue, description de la posture corporelle globale à la 3e personne. Double astérisque.]
-**Elle se redressa soudain, secouant violemment son pelage pour chasser les dernières gouttes d'eau et la tension qui l'habitait. Sa queue fouetta l'air avec une énergie presque sauvage, comme pour balayer les doutes et les regards indiscrets.**
-
-> Maintenant, si vous voulez bien m’excuser, **ajouta-t-elle d’un ton sec, sans même accorder un regard à Ombre Audacieuse,** j’ai une course à faire. Seule.
-
-**Sans attendre de réponse, elle s'élança vers les fourrés, ses pattes martelant le sol avec une force qui trahissait son besoin désespéré de fuir. Mais au moment où elle franchissait la lisière des arbres, elle jeta un dernier regard par-dessus son épaule, croisant brièvement les yeux de Court Pensée. Et dans ce regard, il y avait tout ce qu'elle n'oserait jamais dire.**
-
-================================================================================
-⚠️ SÉCURITÉ DE PRODUCTION :
-- Ne change, ne supprime et n'ajoute AUCUN mot ou virgule de l'histoire originale.
-- Ignore et supprime les balises explicatives [NOTE AUTOMATE] lors du rendu final, elles ne servent que de guides logiques pour tes calculs.
-- Renvoie uniquement le texte final corrigé, sans commentaires ni balises de bloc Markdown.`
-                    },
-                    {
-                        role: "user",
-                        content: texteBrutIA
-                    }
-                ],
-                temperature: 0.0 // Déterminisme informatique maximum (Zéro créativité).
-            })
-        });
-
-        if (!response.ok) return texteBrutIA; 
-        const data = await response.json();
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            console.log("%c🛡️ [Robot Nettoyeur Hybride] Balisage et cassures géométriques validés !", "color: #2ecc71; font-weight:bold;");
-            
-            // 🌟 1. On récupère le texte propre renvoyé par l'IA
-            let texteNettoye = data.choices[0].message.content;
-
-            // 🌟 2. Découpage par bloc de paragraphe (\n\n) pour injecter les "_ _"
-            let paragraphes = texteNettoye.split(/\n\s*\n/);
-            let nouveauxParagraphes = [];
-
-            for (let i = 0; i < paragraphes.length; i++) {
-                let pActuel = paragraphes[i].trim();
-                if (pActuel.length === 0) continue;
-
-                nouveauxParagraphes.push(pActuel);
-
-                // RÈGLE UNIVERSELLE : On met le séparateur si un paragraphe suit
-                if (i < paragraphes.length - 1) {
-                    let pSuivant = paragraphes[i + 1].trim();
-                    if (pSuivant.length > 0) {
-                        nouveauxParagraphes.push("_ _");
-                    }
-                }
-            }
-
-            // 🌟 3. On réassemble avec les doubles sauts de ligne BBCode pour Discord
-            return nouveauxParagraphes.join('\n\n');
-        }
-        return texteBrutIA;
-    } catch (err) {
-        console.error("Erreur lors du filtrage sémantique rigide :", err);
-        return texteBrutIA;
-    }
-}
 
 window.ouvrirModaleConsignes = function() {
     assurerExistenceModaleConsignes();
@@ -891,9 +658,9 @@ initialiserEtTraiterMemoiresManquantes();
             textInput.value = "";
             
             // On recharge le composant visuel de l'historique pour voir la réplique apparaître
-            /**if (typeof loadOrCreateRpHistory === "function") {
+            if (typeof loadOrCreateRpHistory === "function") {
                 await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
-            }**/
+            }
 
             
 
@@ -908,491 +675,108 @@ initialiserEtTraiterMemoiresManquantes();
 
     if (btnAi) {
         btnAi.addEventListener("click", async () => {
-            const outputDiv = document.getElementById("coWriteAiOutput");
-            const textInput = document.getElementById("coWriteContext");
-            if (!outputDiv || !currentActiveRpId) return;
+            // AJOUTE OU REMONTE CETTE LIGNE TOUT EN HAUT DU CLICK :
+// On récupère en direct ce qui est écrit dans le champ des instructions / contexte
+const instructions = document.getElementById("coWriteAiInstructions")?.value.trim() || "";
+const outputDiv = document.getElementById("coWriteAiOutput");
+if (!outputDiv) return;
+// 1. On appelle la fonction de Prompt.js pour récupérer le gâteau tout préparé (systemPrompt + historique + note)
+const messagesPrepares = await genererMessagesMistral();
+const MaxTokensDina = ( window.currentNombreBlocsDemande || 4 ) * 1000;
 
-            // 💾 SAUVEGARDE DU PROMPT ACTUEL POUR LE REROLL
-dernierPromptJoueur = textInput ? textInput.value.trim() : "";
-
-            const aiInstructionsElement = document.getElementById("coWriteAiInstructions");
-            const instructions = aiInstructionsElement ? aiInstructionsElement.value.trim() : "";
-
-            const activeMoodBtns = document.querySelectorAll(".mood-btn.active");
-            let moodInstruction = "";
-
-// 🎲 1. RÉCUPÉRATION DU CONTEXTE DES DÉS MULTIPLES (ErER)
- let contrainteDeDesPrompt = "";
-
-    if (window.getActionsSelectionneesPourIA && Array.isArray(window.getActionsSelectionneesPourIA) && window.getActionsSelectionneesPourIA.length > 0) {
-        contrainteDeDesPrompt = `\n[CONTRAINTES DE JEU - ACTIONS ET DÉS MULTIPLES]\n`;
-        contrainteDeDesPrompt += `Durant ce tour, le personnage réalise les actions JDR suivantes. Tu DOIS impérativement intégrer et romancer TOUTES ces actions dans ton récit en respectant rigoureusement leur niveau de réussite :\n`;
-
-        window.getActionsSelectionneesPourIA.forEach(idAction => {
-            // 🔍 On récupère les données pré-calculées correspondantes à l'ID
-            const res = window.resultatsPreCalcules?.[idAction];
-            
-            if (!res) {
-                console.warn(`⚠️ L'action [${idAction}] est cochée mais aucun résultat n'a été trouvé.`);
-                return; // On passe à la suivante sans crasher
-            }
-
-            // 🛡️ Extraction ultra-sécurisée du verdict (physique ou social)
-            let vTexte = "Réussite";
-            let vDesc = "";
-            
-            if (res.verdict && typeof res.verdict === "object") {
-                vTexte = res.verdict.texte || "Calculé";
-                vDesc = res.verdict.description || "";
-            } else if (res.verdictTexte) {
-                vTexte = res.verdictTexte;
-                vDesc = res.verdictDescription || "";
-            }
-
-            const nomActionAffichee = res.nom || idAction;
-            const scoreTotal = res.total || 0;
-
-            // ✍️ Injection propre dans le prompt sans risque de crash
-            contrainteDeDesPrompt += `- Action tentée : ${nomActionAffichee}\n`;
-            contrainteDeDesPrompt += `  Score obtenu : ${scoreTotal} / 50\n`;
-            contrainteDeDesPrompt += `  Verdict du Clan : ${vTexte}\n`;
-            contrainteDeDesPrompt += `  Effet requis : ${vDesc}\n\n`;
-        });
-
-        contrainteDeDesPrompt += `CONSIGNE NARRATIVE CRUCIALE :
-        Insère ces réussites ou ces échecs de manière fluide, sauvage et immersive. Tu ne dois JAMAIS afficher de chiffres, de calculs ou de termes techniques de JDR (bannis les expressions comme "score", "total", "dés", "SA", "échec", "réussite"). Traduis ces données uniquement par des descriptions physiques (ex: un coup qui dévie, une douleur fulgurante, une maladresse, un exploit agile), les ressentis du chat ou des répliques.`;
-    }
-
-            if (activeMoodBtns.length > 0) {
-
-                moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (CONSIGNE ABSOLUE : Chaque attribut ci-dessous est indépendant et cloisonné. Traite-les de manière brute, juxtaposée, SANS JAMAIS faire de compromis, de lien ou de fusion entre eux) :\n";
-
-                    
-
-
-const moodDictionary = {
-                    // ⚔️ COMBAT & PHYSIQUE (12)
-                    combat: "- COMBAT : Actions physiques offensives, esquives, feintes, attaques directes.\n",
-                    adrenaline: "- ADRENALINE : Réflexes accélérés, perception nerveuse aiguë, cœur battant la chamade.\n",
-                    epuisement: "- ÉPUISEMENT : Muscles lourds, pattes flageolantes, souffle court, fatigue extrême.\n",
-                    agonie: "- AGONIE : Souffrance physique limite, combat biologique instinctif pour rester conscient.\n",
-                    douleur: "- DOULEUR : Réaction nerveuse à un coup, crispation physique immédiate, gémissement contenu.\n",
-                    vitesse: "- VITESSE : Mouvements fulgurants, course rapide, bonds athlétiques explosifs.\n",
-                    furtivite: "- FURTIVITÉ : Pas feutrés, corps au ras du sol, progression invisible et silencieuse.\n",
-                    defense: "- DÉFENSE : Posture défensive, parades, interposition pour protéger.\n",
-                    faiblesse: "- FAIBLESSE : Perte de force, tremblements, instabilité physique, baisse de régime.\n",
-                    blessure: "- BLESSURE : Impact physique localisé, sang déversé, handicap moteur temporaire visible.\n",
-                    reflexe: "- RÉFLEXE : Réaction corporelle involontaire et instantanée face à un stimulus soudain.\n",
-                    endurance: "- ENDURANCE : Effort prolongé, résistance aux chocs répétés, refus physique de faiblir.\n",
-
-                    // 😡 HOSTILITÉ & DOMINATION (12)
-                    colere: "- COLÈRE : Poils dressés, voix forte, gestes brusques, regard noir.\n",
-                    rage: "- RAGE : Fureur destructive, impulsivité aveugle, perte des manières courtoises.\n",
-                    cruaute: "- CRUAUTÉ : Volonté malveillante de faire souffrir, absence totale de remords.\n",
-                    sadisme: "- SADISME : Plaisir affiché devant le malheur d'autrui, sourire en coin pervers.\n",
-                    provocation: "- PROVOCATION : Attitude insolente, gestes de défi provocateurs, bravade ouverte.\n",
-                    mepris: "- MÉPRIS : Regard condescendant, dédain manifeste, ignorer délibérément l'interlocuteur.\n",
-                    arrogance: "- ARROGANCE : Posture hautaine, assurance excessive, sentiment de supériorité flagrant.\n",
-                    vengeance: "- VENGEANCE : Rendre le tort subi, focalisation obsessionnelle sur le châtiment.\n",
-                    menace: "- MENACE : Posture d'intimidation, grognement sourd, promesse implicite de représailles.\n",
-                    haine: "- HAINE : Animosité viscérale profonde, rancune destructrice, hostilité absolue.\n",
-                    rivalite: "- RIVALITÉ : Esprit de compétition agressif, désir permanent de surpasser son vis-à-vis.\n",
-                    tyrannie: "- TYRANNIE : Comportement autoritaire abusif, volonté d'imposer sa domination par la force.\n",
-
-                    // 💧 SOUFFRANCE PSYCHOLOGIQUE (12)
-                    tristesse: "- TRISTESSE : Regard bas, abattement postural, épaules affaissées, mouvements lents.\n",
-                    deuil: "- DEUIL : Douleur morale liée à une perte affective, mélancolie lancinante.\n",
-                    peur: "- PEUR : Instinct d'évitement, hypervigilance, tension interne face au danger.\n",
-                    terreur: "- TERREUR : Sidération, pupilles dilatées au maximum, poils hérissés par l'effroi.\n",
-                    angoisse: "- ANGOISSE : Pressentiment sombre, oppression mentale, sensation de danger imminent.\n",
-                    regret: "- REGRET : Remords intérieurs, culpabilité, amertume face à une action passée.\n",
-                    desespoir: "- DÉSESPOIR : Sentiment d'impuissance totale, abandon psychologique de la lutte.\n",
-                    solitude: "- SOLITUDE : Sentiment d'isolement, repli sur soi, détachement social subi.\n",
-                    culpabilite: "- CULPABILITÉ : Auto-accusation, poids moral écrasant, sentiment d'être le responsable.\n",
-                    nostalgie: "- NOSTALGIE : Regret mélancolique d'une époque ou d'un bonheur révolu.\n",
-                    abandon: "- ABANDON : Sensation de trahison affective, délaissement, détresse de se retrouver seul.\n",
-                    detresse: "- DÉTRESSE : Appel à l'aide tacite, désemparé face à une situation insurmontable.\n",
-
-                    // 🧠 BLOCAGES & DISCRÉTION (13)
-                    gene: "- GÊNE : Trouble relationnel, mouvements gauches, attitude inconfortable.\n",
-                    malaise: "- MALAISE : Tension palpable, silence lourd, embarras situationnel flagrant.\n",
-                    hesitation: "- HÉSITATION : Posture indécise, flottement avant d'agir, gestes interrompus.\n",
-                    honte: "- HONTE : Profil bas, oreilles plaquées, évitement systématique du regard.\n",
-                    mefiance: "- MÉFIANCE : Prudence extrême, observation suspicieuse, analyse des arrières-pensées.\n",
-                    mystere: "- MYSTÈRE : Comportement énigmatique, secrets gardés, non-dits volontaires.\n",
-                    folie: "- FOLIE : Regard erratique, instabilité mentale, incohérence comportementale.\n",
-                    crise: "- CRISE : Explosion émotionnelle, saturation nerveuse, perte de contrôle psychologique.\n",
-                    timidite: "- TIMIDITÉ : Posture réservée, effacement volontaire, hésitation à prendre la parole.\n",
-                    paranoia: "- PARANOÏA : Sentiment injustifié de persécution, voir des ennemis partout.\n",
-                    confusion: "- CONFUSION : Esprit embrouillé, désorientation intellectuelle, incompréhension des événements.\n",
-                    secret: "- SECRET : Rétention volontaire d'informations cruciales, dissimulation stratégique.\n",
-                    obsessif: "- OBSESSIF : Idée fixe, comportement compulsif focalisé sur un détail unique.\n",
-
-                    // 🤝 ATTACHEMENT & INTERACTIONS (12)
-                    amitie: "- AMITIÉ : Posture détendue, proximité fraternelle rassurante, ton ouvert.\n",
-                    complicite: "- COMPLICITÉ : Connexion immédiate, regards entendus, accord sans paroles.\n",
-                    drague: "- DRAGUE : Intention de séduction, pas feutrés et port de tête fier.\n",
-                    charme: "- CHARME : Charisme naturel envoûtant, magnétisme comportemental.\n",
-                    romance: "- ROMANCE : Intimité amoureuse, queue enlacée, bulle de tendresse.\n",
-                    tendresse: "- TENDRESSE : Gestes lents, contact physique affectueux, douceur.\n",
-                    malice: "- MALICE : Regard taquin, comportement espiègle, envie de plaisanter.\n",
-                    respect: "- RESPECT : Déférence polie, maintien des distances requises, considération.\n",
-                    empathie: "- EMPATHIE : Sensibilité face à la douleur d'autrui, écoute attentive.\n",
-                    loyaute: "- LOYAUTÉ : Fidélité indéfectible, respect absolu de la parole donnée.\n",
-                    devoement: "- DÉVOUEMENT : Sacrifice de soi au profit d'une cause ou d'un individu.\n",
-                    protection: "- PROTECTION : Posture défensive active pour abriter un allié du danger.\n",
-
-                    // ⚖️ VERTUS & LOGIQUE MENTALE (14)
-                    solennel: "- SOLENNEL : Posture droite, respect rigide des rituels et des lois du Code.\n",
-                    determination: "- DÉTERMINATION : Mâchoire serrée, pas ancrés au sol, focus inébranlable.\n",
-                    focus: "- FOCUS : Concentration extrême sur une tâche précise, isolation sensorielle.\n",
-                    bravoure: "- BRAVOURE : Affronter le danger de face de manière héroïque et visible.\n",
-                    courage: "- COURAGE : Surmonter activement une trouille interne pour accomplir l'action.\n",
-                    resilience: "- RÉSILIENCE : Capacité à encaisser les échecs et se remettre d'aplomb aussitôt.\n",
-                    fierte: "- FIERTÉ : Torse bombé, tête haute, refus de montrer ses vulnérabilités.\n",
-                    apatie: "- APATHIE : Indifférence clinique, absence totale de réaction émotionnelle.\n",
-                    detachement: "- DÉTACHEMENT : Prendre de la distance intellectuelle, esprit ailleurs.\n",
-                    froideur: "- FROIDEUR : Logique pure, ton tranchant, absence totale d'empathie relationnelle.\n",
-                    sagesse: "- SAGESSE : Calme philosophique, recul stratégique avant toute parole.\n",
-                    ambition: "- AMBITION : Volonté de grandeur, soif de pouvoir, calcul opportuniste.\n",
-                    neutralite: "- NEUTRALITÉ : Objectivité totale, refus de prendre parti dans le conflit.\n",
-                    patience: "- PATIENCE : Calme devant l'attente, maîtrise du timing, acceptation sereine du temps.\n"
-                };
-
-                activeMoodBtns.forEach(btn => {
-
-                    const moodKey = btn.getAttribute("data-mood");
-
-                    if (moodDictionary[moodKey]) moodInstruction += moodDictionary[moodKey];
-
-                });
-
-            }
-
-            outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
-
-            // ⚡ 1. Détermination du nom exact du document dans Firestore
-const CORRESPONDANCE = { "Nuage de Lynx": "Frasques du Lynx" };
-const firestoreDocId = CORRESPONDANCE[window.currentActiveCharName] || window.currentActiveCharName;
-
-// ⚡ 2. Initialisation de tes variables individuelles (vides au départ)
-let etatPhysique = "Non spécifié";
-let humeurGenerale = "Neutre";
-let evenementsMarquants = []; // Ce sera un tableau (Array)
-let relationsData = null;     // Ce sera un objet contenant les liens
-
+// 2. Ton appel fetch existant à adapter avec "messagesPrepares" :
 try {
-    // ⚡ 3. Création de la référence et appel à Firebase
-    const charDocRef = doc(db, "characters", firestoreDocId);
-    const charSnap = await getDoc(charDocRef);
-    
-    // ⚡ 4. Extraction et distribution dans chaque variable individuelle
-    if (charSnap.exists()) {
-        const charData = charSnap.data();
+    console.log(`Voici mes messages préparés : ${JSON.stringify(messagesPrepares, null, 2)}`);
+const response = await fetch(MISTRAL_URL, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${MISTRAL_API_KEY}`
+    },
+    body: JSON.stringify({
+        model: "mistral-large-latest",
+        messages: messagesPrepares, // 🌟 On injecte directement le tableau ici !
+        temperature: window.currentMistralTemperature, // Utilise ton slider de température globale !
+        max_tokens: MaxTokensDina
+    })
+});
         
-        // Extraction de la partie "evolution" propriété par propriété
-        if (charData.evolution) {
-            if (charData.evolution.etat_physique) {
-                etatPhysique = charData.evolution.etat_physique;
-            }
-            if (charData.evolution.humeur_generale) {
-                humeurGenerale = charData.evolution.humeur_generale;
-            }
-            if (charData.evolution.evenements_marquants) {
-                evenementsMarquants = charData.evolution.evenements_marquants;
-            }
-        }
-
-        // 🌟 LA LIGNE À RAJOUTER ICI : Extraction des relations depuis Firebase
-        if (charData.relations) {
-            relationsData = charData.relations;
-        }
-        
-        console.log("✅ Variables individuelles chargées :", { etatPhysique, humeurGenerale, evenementsMarquants, relationsData });
-    } else {
-        console.warn(`⚠️ Le document "${firestoreDocId}" n'existe pas.`);
-    }
-} catch (error) {
-    console.error("❌ Erreur lors de l'appel Firebase :", error);
-}
-
-// =========================================================================
-// ✨ LE CORRECTIONS : DEPLACE CES LIGNES ICI, JUSTE AVANT LA CREATION DE TON PROMPT
-// =========================================================================
-const listeEvenementsTexte = evenementsMarquants.length > 0 
-    ? "\n- " + evenementsMarquants.join("\n- ") 
-    : "Aucun événement marquant enregistré pour le moment.";
-
-let listeRelationsTexte = "";
-if (relationsData && Object.keys(relationsData).length > 0) {
-    for (const [nomPerso, descriptionLien] of Object.entries(relationsData)) {
-        listeRelationsTexte += `\n- Lien avec ${nomPerso} : ${descriptionLien}`;
-    }
-} else {
-    listeRelationsTexte = "Aucune relation majeure enregistrée pour le moment.";
-}
-
-// À partir d'ici, tu peux utiliser directement :
-// - etatPhysique (chaîne de caractères)
-// - humeurGenerale (chaîne de caractères)
-// - evenementsMarquants (un tableau, par exemple pour faire un .join("\n"))
-// - relationsData (l'objet complet des relations)
-
-            const charData = charactersDB[currentActiveCharName] || {};
-            const skillsText = charData.competences ? charData.competences.join(", ") : "Guerrier standard";
-            
-            let maFicheDetaillee = "Pas de fiche spécifique trouvée. Respecte le tempérament de base.";
-            if (fiches) {
-                for (const key in fiches) {
-                    if (currentActiveCharName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(currentActiveCharName.toLowerCase())) {
-                        maFicheDetaillee = (fiches[key].resume || "") + "\n" + (fiches[key].complete || "");
-                        break;
-                    }
-                }
-            }
-
-            let catLorePrompt = "GUIDE COMPORTEMENTAL FÉLIN (À utiliser pour enrichir le langage corporel) :\n";
-            if (typeof catBehaviorKnowledge === "object") {
-                for (const category in catBehaviorKnowledge) {
-                    for (const behavior in catBehaviorKnowledge[category]) {
-                        catLorePrompt += `- ${behavior.replace(/_/g, ' ').toUpperCase()} : ${catBehaviorKnowledge[category][behavior]}\n`;
-                    }
-                }
-            } else {
-                catLorePrompt += "Comportement instinctif basé sur les sens, les oreilles, les feulements et les mouvements de queue.\n";
-            }
-
-            let systemPrompt = `Tu es un coach d'écriture expert et un joueur d'élite pour un forum RPG écrit basé sur l'univers de La Guerre des Clans. 
-Tu rédiges au nom du personnage suivant : ${currentActiveCharName}.
-
-Fiche technique du personnage :
-- Compétences et caractéristiques clés : ${skillsText}
-- Profil psychologique & Histoire :
-${maFicheDetaillee}
-
-<etat_physique>
-- Voici l'état physique du personnage concernée : ${etatPhysique}
-</etat_physique>
-
-<humeur_generale>
-- Voici l'humeur générale du personnage suite à ses différentes interventions : ${humeurGenerale}
-</humeur_generale>
-
-<evenement_marquants>
-- Voici la liste des évenements marquants du personnage, TU DOIS ABSOLUMENT LES PRENDRE EN COMPTE SAUF CONTRE-ORDRE DANS MES INSTRUCTIONS : ${listeEvenementsTexte}
-</evenement_marquants>
-
-<relations>
-- Voici la liste des relations du personnage, tu dois les respecter, s'il n'y a pas la relation avec un personnage en façe tu improvises, je te reprendrai s'il te faut : ${listeRelationsTexte}
-</relations>
-
-<consignes_syntaxe_markdown>
-⚠️ DIRECTIVES DE SYNTAXE IMPÉRATIVES (CRUCIAL POUR LE PARSEUR DU SITE) :
-Tu dois appliquer scrupuleusement la structure suivante, paragraphe par paragraphe. Si tu ne respectes pas ces règles au caractère près, le site crash. Ne mélange JAMAIS les styles d'astérisques au hasard.
-
-1. PARAGRAPHES D'ACTIONS (En gras intégral) :
-Tout paragraphe qui décrit un mouvement, un déplacement, un état physique ou une description environnementale DOIT commencer par "**" et se terminer par "**". Rien d'autre dans le paragraphe.
--> Exemple exact : **Étincelle de Vie sentit ses griffes s’enfoncer dans la mousse sans même qu’elle en ait conscience.**
-
-2. PARAGRAPHES DE PENSÉES (En italique intégral) :
-Tout paragraphe (ou phrase isolée sur sa propre ligne) représentant une pensée ou un monologue intérieur secret DOIT commencer par "*" et se terminer par "*".
--> Exemple exact : *Trop. C’est trop.*
-
-3. DIALOGUES SIMPLES :
-Toutes les répliques prononcées à haute voix doivent obligatoirement commencer par le chevron ">" suivi d'un espace simple au tout début de la ligne. Le texte parlé doit être brut (SANS astérisques).
--> Exemple exact : > Oh, par le Clan.
-
-4. DIALOGUES COMPLEXES AVEC INCISES NARRATIVES (RÈGLE CRUCIALE) :
-Dans une ligne de dialogue commençant par "> ", si le personnage coupe sa parole pour faire une action ou si un verbe de parole est inséré (une incise), cette incise narrative DOIT être isolée en étant entourée de doubles astérisques (**). 
-⚠️ INTERDICTION DE METTRE DES ASTÉRISQUES SUR LES PAROLES PARLÉES.
--> Exemple exact à calquer : > Oh, par le Clan. **Sa voix claqua comme une branche sèche sous une patte.** Vous allez vraiment me faire ça aujourd’hui ?
--> Autre exemple exact : > Écoutez-moi bien, tous les deux. **Elle s’arrêta net, les pattes avant légèrement fléchies.** Ombre, tu arrêtes ton cinéma.
-
-❌ INTERDICTIONS FORMELLES :
-- Ne mets JAMAIS d'astérisques (**) autour du texte parlé dans un dialogue. Le texte parlé est BRUT.
-- Ne fais JAMAIS ceci : > **Bonjour !** **Elle sourit.** **Ça va ?** (C'est interdit et faux).
-- Fais TOUJOURS ceci : > Bonjour ! **Elle sourit.** Ça va ?
-- Ne laisse jamais d'astérisques non fermés en fin de paragraphe.
-- Ne commence jamais une action par un seul astérisque (*). L'action c'est toujours (**).
-- Ne mets pas le symbole ">" au milieu d'un texte, uniquement tout au début de la ligne de dialogue.
-</consignes_syntaxe_markdown>
-
-⚠️ RAPPEL DE FIN IMMÉDIAT (SÉCURITÉ ANTI-CRASH) :
-Regarde ta ligne de dialogue avant de répondre. Si le texte parlé commence par "**", ta syntaxe est FAUSSE. Les astérisques servent UNIQUEMENT à encapsuler les actions au milieu du dialogue. Écris les paroles en texte normal après le "> ".`;
-
-            if (instructions) {
-                systemPrompt += `👉 DIRECTIVE DE SCÉNARIO ET DE STYLE :
-Tu dois impérativement adapter le récit, l'action ou le ton en fonction de cette demande de l'utilisateur : "${instructions}"
-Attention : Cette demande doit être exécutée TOUT EN RESPECTANT STRICTEMENT le formatage Markdown et l'identité du personnage.\n\n`;
-            }
-
-            if (contrainteDeDesPrompt) {
-    systemPrompt += `${contrainteDeDesPrompt}\n`;
-}
-
-if (moodInstruction) {
-    systemPrompt += `${moodInstruction}\n`;
-}
-
-            systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) :
-1. RÈGLE D'OR : Écris TOUJOURS à la 3ème personne du singulier (Il, Elle, etc.). Ne dis JAMAIS "Je" ou "Tu".
-2. LIMITE DU RÔLE : Tu joues UNIQUEMENT "${currentActiveCharName}". Tu ne dois JAMAIS faire parler, agir, réagir ou penser les personnages des autres partenaires. Reste centré sur mon personnage.
-3. FORMATAGE TEXTE : Utilise intelligemment le formatage Markdown standard du RP (des astérisques pour l'italique lors des actions, du texte brut ou des guillemets pour les paroles).
-
-5. MÉTRIQUES D'ÉCRITURE HUMAINE (BURSTINESS & PERPLEXITY) :
-- VARIABILITÉ DU RYTHME : Alterne brutalement la structure et la longueur de tes phrases. Fais de longues descriptions poétiques, suivies immédiatement d'une phrase ultra-courte de deux ou trois mots pour marké un impact, une hésitation ou une rupture. Ne garde JAMAIS le même rythme d'un paragraphe à l'autre.
-- DÉVIATION DE PROBABILITÉ : Évite les structures de transition trop parfaite et répétitives au début de tes paragraphes (bannit les listes de "Puis, d'un geste...", "Soudain...", "Un frisson..."). Entre directement dans l'action, la pensée brute ou la sensation physique.
-- IMPERFECTIONS NATURELLES : Incorpore des tics de langage corporel réalistes et parfois abrupts propres à l'univers félin (un miaulement étouffé, un coup de langue nerveux, un silence lourd, une hésitation dans le dialogue).
-- CONCLUSION ORGANIQUE : Ne cherche pas à faire une "belle phrase de fin de chapitre" clichée. Termine sur un geste suspendu, un regard, ou une réplique directe.
-
-🐱 NUANCES COMPORTEMENTALES :
-${catLorePrompt}
-
-🔥 PROFIL PSYCHOLOGIQUE OBLIGATOIRE :
-<FICHE_PERSONNAGE>
-${maFicheDetaillee}
-</FICHE_PERSONNAGE>\n\n`;
-
-            let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
-            try {
-                const messagesRef = collection(db, "rps_pending", currentActiveRpId, "messages");
-                const q = query(messagesRef, orderBy("createdAt", "asc"));
-                const snap = await getDocs(q);
-                snap.forEach(d => {
-                    const m = d.data();
-                    historiqueContext += `[${m.sender}]: ${m.text}\n`;
-                });
-            } catch (e) { console.error(e); }
-
-            systemPrompt += historiqueContext;
-
-            console.log("%c=== 🚀 DÉBUT DE LA RECONSTRUCTION DU PROMPT MISTRAL ===", "color: #a777e3; font-weight: bold;");
-            let mistralMessages = [
-                { role: "system", content: systemPrompt }
-            ];
-
-            try {
-                const aiHistoryRef = collection(db, "rps_pending", currentActiveRpId, "ai_history");
-                const qAi = query(aiHistoryRef, orderBy("createdAt", "asc"));
-                const snapAi = await getDocs(qAi);
-                
-                if (!snapAi.empty) {
-                    snapAi.forEach(d => {
-                        const m = d.data();
-                        const messageContent = m.content || m.text || "";
-                        if (m.role && messageContent) {
-                            mistralMessages.push({
-                                role: m.role,
-                                content: messageContent
-                            });
-                        }
-                    });
-                }
-            } catch (e) { 
-                console.error("❌ Erreur lors du chargement de l'historique IA:", e); 
-            }
-
-            let currentPrompt = "";
-            if (textInput && textInput.value.trim()) {
-                currentPrompt += `[Note ou action contextuelle récente transmise par le joueur] : ${textInput.value.trim()}\n`;
-            }
-
-            currentPrompt += `\nTu dois maintenant rédiger la réplique suivante pour mon personnage "${currentActiveCharName}".
-
-⚠️ RAPPEL DES DIRECTIVES ABSOLUES POUR CETTE RÉPLIQUE :
-- Incarne EXCLUSIVEMENT "${currentActiveCharName}". Reste fidèle à sa fiche technique.
-- Écris IMPÉRATIVEMENT à la 3ème personne du singulier.
-- Respecte scrupuleusement la charte Markdown : Action entière entre (**), Pensée entière entre (*), Dialogue en (> ).
-- Génère UNIQUEMENT le texte du RP, sans commentaires annexes.`;
-
-            mistralMessages.push({ role: "user", content: currentPrompt });
-
-           try {
-    const response = await fetch(MISTRAL_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
-        body: JSON.stringify({ 
-            model: "mistral-large-latest", 
-            messages: mistralMessages, 
-            temperature: 0.8 
-        })
-    });
     
-    if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
+if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
 
     const data = await response.json();
     if (data.choices && data.choices[0] && data.choices[0].message) {
         let textAiRaw = data.choices[0].message.content;
         
         outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
+
+        console.log(`${textAiRaw}`)
         
         let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
-
+        console.log(`${textAi}`)
         // 🧹 NETTOYAGE DES DÉS SELECTIONNÉS
-    window.getActionsSelectionneesPourIA = [];
+        window.getActionsSelectionneesPourIA = [];
 
-    const lignesDes = document.querySelectorAll("#diceActionsList > div");
-    lignesDes.forEach(ligne => {
-        ligne.style.color = "#b0b0b8";
-        ligne.style.background = "rgba(255, 255, 255, 0.01)";
-        const indicator = ligne.querySelector(".status-indicator");
-        if (indicator) {
-            indicator.innerText = "[ ]";
-            indicator.style.color = "#444a5a";
+        const lignesDes = document.querySelectorAll("#diceActionsList > div");
+        lignesDes.forEach(ligne => {
+            ligne.style.color = "#b0b0b8";
+            ligne.style.background = "rgba(255, 255, 255, 0.01)";
+            const indicator = ligne.querySelector(".status-indicator");
+            if (indicator) {
+                indicator.innerText = "[ ]";
+                indicator.style.color = "#444a5a";
+            }
+        });
+
+        const zoneResultatDes = document.getElementById("diceResultZone");
+        if (zoneResultatDes) {
+            zoneResultatDes.innerHTML = "Aucune action sélectionnée pour ce tour.";
         }
-    });
-
-    const zoneResultatDes = document.getElementById("diceResultZone");
-    if (zoneResultatDes) {
-        zoneResultatDes.innerHTML = "Aucune action sélectionnée pour ce tour.";
-    }
 
         // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (SÉCURISÉ ET UNIQUE)
-        try {
-            // 🔒 SÉCURITÉ : Référence du document parent principal
-            const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
-
-            // Force l'existence réelle du parent pour éviter le bug des "collections fantômes"
-            await setDoc(pendingDocRef, { 
-                lastUpdated: serverTimestamp(),
-                character: window.currentActiveCharName || "Inconnu"
-            }, { merge: true });
-
-            // Référence vers la sous-collection ai_history
-            const aiHistoryRef = collection(pendingDocRef, "ai_history");
-            
-            // Sauvegarde UNIQUE du prompt de l'utilisateur
-            await addDoc(aiHistoryRef, {
-                role: "user",
-                text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
-                content: instructions || "[Demande de suite]",
-                createdAt: serverTimestamp()
-            });
-            
-            // Sauvegarde UNIQUE de la réponse de l'assistant IA
-            await addDoc(aiHistoryRef, {
-                role: "assistant",
-                text: textAi,
-                content: textAi,
-                createdAt: serverTimestamp()
-            });
-
-            // Exemple : totalMessages est le nombre de posts du salon actuel, derniersMessages est le tableau des textes
-await verifierDeclenchementMemoire(totalMessages, derniersMessages);
-
-            console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
-        } catch (dbErr) { 
-            console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
-        }
-
-        if (aiInstructionsElement) aiInstructionsElement.value = "";
-
-        const textAiHTML = parseRP(textAi);
-
+                try {
+                    // 🔒 SÉCURITÉ : Référence du document parent principal
+                    const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
         
+                    // Force l'existence réelle du parent pour éviter le bug des "collections fantômes"
+                    await setDoc(pendingDocRef, { 
+                        lastUpdated: serverTimestamp(),
+                        character: window.currentActiveCharName || "Inconnu"
+                    }, { merge: true });
+        
+                    // Référence vers la sous-collection ai_history
+                    const aiHistoryRef = collection(pendingDocRef, "ai_history");
+                    
+                    // Sauvegarde UNIQUE du prompt de l'utilisateur
+                    await addDoc(aiHistoryRef, {
+                        role: "user",
+                        text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
+                        content: instructions || "[Demande de suite]",
+                        createdAt: serverTimestamp()
+                    });
+                    
+                    // Sauvegarde UNIQUE de la réponse de l'assistant IA
+                    await addDoc(aiHistoryRef, {
+                        role: "assistant",
+                        text: textAi,
+                        content: textAi,
+                        createdAt: serverTimestamp()
+                    });
+        
+                    // Exemple : totalMessages est le nombre de posts du salon actuel, derniersMessages est le tableau des textes
+                    
+        await verifierDeclenchementMemoire(totalMessages, derniersMessages);
+        
+                    console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
+                } catch (dbErr) { 
+                    console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
+                }
+        
+                //if (aiInstructionsElement) aiInstructionsElement.value = "";
+        
+                const textAiHTML = parseRP(textAi);
 
-
-                    // ============================================================================
+        // ============================================================================
                     // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
                     // ============================================================================
                     outputDiv.innerHTML = `
@@ -1425,6 +809,7 @@ await verifierDeclenchementMemoire(totalMessages, derniersMessages);
         </div>
     </div>
 `;
+const texteApris = autoApprendreEtEnrichirDico(textAi)
 
 document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
                         const exclusiveModal = document.getElementById("coWriteExclusiveModal");
@@ -1439,63 +824,114 @@ document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
                     document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
                         if (e.target === this) this.style.display = "none";
                     });
-                    
-                    // =========================================================================
-                    // 💣 COPIE CHENILLE NETTE : COLLAGE DU SÉPARATEUR SANS SAUT DE LIGNE VIDE
-                    // =========================================================================
-                    // 1. On découpe le texte final à chaque fois qu'on croise le marqueur "_ _"
-                    let blocsBruts = textAi.split("_ _");
-                    let morceauxDiscord = [];
 
-                    for (let i = 0; i < blocsBruts.length; i++) {
-                        let texteBloc = blocsBruts[i].trim();
-                        if (texteBloc.length === 0) continue;
+// ========================== GENERATION DU BLOC DE COPIE CHUNK DISCORD ==========================
+        // 1. On nettoie TOUT le texte de l'IA en ne gardant que les vrais paragraphes de texte (on vire les vieux _ _)
+        let lignesBrutes = textAi.split("\n");
+        let paragraphesNettoyes = [];
 
-                        // 🌟 CORRECTION : On met un seul \n pour coller le "_ _" juste en dessous du texte
-                        if (i < blocsBruts.length - 1) {
-                            texteBloc = texteBloc + "\n_ _";
-                        }
-                        
-                        morceauxDiscord.push(texteBloc);
-                    }
+        for (let ligne of lignesBrutes) {
+            let lTrim = ligne.trim();
+            // On ignore les lignes vides et les séparateurs existants pour tout reconstruire proprement
+            if (lTrim.length === 0 || lTrim === "_ _") continue;
+            paragraphesNettoyes.push(lTrim);
+        }
 
-                    let indexBlocActuel = 0;
-                    const btnCopier = document.getElementById("btnCopierCoWrite");
-                    
-                    // ... (Le reste de ton addEventListener avec indexBlocActuel++ et btnCopier.innerText reste identique !)
-                    
-                    if (btnCopier && morceauxDiscord.length > 0) {
-                        btnCopier.innerText = `Copier Bloc 1/${morceauxDiscord.length}`;
-                        btnCopier.style.background = "#ffcc00";
-                        btnCopier.style.color = "#000";
+        // 2. On reconstruit la structure géométrique parfaite avec UN SEUL "_ _" aux transitions
+        let blocsFinauxAvecSeparateurs = [];
+        for (let i = 0; i < paragraphesNettoyes.length; i++) {
+            let pActuel = paragraphesNettoyes[i];
+            blocsFinauxAvecSeparateurs.push(pActuel);
 
-                        btnCopier.replaceWith(btnCopier.cloneNode(true));
-                        const nouveauBtnCopier = document.getElementById("btnCopierCoWrite");
+            // Si un paragraphe suit, on regarde si on doit mettre un séparateur
+            if (i < paragraphesNettoyes.length - 1) {
+                let pSuivant = paragraphesNettoyes[i + 1];
+                
+                let actuelEstDialogue = pActuel.startsWith(">");
+                let suivantEstDialogue = pSuivant.startsWith(">");
 
-                        nouveauBtnCopier.addEventListener("click", function() {
-                            if (indexBlocActuel < morceauxDiscord.length) {
-                                // On copie le bloc qui contient MAINTENANT le texte ET son "_ _"
-                                let texteACopier = morceauxDiscord[indexBlocActuel];
-                                navigator.clipboard.writeText(texteACopier);
-                                
-                                indexBlocActuel++;
-
-                                if (indexBlocActuel < morceauxDiscord.length) {
-                                    this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
-                                    this.style.background = "#a777e3";
-                                    this.style.color = "#fff";
-                                } else {
-                                    this.innerText = "🎉 Tout est copié !";
-                                    this.style.background = "#2ecc71";
-                                    this.style.color = "#fff";
-                                    indexBlocActuel = 0; // Reset
-                                }
-                            }
-                        });
-                    }
-                    // =========================================================================
-
+                // ❌ EXCEPTION : Pas de séparateur entre deux dialogues qui se suivent
+                if (actuelEstDialogue && suivantEstDialogue) {
+                    // On ne met rien, ils resteront collés proprement
+                } else {
+                    // Pour tout le reste, on glisse un unique "_ _"
+                    blocsFinauxAvecSeparateurs.push("_ _");
                 }
+            }
+        }
+
+        // 3. 🧮 L'ALGORITHME DE PARCELLISATION MATHÉMATIQUE (Max 1900 caractères)
+        let morceauxDiscord = [];
+        let paquetActuel = "";
+
+        for (let element of blocsFinauxAvecSeparateurs) {
+            // Un simple '\n' de jonction pour éviter les doubles sauts de ligne géants sur Discord !
+            let jonction = paquetActuel.length > 0 ? "\n" : "";
+            let tailleFuture = paquetActuel.length + jonction.length + element.length;
+
+            if (tailleFuture < 1900) {
+                // Ça passe sous la limite, on accumule
+                paquetActuel += jonction + element;
+            } else {
+                // Ça déborde ! On valide le morceau en cours
+                if (paquetActuel.trim().length > 0) {
+                    morceauxDiscord.push(paquetActuel);
+                }
+                
+                // Sécurité : Si le bloc de coupure est un "_ _", on ne commence pas le post suivant avec lui
+                if (element === "_ _") {
+                    paquetActuel = "";
+                } else {
+                    paquetActuel = element;
+                }
+            }
+        }
+
+        // On pousse le dernier morceau de texte restant
+        if (paquetActuel.trim().length > 0) {
+            morceauxDiscord.push(paquetActuel);
+        }
+
+        // 4. Gestion de la copie séquentielle sur ton bouton unique (btnCopierCoWrite)
+        let indexBlocActuel = 0;
+        const nouveauBtnCopier = document.getElementById("btnCopierCoWrite");
+
+        if (nouveauBtnCopier && morceauxDiscord.length > 0) {
+            if (morceauxDiscord.length > 1) {
+                nouveauBtnCopier.innerText = `📋 Copier le bloc 1/${morceauxDiscord.length}`;
+            } else {
+                nouveauBtnCopier.innerText = `📋 Copier le bloc`;
+            }
+
+            // Purge radicale des anciens écouteurs (Anti-bégaiement du bouton)
+            const clonerBouton = nouveauBtnCopier.cloneNode(true);
+            nouveauBtnCopier.parentNode.replaceChild(clonerBouton, nouveauBtnCopier);
+
+            clonerBouton.addEventListener("click", function() {
+                if (indexBlocActuel < morceauxDiscord.length) {
+                    let texteACopier = morceauxDiscord[indexBlocActuel];
+                    
+                    // Copie physique du texte purifié de moins de 1900 caractères
+                    navigator.clipboard.writeText(texteACopier);
+                    
+                    indexBlocActuel++;
+
+                    if (indexBlocActuel < morceauxDiscord.length) {
+                        this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
+                        this.style.background = "#a777e3";
+                        this.style.color = "#fff";
+                    } else {
+                        this.innerText = "🎉 Tout est copié !";
+                        this.style.background = "#2ecc71";
+                        this.style.color = "#fff";
+                        indexBlocActuel = 0; // Reset automatique pour le prochain tour
+                    }
+                }
+            });
+        }
+        // ===============================================================================================
+    } 
+
             } catch (err) { 
                 console.error("❌ Erreur de transmission API Mistral :", err);
                 outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
@@ -1504,6 +940,7 @@ document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
         
         });
     }
+})
 
     // ============================================================================
     // GESTION DE LA MODALE EXCLUSIVE DE TRAUMATISMES (VERSION FINALE CORRIGÉE)
@@ -1595,8 +1032,7 @@ document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
             traumaModal.style.setProperty("display", "none", "important");
         }
     });
-
-});
+;
 
 window.clearAiHistory = async function(rpId) {
     if (!rpId) return;

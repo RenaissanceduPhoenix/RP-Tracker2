@@ -268,7 +268,6 @@ window.initPendingList = function() {
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
-                        <button class="btn-action btn-read" title="Lire le RP">📖</button>
                         <button class="btn-action btn-done" title="Marquer comme Répondu (Faire Disparaître)" style="background:#27ae60;">✅</button>
                         <button class="btn-action btn-archive" title="Terminer le RP (Archiver)" style="background:#c0392b;">🛑</button>
                         <button class="btn-action btn-clean-ai" title="🧹 Forcer le nettoyage de la mémoire IA" style="background:#34495e;">🧹</button>
@@ -278,7 +277,6 @@ window.initPendingList = function() {
                 <div class="rp-card-tags-area" style="margin-top: 8px;">${tagsHTML}</div>
             `;
 
-            card.querySelector(".btn-read").addEventListener("click", () => window.openModal(content, title, metaText));
             card.querySelector(".btn-done").addEventListener("click", () => window.markStatus(id, "repondu"));
             card.querySelector(".btn-archive").addEventListener("click", () => window.markStatus(id, "done"));
 

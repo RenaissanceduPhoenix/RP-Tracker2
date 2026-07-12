@@ -109,7 +109,7 @@
     <script type="module" src="./JavaScript/FeaturesBonus/Tags.js"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js?v=2.4"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js?v=2.4"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=14.9"></script>
+    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=16.8"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js?v=2.4"></script>
     <script type="module" src="./JavaScript/FeaturesBonus/RpHistorySummary.js?v=2.2"></script>
 
@@ -148,10 +148,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <p style="margin: 0; color: #aaa; font-size: 0.85rem;">Historique du RP (Firestore) :</p>
-        <div id="rpHistoryLog" style="background: #101015; border: 1px solid #2c2c35; border-radius: 6px; padding: 10px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem;">
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
@@ -296,6 +292,13 @@
                         <div id="diceResultZone" style="background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(255, 204, 0, 0.2); border-radius: 6px; padding: 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; color: #888; font-size: 0.95rem; margin-top: 5px;">
                             Aucun dé lancé pour cette action. Cliquez sur une capacité ci-dessus.
                         </div>
+
+                        <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+    <button type="button" id="btnOuvrirIngredients" style="width: 100%; background: #1a1a24; border: 1px solid #444; color: #ffcc00; padding: 10px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; transition: all 0.2s;">
+        <span>✨ Configuration des Ingrédients Secrets</span>
+        <span id="badgeIngredientsCompte" style="background: #ffcc00; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">0</span>
+    </button>
+</div>
                     </div> </div> </div> <div style="display: flex; gap: 10px; align-items: stretch; margin-top: 15px;">
                 <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 120px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
                 
@@ -306,6 +309,29 @@
                     <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: 100%;">✨ Écrire avec l'IA</button>
                     <button type="button" onclick="window.relireLaScene()" style="background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">🎬 Relire la scène</button>
                     <button id="btnDiagnosticTraumaSidebar" style="background:#ff4a4a; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold; white-space:nowrap;">🩸 Bilan Séquelles (IA)</button>
+                    <div class="temperature-container" style="margin-top: 15px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px;">
+    <label for="rangeTemperature" style="color: #fff; font-size: 0.9rem; display: flex; justify-content: space-between; font-weight: bold;">
+        <span>Fidélité / Créativité (Température)</span>
+        <span id="valeurTemperature" style="color: #ffcc00;">0.7</span>
+    </label>
+<input type="range" 
+       id="rangeTemperature" 
+       min="0.1" 
+       max="1.75" 
+       step="0.05" 
+       value="0.7" 
+       style="width: 100%; cursor: pointer; margin-top: 5px;" 
+       oninput="if(typeof window.mettreAJourTemperature === 'function') { window.mettreAJourTemperature(this.value); } else { const ind = document.getElementById('valeurTemperature'); if(ind) ind.innerText = this.value; }" >
+    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #aaa; margin-top: 2px;">
+        <span>Plus Précis (0.1)</span>
+        <span>Plus Créatif (1.75)</span>
+    </div>
+<div class="range-container">
+    <label for="rangeNombreBlocs">Nombre de blocs de rédaction :</label>
+    <input type="range" id="rangeNombreBlocs" min="2" max="8" step="1" value="4" oninput="window.mettreAJourNombreBlocs(this.value)">
+    <span id="valeurNombreBlocs">4</span>
+</div>    
+</div>
                 </div>
             </div>
 
@@ -314,6 +340,43 @@
             </div>
         </div> </div> </div> 
 
+<div id="modalIngredientsSecrets" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: #09090d; border: 1px solid #222; width: 95%; max-width: 95%; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        <div style="padding: 15px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; background: #0c0c10; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-weight: 600; font-family: monospace;">
+                <span style="color: #ffcc00;">✨</span> Banque d'Ingrédients Secrets pour l'IA
+            </h3>
+            <span id="btnFermerIngredients" style="color: #aaa; font-size: 24px; font-weight: bold; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">&times;</span>
+        </div>
+
+        <div style="padding: 15px 20px 5px 20px; background: #09090d;">
+            <input 
+                type="text" 
+                id="barreRechercheIngredients" 
+                placeholder="🔍 Rechercher un ingrédient RP (ex: murmure, griffes, peur...)" 
+                style="width: 100%; padding: 10px 14px; background: #111116; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border-color 0.2s;"
+                onfocus="this.style.borderColor='#ffcc00'"
+                onblur="this.style.borderColor='#333'"
+            />
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto; flex: 1;">
+            <p style="color: #888; font-size: 0.8rem; margin-top: 0; margin-bottom: 20px;">
+                Coche les éléments que l'IA doit impérativement faire apparaître dans son récit. Elle gérera sa broderie et l'ordre d'apparition de manière totalement libre.
+            </p>
+
+            <div id="grilleDynamiqueIngredients" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+            </div>
+        </div>
+
+        <div style="padding: 15px 20px; border-top: 1px solid #222; text-align: right; background: #0c0c10; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+            <button type="button" id="btnValiderIngredients" style="background: #ffcc00; color: #000; border: none; padding: 8px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='#e6b800'" onmouseout="this.style.background='#ffcc00'">
+                Valider la sélection (<span id="badgeIngredientsCompteur">0</span>)
+            </button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
