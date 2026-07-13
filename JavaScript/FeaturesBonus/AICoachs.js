@@ -64,6 +64,381 @@ window.mettreAJourNombreBlocs = function(nouvelleValeur) {
     console.log(`🗂️ [Structure] Nombre de blocs demandé mis à jour : ${valeurNum}`);
 };
 
+/* Fonctions d'enregistrement + écriture */
+
+async function ExecuterSauvgarde() {
+    
+const textInput = document.getElementById("coWriteContext");
+        const senderSelect = document.getElementById("coWriteSenderName");
+        
+        // 1. Récupération des valeurs
+        const texteSaisi = textInput ? textInput.value.trim() : "";
+        const auteurDuMessage = senderSelect ? senderSelect.value : "";
+
+        // 2. Sécurité : On vérifie qu'on a bien un texte, un auteur et un RP actif
+        if (!texteSaisi || !auteurDuMessage || !window.currentActiveRpId) {
+            alert("Erreur : Sélectionne l'auteur du message et colle son texte !");
+            return;
+        }
+
+        try {
+            // 🎯 3. GÉNÉRATION DE L'ID UNIQUE Firebase pour ce message
+            const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId);
+            const nouveauMessageRef = doc(collection(pendingDocRef, "messages"));
+            const uniqueMsgId = nouveauMessageRef.id;
+
+            window.lastGeneratedMsgId = uniqueMsgId;
+
+            // 4. On s'assure que le document parent existe (sans écraser le reste grâce à merge: true)
+            await setDoc(pendingDocRef, { 
+                lastUpdated: serverTimestamp()
+            }, { merge: true });
+
+            // 🎯 5. SAUVEGARDE DE LA RÉPLIQUE DANS L'HISTORIQUE 'messages'
+            await setDoc(nouveauMessageRef, {
+                id: uniqueMsgId,         // ID unique du message
+                sender: auteurDuMessage, // Le nom du personnage sélectionné (ex: l'autre joueur)
+                text: texteSaisi,        // Son texte brut
+                content: texteSaisi,     // Doublon de sécurité pour ton parseur
+                createdAt: serverTimestamp() // Horodatage précis pour l'ordre chronologique
+            });
+
+            console.log(`💾 Réplique de [${auteurDuMessage}] ajoutée à l'historique du RP. ID : ${uniqueMsgId}`);
+
+            // 6. Si l'auteur du message enregistré est TON personnage, on nettoie l'historique de l'IA
+            if (window.currentActiveCharName && auteurDuMessage.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
+                if (typeof window.clearAiHistory === "function") {
+                    await window.clearAiHistory(window.currentActiveRpId);
+                }
+            }
+
+            // 7. Nettoyage de l'interface et mise à jour visuelle
+            textInput.value = "";
+            
+            // On recharge le composant visuel de l'historique pour voir la réplique apparaître
+            if (typeof loadOrCreateRpHistory === "function") {
+                await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
+            }
+
+            
+
+        } catch (err) { 
+            console.error("Erreur lors de l'enregistrement de la réplique externe :", err); 
+            alert("❌ Erreur lors de l'enregistrement dans Firestore.");
+        }
+}
+
+    async function EcrireIA() {
+        
+    
+            // AJOUTE OU REMONTE CETTE LIGNE TOUT EN HAUT DU CLICK :
+// On récupère en direct ce qui est écrit dans le champ des instructions / contexte
+const instructions = document.getElementById("coWriteAiInstructions")?.value.trim() || "";
+const outputDiv = document.getElementById("coWriteAiOutput");
+if (!outputDiv) return;
+// 1. On appelle la fonction de Prompt.js pour récupérer le gâteau tout préparé (systemPrompt + historique + note)
+const messagesPrepares = await genererMessagesMistral();
+const MaxTokensDina = ( window.currentNombreBlocsDemande || 4 ) * 1000;
+
+// 2. Ton appel fetch existant à adapter avec "messagesPrepares" :
+try {
+    console.log(`Voici mes messages préparés : ${JSON.stringify(messagesPrepares, null, 2)}`);
+const response = await fetch(MISTRAL_URL, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${MISTRAL_API_KEY}`
+    },
+    body: JSON.stringify({
+        model: "mistral-large-latest",
+        messages: messagesPrepares, // 🌟 On injecte directement le tableau ici !
+        temperature: window.currentMistralTemperature, // Utilise ton slider de température globale !
+        max_tokens: MaxTokensDina
+    })
+});
+        
+    
+if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
+
+    const data = await response.json();
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+        let textAiRaw = data.choices[0].message.content;
+        
+        outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
+
+        console.log(`${textAiRaw}`)
+        
+        let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
+        console.log(`${textAi}`)
+        // 🧹 NETTOYAGE DES DÉS SELECTIONNÉS
+        window.getActionsSelectionneesPourIA = [];
+
+        const lignesDes = document.querySelectorAll("#diceActionsList > div");
+        lignesDes.forEach(ligne => {
+            ligne.style.color = "#b0b0b8";
+            ligne.style.background = "rgba(255, 255, 255, 0.01)";
+            const indicator = ligne.querySelector(".status-indicator");
+            if (indicator) {
+                indicator.innerText = "[ ]";
+                indicator.style.color = "#444a5a";
+            }
+        });
+
+        const zoneResultatDes = document.getElementById("diceResultZone");
+        if (zoneResultatDes) {
+            zoneResultatDes.innerHTML = "Aucune action sélectionnée pour ce tour.";
+        }
+
+        // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (SÉCURISÉ ET UNIQUE)
+                try {
+                    // 🔒 SÉCURITÉ : Référence du document parent principal
+                    const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
+        
+                    // Force l'existence réelle du parent pour éviter le bug des "collections fantômes"
+                    await setDoc(pendingDocRef, { 
+                        lastUpdated: serverTimestamp(),
+                        character: window.currentActiveCharName || "Inconnu"
+                    }, { merge: true });
+        
+                    // Référence vers la sous-collection ai_history
+                    const aiHistoryRef = collection(pendingDocRef, "ai_history");
+                    
+                    // Sauvegarde UNIQUE du prompt de l'utilisateur
+                    await addDoc(aiHistoryRef, {
+                        role: "user",
+                        text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
+                        content: instructions || "[Demande de suite]",
+                        createdAt: serverTimestamp()
+                    });
+                    
+                    // Sauvegarde UNIQUE de la réponse de l'assistant IA
+                    await addDoc(aiHistoryRef, {
+                        role: "assistant",
+                        text: textAi,
+                        content: textAi,
+                        createdAt: serverTimestamp()
+                    });
+        
+                    // Exemple : totalMessages est le nombre de posts du salon actuel, derniersMessages est le tableau des textes
+                    
+        // await verifierDeclenchementMemoire(totalMessages, derniersMessages);
+        
+                    console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
+                } catch (dbErr) { 
+                    console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
+                }
+        
+                //if (aiInstructionsElement) aiInstructionsElement.value = "";
+        
+                const textAiHTML = parseRP(textAi);
+
+        // ============================================================================
+                    // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
+                    // ============================================================================
+                    outputDiv.innerHTML = `
+    <style>
+        .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
+        .rp-speech { color: #dfb56c;  font-size: 1.4rem !important; }
+        .rp-incise { font-weight: bold; color: #ffffff; font-size: 1.4rem !important; }
+    </style>
+
+    <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
+                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+            </div>
+        </div>
+        <div style="color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
+    </div>
+
+    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
+        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
+                <h3 style="margin: 0; color: #ffcc00;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
+                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+                ${textAiHTML}
+            </div>
+        </div>
+    </div>
+`;
+const texteApris = autoApprendreEtEnrichirDico(textAi)
+
+document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "flex";
+                    });
+
+                    document.getElementById("btnCloseExclusive").addEventListener("click", function() {
+                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
+                        if (exclusiveModal) exclusiveModal.style.display = "none";
+                    });
+
+                    document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
+                        if (e.target === this) this.style.display = "none";
+                    });
+
+// ========================== GENERATION DU BLOC DE COPIE CHUNK DISCORD ==========================
+        // 1. On nettoie TOUT le texte de l'IA en ne gardant que les vrais paragraphes de texte (on vire les vieux _ _)
+        let lignesBrutes = textAi.split("\n");
+        let paragraphesNettoyes = [];
+
+        for (let ligne of lignesBrutes) {
+            let lTrim = ligne.trim();
+            // On ignore les lignes vides et les séparateurs existants pour tout reconstruire proprement
+            if (lTrim.length === 0 || lTrim === "_ _") continue;
+            paragraphesNettoyes.push(lTrim);
+        }
+
+        // 2. On reconstruit la structure géométrique parfaite avec UN SEUL "_ _" aux transitions
+        let blocsFinauxAvecSeparateurs = [];
+        for (let i = 0; i < paragraphesNettoyes.length; i++) {
+            let pActuel = paragraphesNettoyes[i];
+            blocsFinauxAvecSeparateurs.push(pActuel);
+
+            // Si un paragraphe suit, on regarde si on doit mettre un séparateur
+            if (i < paragraphesNettoyes.length - 1) {
+                let pSuivant = paragraphesNettoyes[i + 1];
+                
+                let actuelEstDialogue = pActuel.startsWith(">");
+                let suivantEstDialogue = pSuivant.startsWith(">");
+
+                // ❌ EXCEPTION : Pas de séparateur entre deux dialogues qui se suivent
+                if (actuelEstDialogue && suivantEstDialogue) {
+                    // On ne met rien, ils resteront collés proprement
+                } else {
+                    // Pour tout le reste, on glisse un unique "_ _"
+                    blocsFinauxAvecSeparateurs.push("_ _");
+                }
+            }
+        }
+
+        // 3. 🧮 L'ALGORITHME DE PARCELLISATION MATHÉMATIQUE (Max 1900 caractères)
+        let morceauxDiscord = [];
+        let paquetActuel = "";
+
+        for (let element of blocsFinauxAvecSeparateurs) {
+            // Un simple '\n' de jonction pour éviter les doubles sauts de ligne géants sur Discord !
+            let jonction = paquetActuel.length > 0 ? "\n" : "";
+            let tailleFuture = paquetActuel.length + jonction.length + element.length;
+
+            if (tailleFuture < 1900) {
+                // Ça passe sous la limite, on accumule
+                paquetActuel += jonction + element;
+            } else {
+                // Ça déborde ! On valide le morceau en cours
+                if (paquetActuel.trim().length > 0) {
+                    morceauxDiscord.push(paquetActuel);
+                }
+                
+                // Sécurité : Si le bloc de coupure est un "_ _", on ne commence pas le post suivant avec lui
+                if (element === "_ _") {
+                    paquetActuel = "";
+                } else {
+                    paquetActuel = element;
+                }
+            }
+        }
+
+        // On pousse le dernier morceau de texte restant
+        if (paquetActuel.trim().length > 0) {
+            morceauxDiscord.push(paquetActuel);
+        }
+
+        // 4. Gestion de la copie séquentielle sur ton bouton unique (btnCopierCoWrite)
+        let indexBlocActuel = 0;
+        const nouveauBtnCopier = document.getElementById("btnCopierCoWrite");
+
+        if (nouveauBtnCopier && morceauxDiscord.length > 0) {
+            if (morceauxDiscord.length > 1) {
+                nouveauBtnCopier.innerText = `📋 Copier le bloc 1/${morceauxDiscord.length}`;
+            } else {
+                nouveauBtnCopier.innerText = `📋 Copier le bloc`;
+            }
+
+            // Purge radicale des anciens écouteurs (Anti-bégaiement du bouton)
+            const clonerBouton = nouveauBtnCopier.cloneNode(true);
+            nouveauBtnCopier.parentNode.replaceChild(clonerBouton, nouveauBtnCopier);
+
+            clonerBouton.addEventListener("click", function() {
+                if (indexBlocActuel < morceauxDiscord.length) {
+                    let texteACopier = morceauxDiscord[indexBlocActuel];
+                    
+                    // Copie physique du texte purifié de moins de 1900 caractères
+                    navigator.clipboard.writeText(texteACopier);
+                    
+                    indexBlocActuel++;
+
+                    if (indexBlocActuel < morceauxDiscord.length) {
+                        this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
+                        this.style.background = "#a777e3";
+                        this.style.color = "#fff";
+                    } else {
+                        this.innerText = "🎉 Tout est copié !";
+                        this.style.background = "#2ecc71";
+                        this.style.color = "#fff";
+                        indexBlocActuel = 0; // Reset automatique pour le prochain tour
+                    }
+                }
+            });
+        }
+        // ===============================================================================================
+    } 
+
+            } catch (err) { 
+                console.error("❌ Erreur de transmission API Mistral :", err);
+                outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
+            }
+
+        
+    }
+
+window.Enregistrer = async function() {
+    console.log("Lancement de la procédure d'enregistrement");
+    try {
+        // ✅ Correction 1 : "function" entre guillemets
+        if (typeof ExecuterSauvgarde === "function") {
+            await ExecuterSauvgarde();
+        } else {
+            console.warn("Fonction Introuvable, procédure annulée");
+        }
+    } catch (error) { // ✅ Correction 2 : (error) avant l'accolade
+        console.error("Erreur lors de l'exécution :", error);
+    }
+};
+
+window.EcrireIA = async function() {
+    console.log("Lancement de l'écriture");
+    try {
+        if (typeof EcrireIA === "function") {
+            await EcrireIA();
+        } else {
+            console.warn("Fonction introuvable, écriture annulée")
+        }
+    } finally {}
+}; 
+
+// 🌟 GESTION DE LA SÉLECTION DES HUMEURS / INGRÉDIENTS À LA VOLÉE
+window.basculerSelectionMood = function(element) {
+    console.log("🎭 Clic détecté sur l'humeur :", element.innerText.trim());
+
+    // CONDITION 1 : Détecté automatiquement par l'IA et actif
+    if (element.classList.contains("active") && element.classList.contains("detected")) {
+        element.classList.remove("active");
+    } 
+    // CONDITION 2 : Activé manuellement, on l'éteint
+    else if (element.classList.contains("active")) {
+        element.classList.remove("active");
+    } 
+    // CONDITION 3 : Éteint, on l'allume !
+    else {
+        element.classList.add("active");
+    }
+};
+
 /**
  * ============================================================================
  * 1. FONCTION : OUVERTURE DE LA MODALE
@@ -560,31 +935,6 @@ function brancherEvenementIAPilote() {
 document.addEventListener("DOMContentLoaded", () => {
     // Lance l'analyse et la génération des mémoires manquantes de la plus longue à la plus courte
 initialiserEtTraiterMemoiresManquantes();
-    const btnSave = document.getElementById("btnSaveContext");
-    const btnAi = document.getElementById("btnAiCoWrite");
-
-    document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("mood-btn")) {
-        
-        // CONDITION 1 : Le bouton a les DEUX classes (Orange IA actif)
-        if (e.target.classList.contains("active") && e.target.classList.contains("detected")) {
-            // On retire UNIQUEMENT la classe active (il devient orange "inactif")
-            e.target.classList.remove("active");
-        }
-        
-        // CONDITION 2 : Le bouton est Orange mais déjà désactivé, ou doré normal
-        else if (e.target.classList.contains("active")) {
-            // C'était un bouton doré manuel, on l'éteint complètement
-            e.target.classList.remove("active");
-        }
-        
-        // CONDITION 3 : Le bouton était éteint (ou orange inactif)
-        else {
-            // On l'allume ou le réactive en lui ajoutant la classe active
-            e.target.classList.add("active");
-        }
-    }
-});
 
     // 🛡️ SÉCURITÉ D'INJECTION POUR LA COLONNE DE BOUTONS
     let btnOuvrirConsignes = document.getElementById("btnOuvrirConsignes");
@@ -608,339 +958,10 @@ initialiserEtTraiterMemoiresManquantes();
         });
     }
 
-    if (btnSave) {
-    btnSave.addEventListener("click", async () => {
-        const textInput = document.getElementById("coWriteContext");
-        const senderSelect = document.getElementById("coWriteSenderName");
-        
-        // 1. Récupération des valeurs
-        const texteSaisi = textInput ? textInput.value.trim() : "";
-        const auteurDuMessage = senderSelect ? senderSelect.value : "";
-
-        // 2. Sécurité : On vérifie qu'on a bien un texte, un auteur et un RP actif
-        if (!texteSaisi || !auteurDuMessage || !window.currentActiveRpId) {
-            alert("Erreur : Sélectionne l'auteur du message et colle son texte !");
-            return;
-        }
-
-        try {
-            // 🎯 3. GÉNÉRATION DE L'ID UNIQUE Firebase pour ce message
-            const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId);
-            const nouveauMessageRef = doc(collection(pendingDocRef, "messages"));
-            const uniqueMsgId = nouveauMessageRef.id;
-
-            window.lastGeneratedMsgId = uniqueMsgId;
-
-            // 4. On s'assure que le document parent existe (sans écraser le reste grâce à merge: true)
-            await setDoc(pendingDocRef, { 
-                lastUpdated: serverTimestamp()
-            }, { merge: true });
-
-            // 🎯 5. SAUVEGARDE DE LA RÉPLIQUE DANS L'HISTORIQUE 'messages'
-            await setDoc(nouveauMessageRef, {
-                id: uniqueMsgId,         // ID unique du message
-                sender: auteurDuMessage, // Le nom du personnage sélectionné (ex: l'autre joueur)
-                text: texteSaisi,        // Son texte brut
-                content: texteSaisi,     // Doublon de sécurité pour ton parseur
-                createdAt: serverTimestamp() // Horodatage précis pour l'ordre chronologique
-            });
-
-            console.log(`💾 Réplique de [${auteurDuMessage}] ajoutée à l'historique du RP. ID : ${uniqueMsgId}`);
-
-            // 6. Si l'auteur du message enregistré est TON personnage, on nettoie l'historique de l'IA
-            if (window.currentActiveCharName && auteurDuMessage.toLowerCase() === window.currentActiveCharName.toLowerCase()) {
-                if (typeof window.clearAiHistory === "function") {
-                    await window.clearAiHistory(window.currentActiveRpId);
-                }
-            }
-
-            // 7. Nettoyage de l'interface et mise à jour visuelle
-            textInput.value = "";
-            
-            // On recharge le composant visuel de l'historique pour voir la réplique apparaître
-            if (typeof loadOrCreateRpHistory === "function") {
-                await loadOrCreateRpHistory(window.currentActiveRpId, window.currentActiveCharName);
-            }
-
-            
-
-        } catch (err) { 
-            console.error("Erreur lors de l'enregistrement de la réplique externe :", err); 
-            alert("❌ Erreur lors de l'enregistrement dans Firestore.");
-        }
-    });
-}
-
-
-
-    if (btnAi) {
-        btnAi.addEventListener("click", async () => {
-            // AJOUTE OU REMONTE CETTE LIGNE TOUT EN HAUT DU CLICK :
-// On récupère en direct ce qui est écrit dans le champ des instructions / contexte
-const instructions = document.getElementById("coWriteAiInstructions")?.value.trim() || "";
-const outputDiv = document.getElementById("coWriteAiOutput");
-if (!outputDiv) return;
-// 1. On appelle la fonction de Prompt.js pour récupérer le gâteau tout préparé (systemPrompt + historique + note)
-const messagesPrepares = await genererMessagesMistral();
-const MaxTokensDina = ( window.currentNombreBlocsDemande || 4 ) * 1000;
-
-// 2. Ton appel fetch existant à adapter avec "messagesPrepares" :
-try {
-    console.log(`Voici mes messages préparés : ${JSON.stringify(messagesPrepares, null, 2)}`);
-const response = await fetch(MISTRAL_URL, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${MISTRAL_API_KEY}`
-    },
-    body: JSON.stringify({
-        model: "mistral-large-latest",
-        messages: messagesPrepares, // 🌟 On injecte directement le tableau ici !
-        temperature: window.currentMistralTemperature, // Utilise ton slider de température globale !
-        max_tokens: MaxTokensDina
-    })
 });
-        
-    
-if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
 
-    const data = await response.json();
-    if (data.choices && data.choices[0] && data.choices[0].message) {
-        let textAiRaw = data.choices[0].message.content;
-        
-        outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
 
-        console.log(`${textAiRaw}`)
-        
-        let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
-        console.log(`${textAi}`)
-        // 🧹 NETTOYAGE DES DÉS SELECTIONNÉS
-        window.getActionsSelectionneesPourIA = [];
 
-        const lignesDes = document.querySelectorAll("#diceActionsList > div");
-        lignesDes.forEach(ligne => {
-            ligne.style.color = "#b0b0b8";
-            ligne.style.background = "rgba(255, 255, 255, 0.01)";
-            const indicator = ligne.querySelector(".status-indicator");
-            if (indicator) {
-                indicator.innerText = "[ ]";
-                indicator.style.color = "#444a5a";
-            }
-        });
-
-        const zoneResultatDes = document.getElementById("diceResultZone");
-        if (zoneResultatDes) {
-            zoneResultatDes.innerHTML = "Aucune action sélectionnée pour ce tour.";
-        }
-
-        // 8. ENREGISTREMENT DE LA SÉQUENCE DANS FIRESTORE (SÉCURISÉ ET UNIQUE)
-                try {
-                    // 🔒 SÉCURITÉ : Référence du document parent principal
-                    const pendingDocRef = doc(db, "rps_pending", window.currentActiveRpId || currentActiveRpId);
-        
-                    // Force l'existence réelle du parent pour éviter le bug des "collections fantômes"
-                    await setDoc(pendingDocRef, { 
-                        lastUpdated: serverTimestamp(),
-                        character: window.currentActiveCharName || "Inconnu"
-                    }, { merge: true });
-        
-                    // Référence vers la sous-collection ai_history
-                    const aiHistoryRef = collection(pendingDocRef, "ai_history");
-                    
-                    // Sauvegarde UNIQUE du prompt de l'utilisateur
-                    await addDoc(aiHistoryRef, {
-                        role: "user",
-                        text: instructions ? `[Consigne] : ${instructions}` : "[Demande de suite]",
-                        content: instructions || "[Demande de suite]",
-                        createdAt: serverTimestamp()
-                    });
-                    
-                    // Sauvegarde UNIQUE de la réponse de l'assistant IA
-                    await addDoc(aiHistoryRef, {
-                        role: "assistant",
-                        text: textAi,
-                        content: textAi,
-                        createdAt: serverTimestamp()
-                    });
-        
-                    // Exemple : totalMessages est le nombre de posts du salon actuel, derniersMessages est le tableau des textes
-                    
-        await verifierDeclenchementMemoire(totalMessages, derniersMessages);
-        
-                    console.log("💾 Échange unique sauvegardé avec succès dans rps_pending !");
-                } catch (dbErr) { 
-                    console.error("Erreur d'écriture dans l'historique IA Firestore:", dbErr); 
-                }
-        
-                //if (aiInstructionsElement) aiInstructionsElement.value = "";
-        
-                const textAiHTML = parseRP(textAi);
-
-        // ============================================================================
-                    // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
-                    // ============================================================================
-                    outputDiv.innerHTML = `
-    <style>
-        .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
-        .rp-speech { color: #dfb56c;  font-size: 1.4rem !important; }
-        .rp-incise { font-weight: bold; color: #ffffff; font-size: 1.4rem !important; }
-    </style>
-
-    <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
-            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
-                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
-            </div>
-        </div>
-        <div style="color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
-    </div>
-
-    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
-        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
-                <h3 style="margin: 0; color: #ffcc00;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
-                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
-            </div>
-            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
-                ${textAiHTML}
-            </div>
-        </div>
-    </div>
-`;
-const texteApris = autoApprendreEtEnrichirDico(textAi)
-
-document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
-                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
-                        if (exclusiveModal) exclusiveModal.style.display = "flex";
-                    });
-
-                    document.getElementById("btnCloseExclusive").addEventListener("click", function() {
-                        const exclusiveModal = document.getElementById("coWriteExclusiveModal");
-                        if (exclusiveModal) exclusiveModal.style.display = "none";
-                    });
-
-                    document.getElementById("coWriteExclusiveModal").addEventListener("click", function(e) {
-                        if (e.target === this) this.style.display = "none";
-                    });
-
-// ========================== GENERATION DU BLOC DE COPIE CHUNK DISCORD ==========================
-        // 1. On nettoie TOUT le texte de l'IA en ne gardant que les vrais paragraphes de texte (on vire les vieux _ _)
-        let lignesBrutes = textAi.split("\n");
-        let paragraphesNettoyes = [];
-
-        for (let ligne of lignesBrutes) {
-            let lTrim = ligne.trim();
-            // On ignore les lignes vides et les séparateurs existants pour tout reconstruire proprement
-            if (lTrim.length === 0 || lTrim === "_ _") continue;
-            paragraphesNettoyes.push(lTrim);
-        }
-
-        // 2. On reconstruit la structure géométrique parfaite avec UN SEUL "_ _" aux transitions
-        let blocsFinauxAvecSeparateurs = [];
-        for (let i = 0; i < paragraphesNettoyes.length; i++) {
-            let pActuel = paragraphesNettoyes[i];
-            blocsFinauxAvecSeparateurs.push(pActuel);
-
-            // Si un paragraphe suit, on regarde si on doit mettre un séparateur
-            if (i < paragraphesNettoyes.length - 1) {
-                let pSuivant = paragraphesNettoyes[i + 1];
-                
-                let actuelEstDialogue = pActuel.startsWith(">");
-                let suivantEstDialogue = pSuivant.startsWith(">");
-
-                // ❌ EXCEPTION : Pas de séparateur entre deux dialogues qui se suivent
-                if (actuelEstDialogue && suivantEstDialogue) {
-                    // On ne met rien, ils resteront collés proprement
-                } else {
-                    // Pour tout le reste, on glisse un unique "_ _"
-                    blocsFinauxAvecSeparateurs.push("_ _");
-                }
-            }
-        }
-
-        // 3. 🧮 L'ALGORITHME DE PARCELLISATION MATHÉMATIQUE (Max 1900 caractères)
-        let morceauxDiscord = [];
-        let paquetActuel = "";
-
-        for (let element of blocsFinauxAvecSeparateurs) {
-            // Un simple '\n' de jonction pour éviter les doubles sauts de ligne géants sur Discord !
-            let jonction = paquetActuel.length > 0 ? "\n" : "";
-            let tailleFuture = paquetActuel.length + jonction.length + element.length;
-
-            if (tailleFuture < 1900) {
-                // Ça passe sous la limite, on accumule
-                paquetActuel += jonction + element;
-            } else {
-                // Ça déborde ! On valide le morceau en cours
-                if (paquetActuel.trim().length > 0) {
-                    morceauxDiscord.push(paquetActuel);
-                }
-                
-                // Sécurité : Si le bloc de coupure est un "_ _", on ne commence pas le post suivant avec lui
-                if (element === "_ _") {
-                    paquetActuel = "";
-                } else {
-                    paquetActuel = element;
-                }
-            }
-        }
-
-        // On pousse le dernier morceau de texte restant
-        if (paquetActuel.trim().length > 0) {
-            morceauxDiscord.push(paquetActuel);
-        }
-
-        // 4. Gestion de la copie séquentielle sur ton bouton unique (btnCopierCoWrite)
-        let indexBlocActuel = 0;
-        const nouveauBtnCopier = document.getElementById("btnCopierCoWrite");
-
-        if (nouveauBtnCopier && morceauxDiscord.length > 0) {
-            if (morceauxDiscord.length > 1) {
-                nouveauBtnCopier.innerText = `📋 Copier le bloc 1/${morceauxDiscord.length}`;
-            } else {
-                nouveauBtnCopier.innerText = `📋 Copier le bloc`;
-            }
-
-            // Purge radicale des anciens écouteurs (Anti-bégaiement du bouton)
-            const clonerBouton = nouveauBtnCopier.cloneNode(true);
-            nouveauBtnCopier.parentNode.replaceChild(clonerBouton, nouveauBtnCopier);
-
-            clonerBouton.addEventListener("click", function() {
-                if (indexBlocActuel < morceauxDiscord.length) {
-                    let texteACopier = morceauxDiscord[indexBlocActuel];
-                    
-                    // Copie physique du texte purifié de moins de 1900 caractères
-                    navigator.clipboard.writeText(texteACopier);
-                    
-                    indexBlocActuel++;
-
-                    if (indexBlocActuel < morceauxDiscord.length) {
-                        this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
-                        this.style.background = "#a777e3";
-                        this.style.color = "#fff";
-                    } else {
-                        this.innerText = "🎉 Tout est copié !";
-                        this.style.background = "#2ecc71";
-                        this.style.color = "#fff";
-                        indexBlocActuel = 0; // Reset automatique pour le prochain tour
-                    }
-                }
-            });
-        }
-        // ===============================================================================================
-    } 
-
-            } catch (err) { 
-                console.error("❌ Erreur de transmission API Mistral :", err);
-                outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur de transmission API.</span>"; 
-            }
-
-        
-        });
-    }
-})
 
     // ============================================================================
     // GESTION DE LA MODALE EXCLUSIVE DE TRAUMATISMES (VERSION FINALE CORRIGÉE)

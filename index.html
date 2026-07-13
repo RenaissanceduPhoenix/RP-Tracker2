@@ -10,6 +10,60 @@
 </head>
 <body>
 
+<div id="login-screen" class="hidden">
+    <div class="login-box"> <button id="login-btn" class="login-btn">⚡ Se connecter avec Google</button>
+        <p id="error-message" class="hidden"></p>
+    </div>
+</div>
+
+<div id="main-dashboard" class="hidden">
+    <div class="box header-box" style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-sizing: border-box; gap: 20px; flex-wrap: wrap;">
+        
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h2 style="margin: 0; font-size: 1.4rem; color: #fff; font-weight: bold;">
+               <a href="https://improved-rotary-phone-jrg5v75vg973qxx6.github.dev/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none;"> RP Tracker PRO</a> - <a href="https://github.com/RenaissanceduPhoenix/RP-Tracker2" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none;">Renaissance du Phoenix</a>
+            </h2>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <small style="color: #888; font-size: 0.8rem;">Version 4.5.2</small>
+                <small id="db-status" style="color: #2ecc71; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+                    <a href="https://console.firebase.google.com/project/rp-tracker-140ec/overview" target="_blank" rel="noopener noreferrer" style="color: #2ecc71; text-decoration: none;"><span style="animation: blink 2s infinite;">🟢</span> Serveur connecté</a>
+                </small>
+               <small>
+    <a href="https://discord.com/channels/@me" target="_blank" rel="noopener noreferrer" style="color: #a777e3; font-size: 1rem; font-weight: normal; margin-left: 8px; text-decoration: none;">
+        (@renaissanceduphoenix)
+    </a>
+</small>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 20px; background: rgba(255,255,255,0.02); padding: 8px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="text-align: center;">
+                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alerte Pendings</span>
+                <strong id="global-pending-badge" style="color: #ff4a4a; font-size: 1.1rem;">--</strong>
+            </div>
+            <div style="text-align: center;">
+                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alerte Repondu</span>
+                <strong id="global-repondu" style="color: #3e34ff; font-size: 1.1rem;">--</strong>
+            </div>
+            <div style="text-align: center;">
+                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Totalité Archivé</span>
+                <strong id="global-done" style="color: #008714; font-size: 1.1rem;">--</strong>
+            </div>
+            <div style="text-align: center;">
+                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Total RP</span>
+                <strong id="global" style="color: #ffffff; font-size: 1.1rem;">--</strong>
+            </div>
+            <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Rôle</span>
+                <strong id="user-role-badge" style="color: #ffcc00; font-size: 1.1rem; font-family: monospace;">Admin - Rôliste</strong>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="logout-btn" class="btn-secondary" style="margin: 0;">Déconnexion</button>
+        </div>
+    </div>
+
     <div class="dashboard">
         <div class="row animate-fade-in">
                 <div class="box zone-ajout">
@@ -98,20 +152,8 @@
         <div id="statsContainer" class="box">
         </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    
-    <script type="module" src="./JavaScript/Firebase.js"></script>
-    <script type="module" src="./JavaScript/Markdown.js?v=2.5"></script>
-    <script type="module" src="./JavaScript/RP.js?v=5"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/UrgencyTags.js"></script>
-    <script type="module" src="./JavaScript/Chart.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/Tags.js"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/CharacterGalery.js?v=2.4"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/PersoAffichage.js?v=2.4"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/AICoachs.js?v=16.8"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/CharacterData.js?v=2.4"></script>
-    <script type="module" src="./JavaScript/FeaturesBonus/RpHistorySummary.js?v=2.2"></script>
+
+
 
 
 <div id="coWriteModal" class="chart-modal" style="display: none;">
@@ -173,19 +215,19 @@
                         <div class="mood-group">
                             <span style="color: #ff5e5e; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚔️ COMBAT & PHYSIQUE</span>
                             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="combat">Combat</button>
-                                <button type="button" class="mood-btn" data-mood="adrenaline">Adrénaline</button>
-                                <button type="button" class="mood-btn" data-mood="epuisement">Épuisement</button>
-                                <button type="button" class="mood-btn" data-mood="agonie">Agonie</button>
-                                <button type="button" class="mood-btn" data-mood="douleur">Douleur</button>
-                                <button type="button" class="mood-btn" data-mood="vitesse">Vitesse</button>
-                                <button type="button" class="mood-btn" data-mood="furtivite">Furtivité</button>
-                                <button type="button" class="mood-btn" data-mood="defense">Défense</button>
-                                <button type="button" class="mood-btn" data-mood="faiblesse">Faiblesse</button>
-                                <button type="button" class="mood-btn" data-mood="blessure">Blessure</button>
-                                <button type="button" class="mood-btn" data-mood="reflexe">Réflexe</button>
-                                <button type="button" class="mood-btn" data-mood="endurance">Endurance</button>
-                                <button type="button" class="mood-btn" data-mood="brutalite">Brutalité</button>
+                                <button type="button" class="mood-btn" data-mood="combat" onclick="window.basculerSelectionMood(this)" >Combat</button>
+                                <button type="button" class="mood-btn" data-mood="adrenaline" onclick="window.basculerSelectionMood(this)">Adrénaline</button>
+                                <button type="button" class="mood-btn" data-mood="epuisement" onclick="window.basculerSelectionMood(this)">Épuisement</button>
+                                <button type="button" class="mood-btn" data-mood="agonie" onclick="window.basculerSelectionMood(this)">Agonie</button>
+                                <button type="button" class="mood-btn" data-mood="douleur" onclick="window.basculerSelectionMood(this)">Douleur</button>
+                                <button type="button" class="mood-btn" data-mood="vitesse" onclick="window.basculerSelectionMood(this)">Vitesse</button>
+                                <button type="button" class="mood-btn" data-mood="furtivite" onclick="window.basculerSelectionMood(this)">Furtivité</button>
+                                <button type="button" class="mood-btn" data-mood="defense" onclick="window.basculerSelectionMood(this)">Défense</button>
+                                <button type="button" class="mood-btn" data-mood="faiblesse" onclick="window.basculerSelectionMood(this)">Faiblesse</button>
+                                <button type="button" class="mood-btn" data-mood="blessure" onclick="window.basculerSelectionMood(this)">Blessure</button>
+                                <button type="button" class="mood-btn" data-mood="reflexe" onclick="window.basculerSelectionMood(this)">Réflexe</button>
+                                <button type="button" class="mood-btn" data-mood="endurance" onclick="window.basculerSelectionMood(this)">Endurance</button>
+                                <button type="button" class="mood-btn" data-mood="brutalite" onclick="window.basculerSelectionMood(this)">Brutalité</button>
                             </div>
                         </div>
 
@@ -305,8 +347,8 @@
                 <textarea id="coWriteAiInstructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)" style="flex: 1; height: 120px; background: #101015; border: 1px solid rgba(167,119,227,0.6); color: #fff; padding: 8px; border-radius: 4px; resize: none; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
                 
                 <div style="display: flex; flex-direction: column; gap: 5px; justify-content: space-between;">
-                    <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">💾 Enregistrer au RP</button>
-                    <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: 100%;">✨ Écrire avec l'IA</button>
+                    <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;" onclick="window.Enregistrer()">💾 Enregistrer au RP</button>
+                    <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: 100%;" onclick="window.EcrireIA()">✨ Écrire avec l'IA</button>
                     <button type="button" onclick="window.relireLaScene()" style="background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">🎬 Relire la scène</button>
                     <button id="btnDiagnosticTraumaSidebar" style="background:#ff4a4a; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold; white-space:nowrap;">🩸 Bilan Séquelles (IA)</button>
                     <div class="temperature-container" style="margin-top: 15px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px;">
@@ -376,7 +418,10 @@
             </button>
         </div>
     </div>
-</div>
+</div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script type="module" src="./JavaScript/Authentification.js?v=2.1"></script>
 
 </body>
 </html>

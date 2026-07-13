@@ -215,6 +215,47 @@ window.initPendingList = function() {
                 }
             }
 
+// On filtre les documents pour ne garder que ceux dont le statut n'est pas 'done'
+
+// 🛡️ SÉCURITÉ : On s'assure que le snapshot et ses documents existent bien avant de filtrer
+        if (!snapshot || !snapshot.docs) {
+            console.warn("[RP.js] ⚠️ Le snapshot Firestore reçu est incomplet ou vide.");
+            return;
+        }
+
+        const rpsEnAttente = snapshot.docs.filter(doc => doc.data().status !== "done");
+        const snapshotSize = rpsEnAttente.length;
+
+        const Totalite = snapshot.docs;
+        const longeur = Totalite.length;
+        
+        const rpsRepondu = snapshot.docs.filter(doc => doc.data().status === "repondu");
+        const snapshotRepSize = rpsRepondu.length;
+
+        const rpsDone = snapshot.docs.filter(doc => doc.data().status === "done");
+        const snapshotDoneSize = rpsDone.length;
+        // 🌟 CODE À AJOUTER POUR TON NOUVEAU HEADER DYNAMIQUE :
+        // 1. Met à jour le compteur de RPs en attente au centre du Header
+        const globalPendingBadge = document.getElementById('global-pending-badge');
+        if (globalPendingBadge) {
+            globalPendingBadge.innerText = `${snapshotSize} RP${snapshotSize > 1 ? 's' : ''}`;
+        };
+
+        const globalRepBadge = document.getElementById('global-repondu');
+        if (globalRepBadge) {
+            globalRepBadge.innerText = `${snapshotRepSize} RP${snapshotRepSize > 1 ? 's' : ''}`;
+        };
+
+        const globalDone = document.getElementById(`global-done`);
+        if (globalDone) {
+            globalDone.innerText = `${snapshotDoneSize} RP${snapshotDoneSize > 1 ? 's' : ''}`;
+        }
+
+        const Global = document.getElementById(`global`);
+        if (Global) {
+            Global.innerText = `${longeur} RP${longeur > 1 ? 's' : ''}`;
+        }
+
             if (rp.status === "pending") {
                 listeRpsAfficher.push(rp);
             }
@@ -297,6 +338,7 @@ window.initPendingList = function() {
 
         initialiserFiltrageTags();
     }, (err) => { console.error(err); });
+    // Exemple à mettre là où ton script calcule déjà le nombre de RPs en attente :
 };
 
 window.markStatus = async function(id, newStatus, characterName = null) {
