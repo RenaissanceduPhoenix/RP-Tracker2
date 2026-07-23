@@ -271,63 +271,41 @@ export async function preparerEtInitialiserZoneDes(charName, currentRpId) {
         }
         
         // Construction des lignes épurées interactives
-        const ligneAction = document.createElement("div");
-        ligneAction.id = `line-select-${idAction}`;
-        ligneAction.style.cssText = `
-            padding: 6px 10px;
-            font-size: 0.85rem;
-            color: #b0b0b8;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            background: rgba(255, 255, 255, 0.01);
-            margin-bottom: 2px;
-            border-radius: 4px;
-        `;
+const ligneAction = document.createElement("div");
+ligneAction.id = `line-select-${idAction}`;
 
-        ligneAction.innerHTML = `
-            <span>${config.nom}</span>
-            <span class="status-indicator" style="font-size: 0.75rem; color: #444a5a; font-weight: bold;">[ ]</span>
-        `;
+// 🧼 NETTOYÉ : On assigne juste la classe de base au lieu de cssText
+ligneAction.className = "line-select-action";
 
-        ligneAction.onmouseover = () => { 
-            if (!actionsSelectionneesPourIA.includes(idAction)) {
-                ligneAction.style.background = "rgba(255, 255, 255, 0.04)";
-                ligneAction.style.color = "#ffffff";
-            }
-        };
-        ligneAction.onmouseout = () => { 
-            if (!actionsSelectionneesPourIA.includes(idAction)) {
-                ligneAction.style.background = "rgba(255, 255, 255, 0.01)";
-                ligneAction.style.color = "#b0b0b8";
-            }
-        };
+ligneAction.innerHTML = `
+    <span>${config.nom}</span>
+    <span class="status-indicator">[ ]</span>
+`;
 
-        ligneAction.onclick = () => {
+// 🧼 NETTOYÉ : Plus besoin de JS pour le survol, le CSS :hover s'en charge !
+
+ligneAction.onclick = () => {
     const idx = actionsSelectionneesPourIA.indexOf(idAction);
     const indicator = ligneAction.querySelector(".status-indicator");
 
     if (idx === -1) {
         actionsSelectionneesPourIA.push(idAction);
-        ligneAction.style.color = "#ffcc00";
-        ligneAction.style.background = "rgba(255, 204, 0, 0.08)";
+        
+        // 🧼 NETTOYÉ : Passage à l'état sélectionné
+        ligneAction.classList.add("is-selected");
         if (indicator) {
             indicator.innerText = "[ COCHÉ ]";
-            indicator.style.color = "#ffcc00";
         }
     } else {
         actionsSelectionneesPourIA.splice(idx, 1);
-        ligneAction.style.color = "#b0b0b8";
-        ligneAction.style.background = "rgba(255, 255, 255, 0.01)";
+        
+        // 🧼 NETTOYÉ : Retour à l'état normal
+        ligneAction.classList.remove("is-selected");
         if (indicator) {
             indicator.innerText = "[ ]";
-            indicator.style.color = "#444a5a";
         }
     }
+};
 
     // ✅ Correction : On appelle la bonne fonction globale avec les bons IDs
     if (typeof window.mettreAJourAffichageDesPourIA === "function") {
@@ -337,7 +315,7 @@ export async function preparerEtInitialiserZoneDes(charName, currentRpId) {
 
         listeEl.appendChild(ligneAction);
     }
-}
+
 
 /**
  * Met à jour la zone #diceResultZone avec l'ensemble des actions sélectionnées
@@ -350,11 +328,12 @@ window.mettreAJourAffichageDesPourIA = function(selectedIds) {
     const resultZone = document.getElementById("diceResultZone");
     if (!resultZone) return; 
 
-    let htmlContenu = `<div style="width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; font-size: 0.85rem;">`;
-    htmlContenu += `<strong style="color: #ffcc00; border-bottom: 1px dashed rgba(255,204,0,0.2); padding-bottom: 4px; margin-bottom: 4px; display: block;">🎯 Actions sélectionnées pour l'IA (${selectedIds.length}) :</strong>`;
+    // 🧼 NETTOYÉ : Classe CSS pour le conteneur principal
+    let htmlContenu = `<div class="dice-results-container">`;
+    htmlContenu += `<strong class="dice-results-title">🎯 Actions sélectionnées pour l'IA (${selectedIds.length}) :</strong>`;
 
     selectedIds.forEach(idAction => {
-        if (!idAction) return;
+        if (!idAction) return; 
         
         const cleanId = idAction.trim().toLowerCase();
         let res = window.resultatsPreCalcules?.[idAction] || window.resultatsPreCalcules?.[cleanId];
@@ -393,16 +372,17 @@ window.mettreAJourAffichageDesPourIA = function(selectedIds) {
             }
         }
 
+        // 🧼 NETTOYÉ : On passe juste la variable CSS --verdict-color et les classes
         htmlContenu += `
-            <div style="background: rgba(0,0,0,0.15); border-left: 3px solid ${vCouleur}; padding: 5px 8px; border-radius: 4px; margin-bottom: 2px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold; color: #fff;">${nomActionAffichee}</span>
-                    <span style="font-weight: bold; color: ${vCouleur}; font-size: 0.8rem;">
+            <div class="dice-result-card" style="--verdict-color: ${vCouleur};">
+                <div class="dice-result-header">
+                    <span class="dice-result-name">${nomActionAffichee}</span>
+                    <span class="dice-result-total">
                         Total : ${res.total || 0} (${vTexte})
                     </span>
                 </div>
-                <small style="color: #a0a0aa; font-style: italic; display: block; margin-top: 1px;">
-                    ${vDescription} <span style="color:#a777e3;">(Jet : ${texteDe}[${valeurDe}] + ${texteBonus}[${valeurBonus}])</span>
+                <small class="dice-result-details">
+                    ${vDescription} <span class="dice-result-formula">(Jet : ${texteDe}[${valeurDe}] + ${texteBonus}[${valeurBonus}])</span>
                 </small>
             </div>
         `;

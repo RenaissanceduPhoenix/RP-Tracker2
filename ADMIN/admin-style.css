@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+
+/* =========================================================================
+   📊 DESIGN EXCLUSIF DU PANNEAU DE GESTION (admin-panel.html)
+   ========================================================================= */
+.admin-dashboard-wrapper {
+    background: #111;
+    padding: 20px;
+    border-radius: 8px;
+    /* Tes futurs styles viendront ici, sans aucun risque de polluer l'index */
+}
+
+/* 2. L'application globale ULTRA-STRICTE à tout ton projet */
+*, html, body, input, textarea, button, select, .rp-speech, .rp-incise, admin-stat-card{
+    font-family: "Merriweather", serif !important;
+    font-optical-sizing: auto;
+}

@@ -4,19 +4,19 @@ export function parseRP(text) {
 
     // Convertit le gras, l'italique et le souligné de base de façon sécurisée
     function parseInline(str) {
-        str = str.replace(/__\*\*\*(.*?)\*\*\*__/g, '<span style="text-decoration:underline; font-weight:bold; font-style:italic">$1</span>');
-        str = str.replace(/__\*\*(.*?)\*\*__/g, '<span style="text-decoration:underline; font-weight:bold">$1</span>');
-        str = str.replace(/__\*(.*?)\*__/g, '<span style="text-decoration:underline; font-style:italic">$1</span>');
-        str = str.replace(/__(.*?)__/g, '<span style="text-decoration:underline;">$1</span>');
-        str = str.replace(/\*\*\*(.*?)\*\*\*/g, '<span style="font-weight:bold; font-style:italic">$1</span>');
-        str = str.replace(/\*\*(.*?)\*\*/g, '<span style="font-weight:bold">$1</span>');
-        str = str.replace(/\*(.*?)\*/g, '<span style="font-style:italic">$1</span>');
+        str = str.replace(/__\*\*\*(.*?)\*\*\*__/g, '<span class="M__1">$1</span>');
+        str = str.replace(/__\*\*(.*?)\*\*__/g, '<span class="M__2">$1</span>');
+        str = str.replace(/__\*(.*?)\*__/g, '<span class="M__3">$1</span>');
+        str = str.replace(/__(.*?)__/g, '<span class="M__4">$1</span>');
+        str = str.replace(/\*\*\*(.*?)\*\*\*/g, '<span class="A__1">$1</span>');
+        str = str.replace(/\*\*(.*?)\*\*/g, '<span class="A__2">$1</span>');
+        str = str.replace(/\*(.*?)\*/g, '<span class="A__3">$1</span>');
         return str;
     }
 
     return lines.map(line => {
         const trimmed = line.trim();
-        if (!trimmed) return '<div style="height:12px"></div>';
+        if (!trimmed) return '<div id="trimmed"></div>';
         
         // 🔥 DOUBLE DÉTECTION : Lignes commençant par > OU par un tiret (— ou -)
         const estUnDialogue = trimmed.startsWith(">") || trimmed.startsWith("—") || trimmed.startsWith("-");
@@ -64,10 +64,10 @@ export function parseRP(text) {
         
         // 💭 GESTION DES PENSÉES ISOLÉES
         if (trimmed.startsWith("*") && trimmed.endsWith("*") && !trimmed.startsWith("**")) {
-            return `<div style="margin-bottom:8px; font-style:italic; color:#bbb;">${parseInline(trimmed)}</div>`;
+            return `<div id="if-trimmed">${parseInline(trimmed)}</div>`;
         }
         
         // 🏃 PARAGRAPHE NORMAL (Actions globales / Descriptions hors dialogue)
-        return `<div style="margin-bottom:8px;">${parseInline(line)}</div>`;
+        return `<div id="not-trimmed">${parseInline(line)}</div>`;
     }).join("");
 }

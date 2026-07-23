@@ -1,0 +1,145 @@
+
+
+<div class="admin-dashboard-wrapper">
+    
+    <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div>
+            <h1 style="margin: 0; font-size: 1.6rem; color: #fff; font-weight: bold; letter-spacing: 0.5px;">
+                ⚙️ TABLEAU DE BORD - GESTION CRUCIAL
+            </h1>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #888;">Analyse des performances de la base de données et contrôle du système.</p>
+        </div>
+        <div>
+            <button id="btn-rafraichir-stats" class="btn-secondary" style="margin: 0; background: rgba(255, 204, 0, 0.1); border: 1px solid #ffcc00; color: #ffcc00;">
+                🔄 Synchroniser Firebase
+            </button>
+        </div>
+    </div>
+
+<div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px;">
+        
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Mots Présent dans le Dictionnaire</span>
+            <strong id="admin-stat-total-mots" style="font-size: 1.8rem; color: #a777e3; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Arsenal du Robot.js</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Joueurs Enregistrés</span>
+            <strong id="admin-stat-total-users" style="font-size: 1.8rem; color: #2ecc71; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Comptes Firebase Auth</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Fiches Personnages</span>
+            <strong id="admin-stat-total-personnages" style="font-size: 1.8rem; color: #ffcc00; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Collection characters</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Volume de Messages Logs</span>
+            <strong id="admin-stat-total-messages" style="font-size: 1.8rem; color: #3e34ff; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Sous-collections stockées</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Mots de Dialogues</span>
+            <strong id="admin-stat-total-dialogues" style="font-size: 1.8rem; color: #e73ca5; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Dictionnaire de répliques</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Actions Affective</span>
+            <strong id="admin-stat-total-locaux" style="font-size: 1.8rem; color: #7e43ff; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Nombre de d'actions affective</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Actions en ligne</span>
+            <strong id="admin-stat-total-ligne" style="font-size: 1.8rem; color: #ff2222; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Nombre d'Actions en ligne</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Statistique 8</span>
+            <strong id="admin-stat-huit" style="font-size: 1.8rem; color: #e74c3c; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Description stat</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Statistique 9</span>
+            <strong id="admin-stat-neuf" style="font-size: 1.8rem; color: #e74c3c; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Description stat</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Statistique 10</span>
+            <strong id="admin-stat-dix" style="font-size: 1.8rem; color: #e74c3c; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Description stat</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Statistique 11</span>
+            <strong id="admin-stat-onze" style="font-size: 1.8rem; color: #e74c3c; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Description stat</small>
+        </div>
+
+        <div class="admin-stat-card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; text-align: left;">
+            <span style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Statistique 12</span>
+            <strong id="admin-stat-douze" style="font-size: 1.8rem; color: #e74c3c; display: block; font-family: monospace;">--</strong>
+            <small style="color: #666; font-size: 0.75rem;">Description stat</small>
+        </div>
+
+</div>
+
+<div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+    <h3 style="margin: 0 0 10px 0; color: #fff; font-size: 1rem;">🚀 Importation & Tri de l'Arsenal (verbs.json)</h3>
+    <p style="color: #888; font-size: 0.8rem; margin-bottom: 15px;">Sélectionne ton fichier verbs.json pour extraire la parole avec l'API Mistral, puis envoyer automatiquement tout le reste dans les actions.</p>
+    <input type="file" id="admin-input-verbs-json" accept=".json" style="color: #fff; font-size: 0.85rem;" />
+</div>
+
+    <div class="admin-filter-bar" style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 10px; align-items: center; flex: 1;">
+            <input type="text" id="admin-search-input" placeholder="Rechercher une entité ou un log..." style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; color: #fff; font-size: 0.9rem; width: 100%; max-width: 300px; outline: none;">
+            <select id="admin-filter-select" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 4px; color: #fff; font-size: 0.9rem; outline: none; cursor: pointer;">
+                <option value="all">Toutes les collections</option>
+                <option value="characters">Personnages</option>
+                <option value="rps">Fils de RP</option>
+                <option value="robot">Logs du Robot</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button id="btn-admin-clear-logs" class="btn-secondary" style="margin: 0; background: rgba(255, 74, 74, 0.1); border: 1px solid #ff4a4a; color: #ff4a4a; font-size: 0.85rem; padding: 6px 12px;">Purger les logs temporaires</button>
+        </div>
+    </div>
+
+    <div class="admin-table-container" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <th style="padding: 12px 16px; color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Identifiant Target</th>
+                    <th style="padding: 12px 16px; color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Type de Document</th>
+                    <th style="padding: 12px 16px; color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Dernière Mutation</th>
+                    <th style="padding: 12px 16px; color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Statut Data</th>
+                    <th style="padding: 12px 16px; color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="admin-tbody-data-list">
+                <tr>
+                    <td colspan="5" style="padding: 30px; text-align: center; color: #666; font-style: italic;">
+                        En attente de l'impulsion Firebase ou filtres inactifs...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-console-section" style="margin-top: 25px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: #fff; font-weight: 600;">🤖 Terminal Moniteur Robot & Dictionnaire</h3>
+        <div id="admin-robot-console" style="background: #0a0a0c; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 15px; font-size: 0.85rem; color: #39ff14; max-height: 200px; overflow-y: auto; box-sizing: border-box; line-height: 1.5;">
+            [SYSTEM] En attente d'interception de dialogue...<br>
+            [ROBOT] Dictionnaire d'apprentissage chargé avec succès. Ready.
+        </div>
+    </div>
+
+</div>

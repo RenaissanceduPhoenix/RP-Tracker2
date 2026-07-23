@@ -16,17 +16,17 @@ export function genererBadgesEtSelecteur(rpId, tagsTab) {
         }
     });
 
-    // Retourne le sélecteur d'attribution individuel (zéro clic fantôme)
+// 🧼 NETTOYÉ : Retourne le sélecteur d'attribution sans styles inline
     return `
-        <div class="pending-footer-tags" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; width:100%;">
-            <div class="rp-tags-badges" style="display:flex; gap:4px; flex-wrap:wrap;">${badgesHTML}</div>
-            <select class="select-tag-toggle" data-rpid="${rpId}" style="background:#101015; color:#ccc; border:1px solid rgba(167, 119, 227, 0.4); border-radius:4px; padding:2px 5px; font-size:11px; cursor:pointer;">
+        <div class="pending-footer-tags">
+            <div class="rp-tags-badges">${badgesHTML}</div>
+            <select class="select-tag-toggle" data-rpid="${rpId}">
                 <option value="">🏷️ Gérer...</option>
                 <option value="#Action">⚔️ Action</option>
                 <option value="#Romance">❤️ Romance</option>
                 <option value="#Important">🚨 Important</option>
                 <option value="#Rapide">⚡ Rapide</option>
-                <option value="#Chill"> Chill</option>
+                <option value="#Chill">☕ Chill</option>
             </select>
         </div>
     `;
@@ -55,7 +55,8 @@ export function initialiserFiltrageTags() {
 
             cards.forEach(card => {
                 if (tagSelectionne === 'all') {
-                    card.style.setProperty('display', 'block', 'important');
+                    // 🧼 NETTOYÉ : Utilisation de classList au lieu de style.setProperty
+                    card.classList.remove('is-hidden');
                     return;
                 }
 
@@ -66,10 +67,11 @@ export function initialiserFiltrageTags() {
                 // HARMONISATION : Ton HTML utilise "Action", mais Firebase utilise "#Action"
                 const tagFormatte = tagSelectionne.startsWith('#') ? tagSelectionne : '#' + tagSelectionne;
 
+                // 🧼 NETTOYÉ : Bascule par la classe .is-hidden
                 if (listeTagsDeLaCarte.includes(tagFormatte)) {
-                    card.style.setProperty('display', 'block', 'important');
+                    card.classList.remove('is-hidden');
                 } else {
-                    card.style.setProperty('display', 'none', 'important');
+                    card.classList.add('is-hidden');
                 }
             });
         });

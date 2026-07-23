@@ -1,5 +1,5 @@
 import { charactersDB, fiches } from './CharacterData.js';
-import { catBehaviorKnowledge } from './CatBehaviorData.js';
+import { catBehaviorKnowledge } from './CatBehaviorData.js?v=2';
 import { db } from '../Firebase.js';
 import { limit, collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js'; // 🛠️ Importation du parseur Markdown existant
@@ -11,7 +11,7 @@ import { preparerEtInitialiserZoneDes, executerLancerDesErER, dictionnaireAction
 import { executerConsidolationTotaleMemoire } from './MemoryManager.js';
 import { initialiserEtTraiterMemoiresManquantes, verifierDeclenchementMemoire, reecrireMemoireModalParId  } from './memoireHierarchique.js';
 import { nettoyerSyntaxeDialogue, autoApprendreEtEnrichirDico } from './Robot.js?v=2.1';
-import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
+import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js?v=2';
 import { genererMessagesMistral } from './Prompt.js?v=2.1';
 
 
@@ -138,7 +138,7 @@ const outputDiv = document.getElementById("coWriteAiOutput");
 if (!outputDiv) return;
 // 1. On appelle la fonction de Prompt.js pour récupérer le gâteau tout préparé (systemPrompt + historique + note)
 const messagesPrepares = await genererMessagesMistral();
-const MaxTokensDina = ( window.currentNombreBlocsDemande || 4 ) * 1000;
+const MaxTokensDina = ( window.currentNombreBlocsDemande || 4 ) * 400;
 
 // 2. Ton appel fetch existant à adapter avec "messagesPrepares" :
 try {
@@ -164,7 +164,7 @@ if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`
     if (data.choices && data.choices[0] && data.choices[0].message) {
         let textAiRaw = data.choices[0].message.content;
         
-        outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
+        outputDiv.innerHTML = `<p class=""style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
 
         console.log(`${textAiRaw}`)
         
@@ -174,15 +174,16 @@ if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`
         window.getActionsSelectionneesPourIA = [];
 
         const lignesDes = document.querySelectorAll("#diceActionsList > div");
-        lignesDes.forEach(ligne => {
-            ligne.style.color = "#b0b0b8";
-            ligne.style.background = "rgba(255, 255, 255, 0.01)";
-            const indicator = ligne.querySelector(".status-indicator");
-            if (indicator) {
-                indicator.innerText = "[ ]";
-                indicator.style.color = "#444a5a";
-            }
-        });
+lignesDes.forEach(ligne => {
+    // 🧼 NETTOYÉ : On retire juste la classe "coché", le CSS remet le fond/couleur d'origine
+    ligne.classList.remove("is-checked");
+
+    const indicator = ligne.querySelector(".status-indicator");
+    if (indicator) {
+        indicator.innerText = "[ ]";
+        // 🧼 NETTOYÉ : Plus besoin d'injecter indicator.style.color, le CSS gère l'enfant !
+    }
+});
 
         const zoneResultatDes = document.getElementById("diceResultZone");
         if (zoneResultatDes) {
@@ -236,30 +237,27 @@ if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`
                     // 9. RENDU HTML AVEC LA BARRE D'OUTILS ET LA NOUVELLE MODALE MÉDICALE DÉDIÉE
                     // ============================================================================
                     outputDiv.innerHTML = `
-    <style>
-        .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
-        .rp-speech { color: #dfb56c;  font-size: 1.4rem !important; }
-        .rp-incise { font-weight: bold; color: #ffffff; font-size: 1.4rem !important; }
-    </style>
 
-    <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
+                    
+    <div class="co-write-display" id="modalTexteClassique">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="color:#a777e3; font-weight:bold;">Suggéré pour ${currentActiveCharName} :</span>
+            <span id="titreRedac">Suggéré pour ${currentActiveCharName} :</span>
             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
-                <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                <button id="btnVoirCoWrite">👁️ Voir</button>
+                <button id="btnCopierCoWrite">Copier</button>
+                <button id="btnReroll" onclick="window.EcrireIA()">Reroll</button>
             </div>
         </div>
-        <div style="color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
+        <div id="TexteIAPropre">${textAiHTML}</div>
     </div>
 
-    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
-        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
-                <h3 style="margin: 0; color: #ffcc00;">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
-                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+    <div id="coWriteExclusiveModal">
+        <div id="MiseenPlaceArriereExclusive">
+            <div id="HeaderExclusive">
+                <h3 id="TitreExclusive">📖 Visionnage Exclusif — ${currentActiveCharName}</h3>
+                <button id="btnCloseExclusive">&times;</button>
             </div>
-            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+            <div class="co-write-display" id="modalTexteExclusive">
                 ${textAiHTML}
             </div>
         </div>
@@ -373,15 +371,20 @@ document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
                     indexBlocActuel++;
 
                     if (indexBlocActuel < morceauxDiscord.length) {
-                        this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
-                        this.style.background = "#a777e3";
-                        this.style.color = "#fff";
-                    } else {
-                        this.innerText = "🎉 Tout est copié !";
-                        this.style.background = "#2ecc71";
-                        this.style.color = "#fff";
-                        indexBlocActuel = 0; // Reset automatique pour le prochain tour
-                    }
+    this.innerText = `📋 Bloc ${indexBlocActuel} OK ➔ Suivant: ${indexBlocActuel + 1}/${morceauxDiscord.length}`;
+    
+    // On met le style "Suivant" et on enlève le style "Succès" au cas où
+    this.classList.add("btn-bloc-suivant");
+    this.classList.remove("btn-bloc-succes");
+} else {
+    this.innerText = "🎉 Tout est copié !";
+    
+    // C'est fini ! On met le style "Succès" et on enlève le style "Suivant"
+    this.classList.add("btn-bloc-succes");
+    this.classList.remove("btn-bloc-suivant");
+    
+    indexBlocActuel = 0; // Reset automatique pour le prochain tour
+}
                 }
             });
         }
@@ -484,41 +487,51 @@ window.openCoWriteModal = async function(rpId, charName) {
    
     if (!modal) return;
    
-    modal.style.display = "flex";
-    if (title) {
-        title.innerText = `🖋️ Co-Écriture : ${charName}`;
-    }
-    if (historyLog) {
-        historyLog.innerHTML = "<p style='color:#888; text-align:center;'>Chargement de l'historique du RP...</p>";
-    }
+    modal.style.display = "flex"; // On garde, c'est du placement/structure
+if (title) {
+    title.innerText = `🖋️ Co-Écriture : ${charName}`;
+}
+if (historyLog) {
+    // 🧼 NETTOYÉ : On a viré le style='color:#888' et mis une classe à la place
+    historyLog.innerHTML = "<p class='history-loading-text' style='text-align:center;'>Chargement de l'historique du RP...</p>";
+}
 
-    // 🧼 RESET TOTAL ET SÉCURISÉ
-    document.querySelectorAll(".mood-btn").forEach(btn => {
-        btn.classList.remove("active");
-    });
+// 🧼 RESET TOTAL ET SÉCURISÉ
+document.querySelectorAll(".mood-btn").forEach(btn => {
+    btn.classList.remove("active");
+});
 
-    // 👁️ GESTION DU PANNEAU PLIABLE
-    const btnToggleConfig = document.getElementById("btnToggleConfigGlobal");
-    const configGlobalContent = document.getElementById("configGlobalContent");
+// 👁️ GESTION DU PANNEAU PLIABLE
+const btnToggleConfig = document.getElementById("btnToggleConfigGlobal");
+const configGlobalContent = document.getElementById("configGlobalContent");
 
-    if (btnToggleConfig && configGlobalContent) {
-        configGlobalContent.style.display = "none";
-        btnToggleConfig.innerText = "⚙️ Afficher la Configuration des dés et des émotions";
-        btnToggleConfig.style.background = "rgba(167, 119, 227, 0.1)";
+if (btnToggleConfig && configGlobalContent) {
+    configGlobalContent.style.display = "none"; // On garde le placement
+    btnToggleConfig.innerText = "⚙️ Afficher la Configuration des dés et des émotions";
+    
+    // 🧼 NETTOYÉ : Liaison de la couleur par classe
+    btnToggleConfig.classList.add("btn-config-closed");
+    btnToggleConfig.classList.remove("btn-config-opened");
 
-        btnToggleConfig.onclick = function(e) {
-            e.preventDefault();
-            if (configGlobalContent.style.display === "none" || configGlobalContent.style.display === "") {
-                configGlobalContent.style.display = "flex";
-                btnToggleConfig.innerText = "⚙️ Masquer la Configuration des dés et des émotions";
-                btnToggleConfig.style.background = "rgba(167, 119, 227, 0.2)";
-            } else {
-                configGlobalContent.style.display = "none";
-                btnToggleConfig.innerText = "⚙️ Afficher la Configuration des dés et des émotions";
-                btnToggleConfig.style.background = "rgba(167, 119, 227, 0.1)";
-            }
-        };
-    }
+    btnToggleConfig.onclick = function(e) {
+        e.preventDefault();
+        if (configGlobalContent.style.display === "none" || configGlobalContent.style.display === "") {
+            configGlobalContent.style.display = "flex"; // On garde le placement
+            btnToggleConfig.innerText = "⚙️ Masquer la Configuration des dés et des émotions";
+            
+            // 🧼 NETTOYÉ : On bascule sur les couleurs de l'état "Ouvert"
+            btnToggleConfig.classList.add("btn-config-opened");
+            btnToggleConfig.classList.remove("btn-config-closed");
+        } else {
+            configGlobalContent.style.display = "none"; // On garde le placement
+            btnToggleConfig.innerText = "⚙️ Afficher la Configuration des dés et des émotions";
+            
+            // 🧼 NETTOYÉ : On revient aux couleurs de l'état "Fermé"
+            btnToggleConfig.classList.add("btn-config-closed");
+            btnToggleConfig.classList.remove("btn-config-opened");
+        }
+    };
+}
 
     const contextArea = document.getElementById("coWriteContext");
     const outputDiv = document.getElementById("coWriteAiOutput");
@@ -534,15 +547,15 @@ window.openCoWriteModal = async function(rpId, charName) {
         if (pendingSnap.exists()) {
             const pendingData = pendingSnap.data();
             title.innerHTML = `
-    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;">
-        <span>🖋️ Co-Écriture : <span style="color:#a777e3;">${pendingData.title || 'Sans titre'}</span> (${charName})</span>
-        <button onclick="window.ouvrirSommaireHistorique('${rpId}')" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+    <div id="MiseEnPlaceTitre">
+        <span>🖋️ Co-Écriture : <span id="CouleurTitreModal">${pendingData.title || 'Sans titre'}</span> (${charName})</span>
+        <button id="BoutonSommaire" onclick="window.ouvrirSommaireHistorique('${rpId}')">
             📊 Consulter le Sommaire
         </button>
-        <button onclick="window.executerConsidolationTotaleMemoire()" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+        <button class="BoutonMemoire" onclick="window.executerConsidolationTotaleMemoire()">
             Réécrire la mémoire
         </button>
-        <button onclick="window.reecrireMemoireModalParId(window.currentActiveSalonId, window.currentActiveSalonTexte)" style="background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;">
+        <button class="BoutonMemoire" onclick="window.reecrireMemoireModalParId(window.currentActiveSalonId, window.currentActiveSalonTexte)">
     Réécrire la mémoire de la Modal
 </button>
     </div>
@@ -668,81 +681,90 @@ window.openCoWriteModal = async function(rpId, charName) {
             }
 
             // 🎨 CRÉATION DES BOUTONS GRAPHIQUES (UI) - S'exécute DIRECTEMENT sans attendre Firebase !
-            const creerBoutonAction = (idAction, actionData, couleurTheme) => {
-                const divAction = document.createElement("div");
-                divAction.style.cssText = "padding: 8px 10px; margin: 5px 0; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #b0b0b8; transition: all 0.2s ease;";
-                divAction.setAttribute("data-action-id", idAction);
+const creerBoutonAction = (idAction, actionData, couleurTheme) => {
+    const divAction = document.createElement("div");
+    
+    // 🧼 NETTOYÉ : Plus de cssText ! On met la classe de base.
+    divAction.classList.add("btn-action-dice");
+    divAction.setAttribute("data-action-id", idAction);
 
-                divAction.innerHTML = `
-                    <span style="font-weight: 500;">${actionData.nom}</span>
-                    <span class="status-indicator" style="color: #444a5a; font-weight: bold;">[ ]</span>
-                `;
+    // Si tu veux garder la couleur personnalisée dynamique du coach via CSS :
+    if (couleurTheme) {
+        divAction.style.setProperty('--theme-color', `rgb(${couleurTheme})`);
+    }
 
-                divAction.addEventListener("click", async () => {
-                    const indicator = divAction.querySelector(".status-indicator");
-                    const indexCoche = window.getActionsSelectionneesPourIA.indexOf(idAction);
-                    let estCoche = false;
+    divAction.innerHTML = `
+        <span style="font-weight: 500;">${actionData.nom}</span>
+        <span class="status-indicator">[ ]</span>
+    `;
 
-                    if (indexCoche === -1) {
-                        window.getActionsSelectionneesPourIA.push(idAction);
-                        estCoche = true;
-                        divAction.style.background = `rgba(${couleurTheme}, 0.15)`;
-                        divAction.style.borderColor = `rgb(${couleurTheme})`;
-                        divAction.style.color = "#fff";
-                        if (indicator) {
-                            indicator.innerText = "[ COCHÉ ]";
-                            indicator.style.color = `rgb(${couleurTheme})`;
-                        }
-                    } else {
-                        window.getActionsSelectionneesPourIA.splice(indexCoche, 1);
-                        estCoche = false;
-                        divAction.style.background = "rgba(255,255,255,0.03)";
-                        divAction.style.borderColor = "rgba(255,255,255,0.05)";
-                        divAction.style.color = "#b0b0b8";
-                        if (indicator) {
-                            indicator.innerText = "[ ]";
-                            indicator.style.color = "#444a5a";
-                        }
-                    }
+    divAction.addEventListener("click", async () => {
+        const indicator = divAction.querySelector(".status-indicator");
+        const indexCoche = window.getActionsSelectionneesPourIA.indexOf(idAction);
+        let estCoche = false;
 
-                    if (activeRpId) {
-                        const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
-                        await setDoc(actionDocRef, { actif: estCoche }, { merge: true });
-                    }
+        if (indexCoche === -1) {
+            window.getActionsSelectionneesPourIA.push(idAction);
+            estCoche = true;
+            
+            // 🧼 NETTOYÉ : On ajoute la classe et on met juste à jour le texte
+            divAction.classList.add("is-checked");
+            if (indicator) {
+                indicator.innerText = "[ COCHÉ ]";
+            }
+        } else {
+            window.getActionsSelectionneesPourIA.splice(indexCoche, 1);
+            estCoche = false;
+            
+            // 🧼 NETTOYÉ : On retire la classe
+            divAction.classList.remove("is-checked");
+            if (indicator) {
+                indicator.innerText = "[ ]";
+            }
+        }
 
-                    if (typeof window.mettreAJourAffichageDesPourIA === "function") {
-                        window.mettreAJourAffichageDesPourIA(window.getActionsSelectionneesPourIA);
-                    }
-                });
-                return divAction;
-            };
+        if (activeRpId) {
+            const actionDocRef = doc(db, "rps_pending", activeRpId, "des", idAction);
+            await setDoc(actionDocRef, { actif: estCoche }, { merge: true });
+        }
+
+        if (typeof window.mettreAJourAffichageDesPourIA === "function") {
+            window.mettreAJourAffichageDesPourIA(window.getActionsSelectionneesPourIA);
+        }
+    });
+    return divAction;
+};
 
             diceContainer.innerHTML = "";
 
-            const titrePhysique = document.createElement("div");
-            titrePhysique.innerHTML = `<strong style="color:#ffcc00; font-size:0.85rem; margin-top:5px; display:block;">⚔️ Actions Physiques :</strong>`;
-            diceContainer.appendChild(titrePhysique);
-            listeIdActions.forEach(id => {
-                if (dictionnaireActionsErER[id]) {
-                    diceContainer.appendChild(creerBoutonAction(id, dictionnaireActionsErER[id], "255, 204, 0"));
-                }
-            });
+           const titrePhysique = document.createElement("div");
+// 🧼 NETTOYÉ : On utilise la classe au lieu du style en dur
+titrePhysique.innerHTML = `<strong class="title-dice-category title-dice-physical">⚔️ Actions Physiques :</strong>`;
+diceContainer.appendChild(titrePhysique);
 
-            const titreSocial = document.createElement("div");
-            titreSocial.innerHTML = `<strong style="color:#a777e3; font-size:0.85rem; margin-top:15px; display:block;">🎭 Actions Sociales (Sur 50) :</strong>`;
-            diceContainer.appendChild(titreSocial);
-            listeIdSociales.forEach(id => {
-                if (dictionnaireActionsSociales[id]) {
-                    diceContainer.appendChild(creerBoutonAction(id, dictionnaireActionsSociales[id], "167, 119, 227"));
-                }
-            });
+listeIdActions.forEach(id => {
+    if (dictionnaireActionsErER[id]) {
+        diceContainer.appendChild(creerBoutonAction(id, dictionnaireActionsErER[id], "255, 204, 0"));
+    }
+});
 
-            // OPTIMISATION 3 : On balance l'ensemble des écritures Firestore en une seule fois, en tâche de fond
-            Promise.all(firebaseUpdates).then(() => {
-                console.log("🎲 [Sync] Tous les lancers pré-calculés ont été synchronisés sur Firestore !");
-            }).catch(err => {
-                console.error("❌ Erreur lors de la synchronisation Firestore des dés :", err);
-            });
+const titreSocial = document.createElement("div");
+// 🧼 NETTOYÉ : On utilise la classe au lieu du style en dur
+titreSocial.innerHTML = `<strong class="title-dice-category title-dice-social">🎭 Actions Sociales (Sur 50) :</strong>`;
+diceContainer.appendChild(titreSocial);
+
+listeIdSociales.forEach(id => {
+    if (dictionnaireActionsSociales[id]) {
+        diceContainer.appendChild(creerBoutonAction(id, dictionnaireActionsSociales[id], "167, 119, 227"));
+    }
+});
+
+// OPTIMISATION 3 : On balance l'ensemble des écritures Firestore en une seule fois, en tâche de fond
+Promise.all(firebaseUpdates).then(() => {
+    console.log("🎲 [Sync] Tous les lancers pré-calculés ont été synchronisés sur Firestore !");
+}).catch(err => {
+    console.error("❌ Erreur lors de la synchronisation Firestore des dés :", err);
+});
 
         } catch (err) {
             console.error("❌ Erreur critique d'initialisation dés :", err);
@@ -809,32 +831,10 @@ async function loadOrCreateRpHistory(rpId, charName) {
             }
         }
 
-        if (snap.empty) {
-            historyLog.innerHTML = "<span style='color: #777;'>Aucun texte historique. Enregistre une première réplique pour démarrer !</span>";
-            return;
-        }
-
-        historyLog.innerHTML = "";
-        
-        snap.forEach(docSnap => {
-            const msg = docSnap.data();
-            const isMe = msg.sender === charName;
-            const badgeColor = isMe ? "#a777e3" : "#ffcc00";
-            
-            const textHTML = parseRP(msg.text);
-            
-            historyLog.innerHTML += `
-                <div style="margin-bottom: 12px; border-bottom: 1px solid #1c1c24; padding-bottom: 8px;">
-                    <div style="color: ${badgeColor}; font-weight: bold; margin-bottom: 3px;">[${msg.sender}] :</div>
-                    <div style="color: #e0e0e0; font-size: 0.9rem; line-height: 1.4;">${textHTML}</div>
-                </div>
-            `;
-        });
         
         historyLog.scrollTop = historyLog.scrollHeight;
     } catch (err) {
         console.error(err);
-        historyLog.innerHTML = "<span style='color: #e74c3c;'>Erreur de traitement de l'historique.</span>";
     }
 }
 
@@ -854,21 +854,21 @@ function assurerExistenceModaleConsignes() {
     if (document.getElementById("modalConsignes")) return;
 
     const modalHTML = `
-    <div id="modalConsignes" style="display: none; position: fixed; z-index: 300000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
-        <div style="background: #0c0c10; border: 1px solid #a777e3; box-shadow: 0 0 25px rgba(167, 119, 227, 0.2); width: 50vw; max-width: 600px; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; color: #fff;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.2); display: flex; justify-content: space-between; align-items: center; background: #121218;">
-                <h3 style="margin: 0; color: #a777e3; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">📝 Écriture des Consignes</h3>
-                <button onclick="window.fermerModaleConsignes()" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+    <div id="modalConsignes">
+        <div id="MiseArriereConsigne">
+            <div id="HeaderConsigne">
+                <h3 id="TitreConsigne">📝 Écriture des Consignes</h3>
+                <button id="FermerConsigne" onclick="window.fermerModaleConsignes()">&times;</button>
             </div>
-            <div style="padding: 20px; background: #08080c; display: flex; flex-direction: column; gap: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.85rem; color: #aaa; font-weight: bold;">CONSIGNES DU SCÉNARIO :</label>
-                    <button type="button" id="btnGenererIA" style="background: #2ecc71; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 8px rgba(46, 204, 113, 0.2);">
+            <div "MiseEnPlaceBouton">
+                <div id="MiseEnPageBouton">
+                    <label id="TitreConsigne">CONSIGNES DU SCÉNARIO :</label>
+                    <button type="button" id="btnGenererIA">
                         🤖 Écrire avec l'IA
                     </button>
                 </div>
-                <textarea id="textareaConsignes" placeholder="Écris tes consignes, contraintes ou contexte récent ici..." style="width: 100%; height: 200px; background: #121218; border: 1px solid #2a2a35; border-radius: 4px; color: #fff; padding: 10px; resize: none; box-sizing: border-box;"></textarea>
-                <button type="button" onclick="window.fermerModaleConsignes()" style="background: #a777e3; color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;">
+                <textarea id="textareaConsignes" placeholder="Écris tes consignes, contraintes ou contexte récent ici..."></textarea>
+                <button id="BoutonQuitter" type="button" onclick="window.fermerModaleConsignes()">
                     💾 ENREGISTRER ET QUITTER
                 </button>
             </div>
@@ -893,38 +893,44 @@ function brancherEvenementIAPilote() {
     if (!btnModalIA || !textareaModal) return;
 
     btnModalIA.addEventListener("click", async () => {
-        if (!btnAiPrincipal) {
-            alert("⚠️ Le module de co-écriture IA principal (btnAiCoWrite) est introuvable sur cette page.");
-            return;
+    if (!btnAiPrincipal) {
+        alert("⚠️ Le module de co-écriture IA principal (btnAiCoWrite) est introuvable sur cette page.");
+        return;
+    }
+
+    const texteOriginal = btnModalIA.innerHTML;
+    btnModalIA.disabled = true;
+
+    // 🧼 NETTOYÉ : Passage en état chargement (retrait du mode succès précédent s'il y était)
+    btnModalIA.classList.remove("is-success");
+    btnModalIA.classList.add("is-loading");
+    btnModalIA.innerHTML = `⏳ L'IA réfléchit...`;
+
+    if (coWriteContextInput) {
+        coWriteContextInput.value = textareaModal.value;
+    }
+
+    btnAiPrincipal.click();
+
+    const verifierFinGeneration = setInterval(() => {
+        const enCoursDeChargement = outputDivPrincipal && (
+            outputDivPrincipal.innerHTML.includes("blink") || 
+            outputDivPrincipal.innerHTML.includes("✍️") || 
+            outputDivPrincipal.innerHTML.includes("🛡️")
+        );
+
+        if (!enCoursDeChargement) {
+            clearInterval(verifierFinGeneration);
+            textareaModal.value = "✨ [Génération Réussie] La réplique a été injectée avec succès ! Tu peux fermer cette fenêtre pour aller la lire.";
+            btnModalIA.disabled = false;
+
+            // 🧼 NETTOYÉ : Bascule vers l'état succès
+            btnModalIA.classList.remove("is-loading");
+            btnModalIA.classList.add("is-success");
+            btnModalIA.innerHTML = texteOriginal;
         }
-
-        const texteOriginal = btnModalIA.innerHTML;
-        btnModalIA.disabled = true;
-        btnModalIA.style.background = "#7f8c8d";
-        btnModalIA.innerHTML = `⏳ L'IA réfléchit...`;
-
-        if (coWriteContextInput) {
-            coWriteContextInput.value = textareaModal.value;
-        }
-
-        btnAiPrincipal.click();
-
-        const verifierFinGeneration = setInterval(() => {
-            const enCoursDeChargement = outputDivPrincipal && (
-                outputDivPrincipal.innerHTML.includes("blink") || 
-                outputDivPrincipal.innerHTML.includes("✍️") || 
-                outputDivPrincipal.innerHTML.includes("🛡️")
-            );
-
-            if (!enCoursDeChargement) {
-                clearInterval(verifierFinGeneration);
-                textareaModal.value = "✨ [Génération Réussie] La réplique a été injectée avec succès ! Tu peux fermer cette fenêtre pour aller la lire.";
-                btnModalIA.disabled = false;
-                btnModalIA.style.background = "#2ecc71";
-                btnModalIA.innerHTML = texteOriginal;
-            }
-        }, 500);
-    });
+    }, 500);
+});
 }
 
 /**
@@ -938,19 +944,19 @@ initialiserEtTraiterMemoiresManquantes();
 
     // 🛡️ SÉCURITÉ D'INJECTION POUR LA COLONNE DE BOUTONS
     let btnOuvrirConsignes = document.getElementById("btnOuvrirConsignes");
+    let btnAi = document.getElementById("btnAiCoWrite");
     
-    if (!btnOuvrirConsignes && btnAi) {
-        console.warn("⚠️ Bouton 'btnOuvrirConsignes' manquant dans le HTML d'origine. Injection dynamique lancée.");
-        
-        btnOuvrirConsignes = document.createElement("button");
-        btnOuvrirConsignes.type = "button";
-        btnOuvrirConsignes.id = "btnOuvrirConsignes";
-        btnOuvrirConsignes.style.cssText = "background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;";
-        btnOuvrirConsignes.innerHTML = "📝 Rédiger les Consignes";
-        
-        // On l'injecte juste au-dessus du bouton "Écrire avec l'IA"
-        btnAi.parentNode.insertBefore(btnOuvrirConsignes, btnAi);
-    }
+    if (!btnOuvrirConsignes) {
+    console.warn("⚠️ Bouton 'btnOuvrirConsignes' manquant dans le HTML d'origine. Injection dynamique lancée.");
+    
+    btnOuvrirConsignes = document.createElement("button");
+    btnOuvrirConsignes.type = "button";
+    btnOuvrirConsignes.id = "btnOuvrirConsignes"; // 🧼 Liaison directe avec l'ID CSS !
+    btnOuvrirConsignes.innerHTML = "📝 Rédiger les Consignes";
+    
+    // On l'injecte juste au-dessus du bouton "Écrire avec l'IA"
+    btnAi.parentNode.insertBefore(btnOuvrirConsignes, btnAi);
+}
 
     if (btnOuvrirConsignes) {
         btnOuvrirConsignes.addEventListener("click", () => {
@@ -967,70 +973,76 @@ initialiserEtTraiterMemoiresManquantes();
     // GESTION DE LA MODALE EXCLUSIVE DE TRAUMATISMES (VERSION FINALE CORRIGÉE)
     // ============================================================================
     document.addEventListener("click", async function(e) {
-        // Détection du clic sur le bouton d'analyse dans la sidebar
-        const btnDiagnostic = e.target.closest("#btnDiagnosticTraumaSidebar");
+    // Détection du clic sur le bouton d'analyse dans la sidebar
+    const btnDiagnostic = e.target.closest("#btnDiagnosticTraumaSidebar");
+    
+    if (btnDiagnostic) {
+        e.preventDefault();
         
-        if (btnDiagnostic) {
-            e.preventDefault();
-            
-            // Étape A : Trouver la modale exclusive
-            const traumaModal = document.getElementById("traumaExclusiveModal");
-            if (!traumaModal) {
-                console.error("La modale #traumaExclusiveModal est introuvable dans la page HTML !");
-                return;
-            }
+        // Étape A : Trouver la modale exclusive
+        const traumaModal = document.getElementById("traumaExclusiveModal");
+        if (!traumaModal) {
+            console.error("La modale #traumaExclusiveModal est introuvable dans la page HTML !");
+            return;
+        }
 
-            // Étape B : Forcer l'affichage avec flex
-            traumaModal.style.setProperty("display", "flex", "important");
-            
-            // Préparer les zones de chargement
-            const traumaLoading = document.getElementById("traumaModalLoading");
-            const traumaResultBody = document.getElementById("traumaModalContent");
+        // Étape B : Forcer l'affichage avec flex (Structure/Placement conservé en JS)
+        traumaModal.style.setProperty("display", "flex", "important");
+        
+        // Préparer les zones de chargement
+        const traumaLoading = document.getElementById("traumaModalLoading");
+        const traumaResultBody = document.getElementById("traumaModalContent");
 
-            if (traumaLoading) {
-                traumaLoading.style.display = "block"; // Corrigé ici (plus de .style.style !)
-                traumaLoading.innerText = "⚡ Le Clan des Étoiles analyse les blessures...";
-            }
-            if (traumaResultBody) {
-                traumaResultBody.style.display = "none";
-            }
+        if (traumaLoading) {
+            traumaLoading.style.display = "block";
+            // 🧼 NETTOYÉ : On applique la classe de chargement
+            traumaLoading.className = "trauma-loading-text";
+            traumaLoading.innerText = "⚡ Le Clan des Étoiles analyse les blessures...";
+        }
+        if (traumaResultBody) {
+            traumaResultBody.style.display = "none";
+        }
 
-            // Étape C : Récupérer le nom du personnage actif
-            const charName = window.currentActiveCharName || "ton personnage";
+        // Étape C : Récupérer le nom du personnage actif
+        const charName = window.currentActiveCharName || "ton personnage";
 
-            try {
-                // Lancer l'analyse de l'IA (TraumaAnalyzer.js)
-                const bilan = await analyserImpactPhysiqueEtMental(charName);
+        try {
+            // Lancer l'analyse de l'IA (TraumaAnalyzer.js)
+            const bilan = await analyserImpactPhysiqueEtMental(charName);
 
-                if (traumaLoading) traumaLoading.style.display = "none";
+            if (traumaLoading) traumaLoading.style.display = "none";
 
-                if (bilan) {
-                    const statusEl = document.getElementById("traumaModalStatus");
-                    const physicalEl = document.getElementById("physicalWoundsList");
-                    const mentalEl = document.getElementById("mentalTraumaList");
-                    const guerisseurEl = document.getElementById("guerisseurText");
+            if (bilan) {
+                const statusEl = document.getElementById("traumaModalStatus");
+                const physicalEl = document.getElementById("physicalWoundsList");
+                const mentalEl = document.getElementById("mentalTraumaList");
+                const guerisseurEl = document.getElementById("guerisseurText");
 
-                    if (statusEl) statusEl.innerText = `Bilan actuel pour : ${charName} (${bilan.statutGeneral})`;
-                    if (physicalEl) physicalEl.innerHTML = bilan.blessuresPhysiques.map(w => `<li>${w}</li>`).join("");
-                    if (mentalEl) mentalEl.innerHTML = bilan.traumatismesMentaux.map(t => `<li>${t}</li>`).join("");
-                    if (guerisseurEl) guerisseurEl.innerText = bilan.conseilGuerisseur;
-                    
-                    if (traumaResultBody) traumaResultBody.style.display = "block";
-                } else {
-                    if (traumaLoading) {
-                        traumaLoading.style.display = "block";
-                        traumaLoading.innerText = "❌ L'historique du RP semble vide ou indisponible pour ce personnage.";
-                    }
-                }
-            } catch (err) {
-                console.error("Erreur IA Trauma :", err);
+                if (statusEl) statusEl.innerText = `Bilan actuel pour : ${charName} (${bilan.statutGeneral})`;
+                if (physicalEl) physicalEl.innerHTML = bilan.blessuresPhysiques.map(w => `<li>${w}</li>`).join("");
+                if (mentalEl) mentalEl.innerHTML = bilan.traumatismesMentaux.map(t => `<li>${t}</li>`).join("");
+                if (guerisseurEl) guerisseurEl.innerText = bilan.conseilGuerisseur;
+                
+                if (traumaResultBody) traumaResultBody.style.display = "block";
+            } else {
                 if (traumaLoading) {
                     traumaLoading.style.display = "block";
-                    traumaLoading.innerText = "❌ Erreur technique lors de l'analyse.";
+                    // 🧼 NETTOYÉ : On applique la classe d'erreur
+                    traumaLoading.className = "trauma-error-text";
+                    traumaLoading.innerText = "❌ L'historique du RP semble vide ou indisponible pour ce personnage.";
                 }
             }
+        } catch (err) {
+            console.error("Erreur IA Trauma :", err);
+            if (traumaLoading) {
+                traumaLoading.style.display = "block";
+                // 🧼 NETTOYÉ : On applique la classe d'erreur
+                traumaLoading.className = "trauma-error-text";
+                traumaLoading.innerText = "❌ Erreur technique lors de l'analyse.";
+            }
         }
-    });
+    }
+});
 
     // Gestion de la fermeture en cliquant à côté ou sur le bouton fermer
     document.addEventListener("click", function(e) {
@@ -1068,262 +1080,6 @@ window.clearAiHistory = async function(rpId) {
         }
     } catch (error) {
         console.error("❌ Erreur lors du nettoyage automatique de l'historique IA :", error);
-    }
-};
-
-/**
- * ============================================================================
- * 5. FONCTION : REROLL DYNAMIQUE (PRIME LES MOODS ACTIFS AU CLIC)
- * ============================================================================
- */
-window.executerReroll = async function() {
-    const outputDiv = document.getElementById("coWriteAiOutput");
-    const textInput = document.getElementById("coWriteContext");
-    if (!outputDiv || !window.currentActiveRpId || !window.currentActiveCharName) {
-        console.warn("⚠️ Impossible de relancer : contexte manquant.");
-        return;
-    }
-
-    const aiInstructionsElement = document.getElementById("coWriteAiInstructions");
-    const instructions = aiInstructionsElement ? aiInstructionsElement.value.trim() : "";
-
-    // 🎛️ CAPTURE DES MOODS EN DIRECT (Lit les classes .active générées par ton code)
-    const activeMoodBtns = document.querySelectorAll(".mood-btn.active");
-    let moodInstruction = "";
-
-    if (activeMoodBtns.length > 0) {
-        moodInstruction = "👉 CONFIGURATION DE L'AMBIANCE ET DU TON (CONSIGNE ABSOLUE : Chaque attribut sélectionné doit s'exprimer de façon brute, isolée et étanche, sans se diluer ni s'influencer mutuellement) :\n";
-const moodDictionary = {
-                    // ⚔️ COMBAT & PHYSIQUE (12)
-                    combat: "- COMBAT : Actions physiques offensives, esquives, feintes, attaques directes.\n",
-                    adrenaline: "- ADRENALINE : Réflexes accélérés, perception nerveuse aiguë, cœur battant la chamade.\n",
-                    epuisement: "- ÉPUISEMENT : Muscles lourds, pattes flageolantes, souffle court, fatigue extrême.\n",
-                    agonie: "- AGONIE : Souffrance physique limite, combat biologique instinctif pour rester conscient.\n",
-                    douleur: "- DOULEUR : Réaction nerveuse à un coup, crispation physique immédiate, gémissement contenu.\n",
-                    vitesse: "- VITESSE : Mouvements fulgurants, course rapide, bonds athlétiques explosifs.\n",
-                    furtivite: "- FURTIVITÉ : Pas feutrés, corps au ras du sol, progression invisible et silencieuse.\n",
-                    defense: "- DÉFENSE : Posture défensive, parades, interposition pour protéger.\n",
-                    faiblesse: "- FAIBLESSE : Perte de force, tremblements, instabilité physique, baisse de régime.\n",
-                    blessure: "- BLESSURE : Impact physique localisé, sang déversé, handicap moteur temporaire visible.\n",
-                    reflexe: "- RÉFLEXE : Réaction corporelle involontaire et instantanée face à un stimulus soudain.\n",
-                    endurance: "- ENDURANCE : Effort prolongé, résistance aux chocs répétés, refus physique de faiblir.\n",
-
-                    // 😡 HOSTILITÉ & DOMINATION (12)
-                    colere: "- COLÈRE : Poils dressés, voix forte, gestes brusques, regard noir.\n",
-                    rage: "- RAGE : Fureur destructive, impulsivité aveugle, perte des manières courtoises.\n",
-                    cruaute: "- CRUAUTÉ : Volonté malveillante de faire souffrir, absence totale de remords.\n",
-                    sadisme: "- SADISME : Plaisir affiché devant le malheur d'autrui, sourire en coin pervers.\n",
-                    provocation: "- PROVOCATION : Attitude insolente, gestes de défi provocateurs, bravade ouverte.\n",
-                    mepris: "- MÉPRIS : Regard condescendant, dédain manifeste, ignorer délibérément l'interlocuteur.\n",
-                    arrogance: "- ARROGANCE : Posture hautaine, assurance excessive, sentiment de supériorité flagrant.\n",
-                    vengeance: "- VENGEANCE : Rendre le tort subi, focalisation obsessionnelle sur le châtiment.\n",
-                    menace: "- MENACE : Posture d'intimidation, grognement sourd, promesse implicite de représailles.\n",
-                    haine: "- HAINE : Animosité viscérale profonde, rancune destructrice, hostilité absolue.\n",
-                    rivalite: "- RIVALITÉ : Esprit de compétition agressif, désir permanent de surpasser son vis-à-vis.\n",
-                    tyrannie: "- TYRANNIE : Comportement autoritaire abusif, volonté d'imposer sa domination par la force.\n",
-
-                    // 💧 SOUFFRANCE PSYCHOLOGIQUE (12)
-                    tristesse: "- TRISTESSE : Regard bas, abattement postural, épaules affaissées, mouvements lents.\n",
-                    deuil: "- DEUIL : Douleur morale liée à une perte affective, mélancolie lancinante.\n",
-                    peur: "- PEUR : Instinct d'évitement, hypervigilance, tension interne face au danger.\n",
-                    terreur: "- TERREUR : Sidération, pupilles dilatées au maximum, poils hérissés par l'effroi.\n",
-                    angoisse: "- ANGOISSE : Pressentiment sombre, oppression mentale, sensation de danger imminent.\n",
-                    regret: "- REGRET : Remords intérieurs, culpabilité, amertume face à une action passée.\n",
-                    desespoir: "- DÉSESPOIR : Sentiment d'impuissance totale, abandon psychologique de la lutte.\n",
-                    solitude: "- SOLITUDE : Sentiment d'isolement, repli sur soi, détachement social subi.\n",
-                    culpabilite: "- CULPABILITÉ : Auto-accusation, poids moral écrasant, sentiment d'être le responsable.\n",
-                    nostalgie: "- NOSTALGIE : Regret mélancolique d'une époque ou d'un bonheur révolu.\n",
-                    abandon: "- ABANDON : Sensation de trahison affective, délaissement, détresse de se retrouver seul.\n",
-                    detresse: "- DÉTRESSE : Appel à l'aide tacite, désemparé face à une situation insurmontable.\n",
-
-                    // 🧠 BLOCAGES & DISCRÉTION (13)
-                    gene: "- GÊNE : Trouble relationnel, mouvements gauches, attitude inconfortable.\n",
-                    malaise: "- MALAISE : Tension palpable, silence lourd, embarras situationnel flagrant.\n",
-                    hesitation: "- HÉSITATION : Posture indécise, flottement avant d'agir, gestes interrompus.\n",
-                    honte: "- HONTE : Profil bas, oreilles plaquées, évitement systématique du regard.\n",
-                    mefiance: "- MÉFIANCE : Prudence extrême, observation suspicieuse, analyse des arrières-pensées.\n",
-                    mystere: "- MYSTÈRE : Comportement énigmatique, secrets gardés, non-dits volontaires.\n",
-                    folie: "- FOLIE : Regard erratique, instabilité mentale, incohérence comportementale.\n",
-                    crise: "- CRISE : Explosion émotionnelle, saturation nerveuse, perte de contrôle psychologique.\n",
-                    timidite: "- TIMIDITÉ : Posture réservée, effacement volontaire, hésitation à prendre la parole.\n",
-                    paranoia: "- PARANOÏA : Sentiment injustifié de persécution, voir des ennemis partout.\n",
-                    confusion: "- CONFUSION : Esprit embrouillé, désorientation intellectuelle, incompréhension des événements.\n",
-                    secret: "- SECRET : Rétention volontaire d'informations cruciales, dissimulation stratégique.\n",
-                    obsessif: "- OBSESSIF : Idée fixe, comportement compulsif focalisé sur un détail unique.\n",
-
-                    // 🤝 ATTACHEMENT & INTERACTIONS (12)
-                    amitie: "- AMITIÉ : Posture détendue, proximité fraternelle rassurante, ton ouvert.\n",
-                    complicite: "- COMPLICITÉ : Connexion immédiate, regards entendus, accord sans paroles.\n",
-                    drague: "- DRAGUE : Intention de séduction, pas feutrés et port de tête fier.\n",
-                    charme: "- CHARME : Charisme naturel envoûtant, magnétisme comportemental.\n",
-                    romance: "- ROMANCE : Intimité amoureuse, queue enlacée, bulle de tendresse.\n",
-                    tendresse: "- TENDRESSE : Gestes lents, contact physique affectueux, douceur.\n",
-                    malice: "- MALICE : Regard taquin, comportement espiègle, envie de plaisanter.\n",
-                    respect: "- RESPECT : Déférence polie, maintien des distances requises, considération.\n",
-                    empathie: "- EMPATHIE : Sensibilité face à la douleur d'autrui, écoute attentive.\n",
-                    loyaute: "- LOYAUTÉ : Fidélité indéfectible, respect absolu de la parole donnée.\n",
-                    devoement: "- DÉVOUEMENT : Sacrifice de soi au profit d'une cause ou d'un individu.\n",
-                    protection: "- PROTECTION : Posture défensive active pour abriter un allié du danger.\n",
-
-                    // ⚖️ VERTUS & LOGIQUE MENTALE (14)
-                    solennel: "- SOLENNEL : Posture droite, respect rigide des rituels et des lois du Code.\n",
-                    determination: "- DÉTERMINATION : Mâchoire serrée, pas ancrés au sol, focus inébranlable.\n",
-                    focus: "- FOCUS : Concentration extrême sur une tâche précise, isolation sensorielle.\n",
-                    bravoure: "- BRAVOURE : Affronter le danger de face de manière héroïque et visible.\n",
-                    courage: "- COURAGE : Surmonter activement une trouille interne pour accomplir l'action.\n",
-                    resilience: "- RÉSILIENCE : Capacité à encaisser les échecs et se remettre d'aplomb aussitôt.\n",
-                    fierte: "- FIERTÉ : Torse bombé, tête haute, refus de montrer ses vulnérabilités.\n",
-                    apatie: "- APATHIE : Indifférence clinique, absence totale de réaction émotionnelle.\n",
-                    detachement: "- DÉTACHEMENT : Prendre de la distance intellectuelle, esprit ailleurs.\n",
-                    froideur: "- FROIDEUR : Logique pure, ton tranchant, absence totale d'empathie relationnelle.\n",
-                    sagesse: "- SAGESSE : Calme philosophique, recul stratégique avant toute parole.\n",
-                    ambition: "- AMBITION : Volonté de grandeur, soif de pouvoir, calcul opportuniste.\n",
-                    neutralite: "- NEUTRALITÉ : Objectivité totale, refus de prendre parti dans le conflit.\n",
-                    patience: "- PATIENCE : Calme devant l'attente, maîtrise du timing, acceptation sereine du temps.\n"
-                };
-        activeMoodBtns.forEach(btn => {
-            const moodKey = btn.getAttribute("data-mood");
-            if (moodDictionary[moodKey]) moodInstruction += moodDictionary[moodKey];
-        });
-    }
-
-    outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🎲 Reroll : L'IA recalcule une variante avec les nouveaux attributs d'ambiance...</p>`;
-
-    // Récupération des fiches
-    const charData = charactersDB[window.currentActiveCharName] || {};
-    const skillsText = charData.competences ? charData.competences.join(", ") : "Guerrier standard";
-    
-    let maFicheDetaillee = "Pas de fiche spécifique trouvée. Respecte le tempérament de base.";
-    if (fiches) {
-        for (const key in fiches) {
-            if (window.currentActiveCharName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(window.currentActiveCharName.toLowerCase())) {
-                maFicheDetaillee = (fiches[key].resume || "") + "\n" + (fiches[key].complete || "");
-                break;
-            }
-        }
-    }
-
-    let catLorePrompt = "GUIDE COMPORTEMENTAL FÉLIN (À utiliser pour enrichir le langage corporel) :\n";
-    if (typeof catBehaviorKnowledge === "object") {
-        for (const category in catBehaviorKnowledge) {
-            for (const behavior in catBehaviorKnowledge[category]) {
-                catLorePrompt += `- ${behavior.replace(/_/g, ' ').toUpperCase()} : ${catBehaviorKnowledge[category][behavior]}\n`;
-            }
-        }
-    }
-
-    // Reconstruction du prompt avec les instructions de base d'origine
-    let systemPrompt = `Tu es un coach d'écriture expert et un joueur d'élite pour un forum RPG écrit basé sur l'univers de La Guerre des Clans. 
-Tu rédiges au nom du personnage suivant : ${window.currentActiveCharName}.
-
-Fiche technique du personnage :
-- Compétences et caractéristiques clés : ${skillsText}
-- Profil psychologique & Histoire :
-${maFicheDetaillee}
-
-<consignes_syntaxe_markdown>
-[... Garde ici les consignes de syntaxe à l'identique de ton bouton principal pour économiser de la place ...]
-</consignes_syntaxe_markdown>
-
-⚠️ RAPPEL DE FIN IMMÉDIAT (SÉCURITÉ ANTI-CRASH) : Écris les paroles en texte normal après le "> ".`;
-
-    if (instructions) {
-        systemPrompt += `👉 DIRECTIVE DE SCÉNARIO ET DE STYLE : "${instructions}"\n\n`;
-    }
-    if (moodInstruction) {
-        systemPrompt += `${moodInstruction}\n`;
-    }
-
-    systemPrompt += `Consignes narratives et stylistiques absolues (Anti-Détection IA) : 3ème personne du singulier, ne pas faire jouer les autres,Burstiness & Perplexity.\n\n`;
-
-    // Rechargement historique des messages
-    let historiqueContext = "Voici la discussion telle qu'elle s'est déroulée chronologiquement :\n";
-    try {
-        const messagesRef = collection(db, "rps_pending", window.currentActiveRpId, "messages");
-        const q = query(messagesRef, orderBy("createdAt", "asc"));
-        const snap = await getDocs(q);
-        snap.forEach(d => {
-            const m = d.data();
-            historiqueContext += `[${m.sender}]: ${m.text}\n`;
-        });
-    } catch (e) { console.error(e); }
-
-    systemPrompt += historiqueContext;
-
-    let mistralMessages = [{ role: "system", content: systemPrompt }];
-
-    // Rechargement de l'historique de l'assistant IA
-    try {
-        const aiHistoryRef = collection(db, "rps_pending", window.currentActiveRpId, "ai_history");
-        const qAi = query(aiHistoryRef, orderBy("createdAt", "asc"));
-        const snapAi = await getDocs(qAi);
-        if (!snapAi.empty) {
-            snapAi.forEach(d => {
-                const m = d.data();
-                const messageContent = m.content || m.text || "";
-                if (m.role && messageContent) {
-                    mistralMessages.push({ role: m.role, content: messageContent });
-                }
-            });
-        }
-    } catch (e) { console.error(e); }
-
-    let currentPrompt = "";
-    if (dernierPromptJoueur) {
-        currentPrompt += `[Note ou action contextuelle récente transmise par le joueur] : ${dernierPromptJoueur}\n`;
-    }
-    currentPrompt += `\nTu devez maintenant rédiger une VARIANTE de réplique pour mon personnage "${window.currentActiveCharName}". Respecte la charte Markdown.`;
-
-    mistralMessages.push({ role: "user", content: currentPrompt });
-
-    try {
-        const response = await fetch(MISTRAL_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${MISTRAL_API_KEY}` },
-            body: JSON.stringify({ model: "mistral-large-latest", messages: mistralMessages, temperature: 0.85 }) // Légèrement plus haut pour forcer le changement créatif
-        });
-        
-        if (!response.ok) throw new Error(`Code erreur API Mistral : ${response.status}`);
-        const data = await response.json();
-
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            let textAiRaw = data.choices[0].message.content;
-            outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">🛡️ Analyse sémantique et sécurisation de la syntaxe en cours...</p>`;
-            
-            let textAi = await nettoyerSyntaxeDialogue(textAiRaw);
-
-            // Remplacer ou ajouter la vue exclusive HTML (Recopie la fin exacte de ton bouton d'origine pour générer le innerHTML et lier les 3 addEventListener des boutons de copie et de visionnage).
-            const textAiHTML = parseRP(textAi);
-            
-            // On réinjecte le bloc d'affichage
-            outputDiv.innerHTML = `
-                <div class="co-write-display" style="border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span style="color:#a777e3; font-weight:bold;">Suggéré (Variante Reroll) pour ${window.currentActiveCharName} :</span>
-                        <div style="display: flex; gap: 5px;">
-                            <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
-                            <button id="btnCopierCoWrite" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
-                        </div>
-                    </div>
-                    <div style="color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;">${textAiHTML}</div>
-                </div>
-                `;
-
-            // Ré-attacher les écouteurs d'événements du nouveau HTML injecté
-            document.getElementById("btnCopierCoWrite").addEventListener("click", function() {
-                navigator.clipboard.writeText(textAi);
-                this.innerText = "✓ Copié !";
-            });
-            document.getElementById("btnVoirCoWrite").addEventListener("click", function() {
-                document.getElementById("coWriteExclusiveModal").style.display = "flex";
-            });
-            document.getElementById("btnCloseExclusive").addEventListener("click", function() {
-                document.getElementById("coWriteExclusiveModal").style.display = "none";
-            });
-        }
-    } catch (err) {
-        console.error(err);
-        outputDiv.innerHTML = "<span style='color:#e74c3c;'>Erreur lors du Reroll.</span>";
     }
 };
 
@@ -1398,21 +1154,21 @@ window.relireLaScene = async function() {
             if (outputDiv) {
                 let reponsePropre = await parseRP(resumeIa)
                 outputDiv.innerHTML = `
-                    <div style="background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;">
-                        <strong style="color: #a777e3; display: block; margin-bottom: 6px;">🎬 Brief de situation (Relecture) :</strong>
-                        <button id="btnVoirCoWrite" style="background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor:pointer;">👁️ Voir</button>
-                        <button id="btnCopierResume" style="background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;">Copier</button>
+                    <div id="MisePlaceClassique">
+                        <strong id="TitreResumeClassique">🎬 Brief de situation (Relecture) :</strong>
+                        <button id="btnVoirCoWrite">👁️ Voir</button>
+                        <button id="btnCopierResume">Copier</button>
                         ${reponsePropre}
                     </div>
 
-                    <div id="coWriteExclusiveModal" style="display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;">
-        <div style="background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-            <div style="padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;">
-                <h3 style="margin: 0; color: #ffcc00;">📖 Visionnage Résumé</h3>
-                <button id="btnCloseExclusive" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+                    <div id="coWriteExclusiveModal" class="Resume">
+        <div id="MisePlaceArriere">
+            <div id="HeaderResume">
+                <h3 id="TitreResume">📖 Visionnage Résumé</h3>
+                <button id="btnCloseExclusive">&times;</button>
                 
                 </div>
-            <div class="co-write-display" style="flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;">
+            <div class="co-write-display" id="ReponseResume">
                 ${reponsePropre}
             </div>
         </div>
@@ -1467,11 +1223,12 @@ window.relireLaScene = async function() {
 
         if (!modal) return;
 
-        // Ouvrir la modale
+        // Ouvrir la modale (placement gardé en JS)
         modal.style.setProperty("display", "flex", "important");
 
         if (loading) {
             loading.style.setProperty("display", "block", "important");
+            loading.className = "trauma-loading-text";
             loading.innerText = "⚡ Le Clan des Étoiles consulte les souvenirs de la scène...";
         }
         if (content) content.style.setProperty("display", "none", "important");
@@ -1488,30 +1245,30 @@ window.relireLaScene = async function() {
                     // 1. Statut Général
                     if (statusEl) statusEl.innerText = `⚡ Bilan actuel pour : ${charName} (${bilan.statutGeneral || 'État stable'})`;
                     
-                    // --- RECONSTRUCTION DES FONCTIONS DE RENDU ---
+                    // --- RECONSTRUCTION DES FONCTIONS DE RENDU NETTOYÉES ---
                     function genererStructureHtml(donnee) {
                         if (typeof donnee === "string" || typeof donnee === "number") {
-                            return `<p style="margin: 4px 0; line-height: 1.6; color: #e0e0e0; font-size: 1.1rem;">${donnee}</p>`;
+                            return `<p class="trauma-text-item">${donnee}</p>`;
                         }
                         if (Array.isArray(donnee)) {
-                            return `<ul style="margin: 6px 0; padding-left: 20px; list-style-type: '🌿 '; line-height: 1.6; color: #e0e0e0;">` +
-                                donnee.map(item => `<li style="margin-bottom: 6px;">${genererStructureHtml(item)}</li>`).join("") +
+                            return `<ul class="trauma-list">` +
+                                donnee.map(item => `<li>${genererStructureHtml(item)}</li>`).join("") +
                             `</ul>`;
                         }
                         if (typeof donnee === "object" && donnee !== null) {
-                            let sousBloc = `<div style="display: flex; flex-direction: column; gap: 8px; padding-left: 10px; margin-top: 5px;">`;
+                            let sousBloc = `<div class="trauma-subblock">`;
                             for (const [cle, valeur] of Object.entries(donnee)) {
                                 const cleAvecEspaces = cle.replace(/_/g, ' ');
                                 const titreCle = cleAvecEspaces.charAt(0).toUpperCase() + cleAvecEspaces.slice(1);
                                 
                                 if (typeof valeur === "object" && valeur !== null) {
-                                    sousBloc += `<div style="margin-top: 10px; border-left: 2px dashed rgba(255, 204, 0, 0.3); padding-left: 15px;">
-                                        <strong style="color: #ffcc00; font-size: 1.1rem;">🐾 ${titreCle}</strong>
+                                    sousBloc += `<div class="trauma-subcard">
+                                        <strong class="trauma-title-gold">🐾 ${titreCle}</strong>
                                         ${genererStructureHtml(valeur)}
                                     </div>`;
                                 } else {
-                                    sousBloc += `<p style="margin: 3px 0; line-height: 1.5; color: #e0e0e0;">
-                                        <strong style="color: #ffcc00;">✨ ${titreCle} :</strong> ${valeur}
+                                    sousBloc += `<p style="margin: 3px 0; line-height: 1.5;" class="trauma-text-item">
+                                        <strong class="trauma-label-gold">✨ ${titreCle} :</strong> ${valeur}
                                     </p>`;
                                 }
                             }
@@ -1521,18 +1278,18 @@ window.relireLaScene = async function() {
                         return "";
                     }
 
-                    // 2. Rendu des Blessures Physiques (Protégé contre les objets)
+                    // 2. Rendu des Blessures Physiques
                     if (physicalEl) {
                         physicalEl.innerHTML = (bilan.blessuresPhysiques)
                             ? genererStructureHtml(bilan.blessuresPhysiques)
-                            : `<p style="color:#aaa;">Aucune blessure physique apparente détectée.</p>`;
+                            : `<p class="trauma-empty-text">Aucune blessure physique apparente détectée.</p>`;
                     }
                     
-                    // 3. Rendu des Séquelles Mentales (Protégé contre les objets)
+                    // 3. Rendu des Séquelles Mentales
                     if (mentalEl) {
                         mentalEl.innerHTML = (bilan.traumatismesMentaux)
                             ? genererStructureHtml(bilan.traumatismesMentaux)
-                            : `<p style="color:#aaa;">Esprit serein. Aucun traumatisme psychologique à signaler.</p>`;
+                            : `<p class="trauma-empty-text">Esprit serein. Aucun traumatisme psychologique à signaler.</p>`;
                     }
                     
                     // 4. RENDU VISUEL AVANCÉ DU CONSEIL GUÉRISSEUR
@@ -1545,8 +1302,8 @@ window.relireLaScene = async function() {
                                 const sectionAvecEspaces = section.replace(/_/g, ' ');
                                 const titreSection = sectionAvecEspaces.toUpperCase();
                                 htmlResultat += `
-                                    <div style="background: rgba(255, 204, 0, 0.03); border: 1px solid rgba(255, 204, 0, 0.15); border-radius: 6px; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.3);">
-                                        <h4 style="margin: 0 0 10px 0; color: #ffcc00; font-size: 1.1rem; border-bottom: 1px dashed rgba(255,204,0,0.2); padding-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                                    <div class="trauma-guerisseur-card">
+                                        <h4 class="trauma-guerisseur-title">
                                             🌿 ${titreSection}
                                         </h4>
                                         ${genererStructureHtml(contenu)}
@@ -1569,12 +1326,14 @@ window.relireLaScene = async function() {
                 } else {
                     if (loading) {
                         loading.style.setProperty("display", "block", "important");
+                        loading.className = "trauma-error-text";
                         loading.innerText = "❌ Le Clan des Étoiles n'a pas pu structurer son message. Réessaye l'analyse.";
                     }
                 }
             } else {
                 if (loading) {
                     loading.style.setProperty("display", "block", "important");
+                    loading.className = "trauma-error-text";
                     loading.innerText = "❌ Erreur : La fonction d'analyse est indisponible.";
                 }
             }
@@ -1582,6 +1341,7 @@ window.relireLaScene = async function() {
             console.error("Erreur durant l'analyse :", err);
             if (loading) {
                 loading.style.setProperty("display", "block", "important");
+                loading.className = "trauma-error-text";
                 loading.innerText = "❌ Une erreur technique est survenue.";
             }
         }

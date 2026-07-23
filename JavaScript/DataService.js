@@ -27,7 +27,7 @@ export async function getStatsSemaine() {
 
     snapshotSemaine.forEach(doc => {
         const data = doc.data();
-        const texte = data.text || data.content || "";
+        const texte = data.text || data.content || data.context || "";
         
         messagesSemaine++;
         
@@ -96,15 +96,21 @@ export async function getStatsMois() {
     let xpMois = 0;
     let stylesMois = { actions: 0, paroles: 0, pensees: 0 };
 
+console.log("Nombre de docs récupérés pour le mois :", snapshotMois.size);
+
     snapshotMois.forEach(doc => {
         const data = doc.data();
-        const texte = data.text || data.content || "";
+        const texte = data.text || data.content || data.context || "";
         
         messagesMois++;
         
         // Compte des mots local
-        motsMois += texte.trim().split(/\s+/).filter(m => m.length > 0).length;
 
+// 1. On nettoie les espaces au début et à la fin (trim)
+// 2. On découpe sur un ou plusieurs espaces (\s+)
+// 3. On filtre pour ignorer les éléments vides
+
+        motsMois += texte.trim().split(/\s+/).filter(m => m.length > 0).length;
         // Calcul XP local
         if (data.xpGain) {
             xpMois += Number(data.xpGain); 
@@ -165,7 +171,7 @@ export async function getStatsGlobales() {
 
     snapshotGlobal.forEach(doc => {
         const data = doc.data();
-        const texte = data.text || data.content || "";
+        const texte = data.text || data.content || data.context || "";
         
         messagesGlobal++;
         

@@ -1,5 +1,5 @@
 import { charactersDB, fiches } from './CharacterData.js';
-import { catBehaviorKnowledge } from './CatBehaviorData.js';
+import { catBehaviorKnowledge } from './CatBehaviorData.js?v=2';
 import { db } from '../Firebase.js';
 import { limit, collection, setDoc, addDoc, getDocs, doc, getDoc, query, orderBy, serverTimestamp, deleteDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { parseRP } from '../Markdown.js';
@@ -39,7 +39,7 @@ import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
         if (btnOuvrir.getAttribute("data-initialise") === "true") return;
         btnOuvrir.setAttribute("data-initialise", "true");
 
-        // 🔄 Fonction de rendu dynamique de la grille (appelée au clic et à la saisie)
+        // 🔄 Fonction de rendu dynamique de la grille
         function genererGrilleIngredients(filtre = "") {
             let htmlContenu = "";
             const motCle = filtre.toLowerCase().trim();
@@ -57,8 +57,8 @@ import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
 
                 if (itemsFiltrés.length > 0) {
                     htmlContenu += `
-                        <div style="grid-column: span 4; margin-top: 20px; margin-bottom: 8px; border-bottom: 1px dashed #222; padding-bottom: 6px;">
-                            <span style="color: #ffcc00; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-family: monospace;">
+                        <div class="ingredient-category-header">
+                            <span class="ingredient-category-title">
                                 📁 ${categorie} (${itemsFiltrés.length})
                             </span>
                         </div>
@@ -66,12 +66,13 @@ import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
 
                     for (const [id, item] of itemsFiltrés) {
                         const isChecked = window.ingrédientsSélectionnés.has(id) ? "checked" : "";
+                        // 🧼 NETTOYÉ : Tout le style en ligne et onmouseover/onmouseout ont été retirés
                         htmlContenu += `
-                            <label style="display: flex; align-items: flex-start; gap: 10px; background: #0e0e14; border: 1px solid #161622; padding: 10px; border-radius: 6px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#13131f'" onmouseout="this.style.background='#0e0e14'">
-                                <input type="checkbox" class="rp-ingredient" data-id="${id}" ${isChecked} style="margin-top: 3px; cursor: pointer; accent-color: #ffcc00;">
-                                <div style="display: flex; flex-direction: column;">
-                                    <span style="color: #eee; font-size: 0.85rem; font-weight: 600;">${item.label || id}</span>
-                                    <span style="color: #666; font-size: 0.75rem; margin-top: 2px; line-height: 1.2;">${item.prompt || ''}</span>
+                            <label class="ingredient-card">
+                                <input type="checkbox" class="rp-ingredient ingredient-checkbox" data-id="${id}" ${isChecked}>
+                                <div class="ingredient-info">
+                                    <span class="ingredient-label">${item.label || id}</span>
+                                    <span class="ingredient-prompt">${item.prompt || ''}</span>
                                 </div>
                             </label>
                         `;
@@ -80,7 +81,7 @@ import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
             }
 
             if (!htmlContenu) {
-                htmlContenu = `<div style="grid-column: span 4; text-align: center; color: #555; padding: 40px 0; font-size: 0.9rem; font-family: monospace;">🔍 Aucun ingrédient RP ne correspond à votre recherche...</div>`;
+                htmlContenu = `<div class="ingredient-empty">🔍 Aucun ingrédient RP ne correspond à votre recherche...</div>`;
             }
 
             grille.innerHTML = htmlContenu;
@@ -104,8 +105,8 @@ import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
             const coches = window.ingrédientsSélectionnés ? window.ingrédientsSélectionnés.size : 0;
             if (badge) {
                 badge.innerText = coches;
-                badge.style.background = coches > 0 ? "#ffcc00" : "#444";
-                badge.style.color = coches > 0 ? "#000" : "#aaa";
+                // 🧼 NETTOYÉ : Bascule propre de la classe .has-count au lieu de manipuler style.background
+                badge.classList.toggle("has-count", coches > 0);
             }
         }
 
@@ -161,7 +162,6 @@ import { DICTIONNAIRE_INGREDIENTS_RP } from './IngredientsData.js';
         setTimeout(() => { window.initialiserModalIngredientsSecrets(); }, 50);
     }
 })();
-
 const outputDiv = document.getElementById("coWriteAiOutput");
 
 export async function genererMessagesMistral() {
@@ -346,7 +346,7 @@ ${ingredientsSelectionnes.join("\n")}
         });
     }
 
-    outputDiv.innerHTML = `<p style="color:#a777e3;" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
+    outputDiv.innerHTML = `<p id="HistoriqueLecture" class="blink">✍️ L'IA consulte la mémoire de la conversation et l'historique...</p>`;
 
     const CORRESPONDANCE = { "Nuage de Lynx": "Frasques du Lynx" };
     const firestoreDocId = CORRESPONDANCE[window.currentActiveCharName] || window.currentActiveCharName;

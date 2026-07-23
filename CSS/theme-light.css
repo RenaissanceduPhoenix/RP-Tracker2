@@ -1,0 +1,164 @@
+/* ============================================================================
+   ☀️ THEME LIGHT - AMBIANCE NATURE & TERRE DOREE
+   Adapté spécifiquement pour 'lightv3.jpg'
+   ============================================================================ */
+
+/* 1. Fond d'écran global */
+body.light-mode {
+    background: #14110d url('lightv3.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+    color: #f3ece0 !important; /* Texte crème pour une lisibilité parfaite */
+}
+
+/* 2. Titres h2 (Ajustement du trait latéral et de la couleur) */
+body.light-mode h2 {
+    color: #ffffff !important;
+    border-left-color: #d4a359 !important; /* Accentuation Ambre Doré */
+}
+
+/* 3. Boîtes principales (Ajustement du fond et des ombres dorées) */
+body.light-mode .box {
+    border-color: rgba(212, 163, 89, 0.4) !important;
+    box-shadow: 0 0 20px rgba(212, 163, 89, 0.15), inset 0 0 10px rgba(0, 0, 0, 0.6) !important;
+    background: rgba(22, 18, 14, 0.88) !important; /* Marron très sombre chaud & translucide */
+    backdrop-filter: blur(10px) !important;
+}
+
+/* 4. Champs de saisie (Inputs, Textareas, Selects) */
+body.light-mode input,
+body.light-mode textarea,
+body.light-mode select {
+    background: #191410 !important;
+    border-color: rgba(212, 163, 89, 0.35) !important;
+    color: #f3ece0 !important;
+}
+
+body.light-mode input:focus,
+body.light-mode textarea:focus,
+body.light-mode select:focus {
+    border-color: #e5b76b !important;
+    box-shadow: 0 0 8px rgba(229, 183, 107, 0.4) !important;
+}
+
+/* 5. Boutons (Passage au ton cuivre/doré) */
+body.light-mode button {
+    background: #c28e46 !important;
+    color: #0d0a07 !important; /* Texte sombre sur bouton clair pour fort contraste */
+}
+
+body.light-mode button:hover {
+    background: #d4a359 !important;
+}
+
+/* 6. Feedback & Erreurs */
+body.light-mode .input-error {
+    border-color: #e74c3c !important;
+}
+
+body.light-mode .feedback-success-msg {
+    color: #52c41a !important;
+}
+
+/* 7. Cartes de statistiques (Stat Cards) */
+body.light-mode .stat-card {
+    background: rgba(31, 25, 20, 0.8) !important;
+    border-color: rgba(212, 163, 89, 0.25) !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.light-mode .stat-card h3 {
+    color: #e5b76b !important;
+}
+
+body.light-mode .stat-card .stat-value {
+    color: #ffffff !important;
+    text-shadow: 0 0 8px rgba(212, 163, 89, 0.4) !important;
+}
+
+/* 8. Cartes d'avatars de personnages */
+body.light-mode .character-avatar-card {
+    background: rgba(28, 22, 17, 0.6) !important;
+    border-color: rgba(212, 163, 89, 0.15) !important;
+}
+
+body.light-mode .character-avatar-card:hover {
+    border-color: #d4a359 !important;
+    background: rgba(40, 31, 24, 0.8) !important;
+}
+
+/* ============================================================================
+   ☀️ THEME LIGHT - AMBIANCE TERRE DOREE (SUITE)
+   ============================================================================ */
+
+/* 1. État Survol / Actif des cartes de personnages */
+body.light-mode .character-avatar-card:hover, 
+body.light-mode .character-avatar-card.active {
+    border-color: #d4a359 !important;
+    background: rgba(212, 163, 89, 0.12) !important;
+}
+
+/* 2. Photo de profil circulaire */
+body.light-mode .character-avatar-img {
+    border-color: rgba(212, 163, 89, 0.6) !important;
+    box-shadow: 0 0 10px rgba(212, 163, 89, 0.25) !important;
+    background: #191410 !important;
+}
+
+/* 3. Nom de l'avatar */
+body.light-mode .character-avatar-name {
+    color: #f3ece0 !important;
+}
+
+/* 4. Contenu de la fiche personnage */
+body.light-mode .fiche-content {
+    background: rgba(15, 12, 9, 0.6) !important;
+    border-color: rgba(212, 163, 89, 0.15) !important;
+}
+
+/* 5. Cartes de RP */
+body.light-mode .rp-card {
+    background: rgba(22, 18, 14, 0.88) !important;
+    border-color: rgba(212, 163, 89, 0.35) !important;
+    border-left-color: #e5b76b !important; /* Ligne d'accentuation dorée */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.light-mode .rp-card:hover {
+    box-shadow: 0 6px 20px rgba(212, 163, 89, 0.2) !important;
+}
+
+/* 6. Dialogues RP */
+body.light-mode .rp-dialogue {
+    border-left-color: #e5b76b !important;
+}
+
+body.light-mode .rp-speech {
+    color: #e5b76b !important;
+}
+
+/* 7. Badges / Tags (Ajustement des opacités pour les fonds sombres) */
+body.light-mode .badge-tag.action { 
+    background: rgba(255, 77, 77, 0.2) !important; 
+    color: #ff6b6b !important; 
+    border-color: rgba(255, 77, 77, 0.4) !important;
+}
+body.light-mode .badge-tag.romance { 
+    background: rgba(255, 102, 178, 0.2) !important; 
+    color: #ff85c2 !important; 
+    border-color: rgba(255, 102, 178, 0.4) !important;
+}
+body.light-mode .badge-tag.important { 
+    background: rgba(255, 170, 0, 0.2) !important; 
+    color: #ffbb33 !important; 
+    border-color: rgba(255, 170, 0, 0.4) !important;
+}
+body.light-mode .badge-tag.rapide { 
+    background: rgba(0, 184, 148, 0.2) !important; 
+    color: #2bcbba !important; 
+    border-color: rgba(0, 184, 148, 0.4) !important;
+}
+body.light-mode .badge-tag.chill { 
+    background: rgba(0, 151, 230, 0.2) !important; 
+    color: #4cd137 !important; 
+    border-color: rgba(0, 151, 230, 0.4) !important; 
+}

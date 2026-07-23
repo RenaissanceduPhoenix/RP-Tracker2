@@ -5,9 +5,12 @@ const MISTRAL_API_KEY = "nVW87olvLqN1sMoh7oZfiA3xi3xKr2OT";
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
 export let dictionnaireActionsCache = [];
+export let dictionnaireDialoguesCache = [];
 
 async function chargerArsenalDictionnaire() {
     try {
+        // ✨ Version corrigée, ultra-propre et fonctionnelle :
+await new Promise(resolve => setTimeout(resolve, 2000));
         const dicoRef = doc(db, "dictionnaires", "rpg_feline");
         const docSnap = await getDoc(dicoRef);
         if (docSnap.exists() && docSnap.data().actions) {
@@ -204,6 +207,8 @@ export async function autoApprendreEtEnrichirDico(texteBrut) {
     // Reste identique...
     if (!texteBrut) return;
     try {
+        // ✨ Version corrigée, ultra-propre et fonctionnelle :
+await new Promise(resolve => setTimeout(resolve, 2000));
         const response = await fetch(MISTRAL_URL, {
             method: "POST",
             headers: { 

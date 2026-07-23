@@ -34,14 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     import("./Markdown.js?v=2.5"),
                     import("./RP.js?v=5"),
                     import("./FeaturesBonus/UrgencyTags.js"),
+                    import("./FeaturesBonus/alertes_inactivite.js?v=2"),
                     import("./Chart.js"),
                     import("./FeaturesBonus/Tags.js"),
                     import("./FeaturesBonus/CharacterGalery.js?v=2.4"),
                     import("./FeaturesBonus/PersoAffichage.js?v=2.4"),
-                    import("./FeaturesBonus/AICoachs.js?v=16.8"),
+                    import("./FeaturesBonus/AICoachs.js?v=16.9"),
                     import("./FeaturesBonus/CharacterData.js?v=2.4"),
                     import("./FeaturesBonus/RpHistorySummary.js?v=2.2"),
-                    import("./Firebase.js")
+                    import("./Firebase.js"),
+                    import("./FeaturesBonus/Thème.js")
                 ]);
 
                 console.log("📚 Tous les scripts de jeu ont été importés et exécutés avec succès.");

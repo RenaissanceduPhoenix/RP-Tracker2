@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RP Tracker PRO - Renaissance du Phoenix</title>
-    <link rel="stylesheet" href="./CSS/Style.css?v=4.4">
+    <link rel="stylesheet" href="./CSS/Style.css?v=4.6">
+    <link rel="stylesheet" href="./CSS/theme-light.css?v=2">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="icon" type="image/ico" href="./CSS/Logo/Favicon-32.ico">
 </head>
@@ -17,65 +18,92 @@
 </div>
 
 <div id="main-dashboard" class="hidden">
-    <div class="box header-box" style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-sizing: border-box; gap: 20px; flex-wrap: wrap;">
+    <div class="box header-box">
         
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-            <h2 style="margin: 0; font-size: 1.4rem; color: #fff; font-weight: bold;">
-               <a href="https://improved-rotary-phone-jrg5v75vg973qxx6.github.dev/" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none;"> RP Tracker PRO</a> - <a href="https://github.com/RenaissanceduPhoenix/RP-Tracker2" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none;">Renaissance du Phoenix</a>
+        <div class="header-info-group">
+            <h2 class="header-title">
+                <a href="https://improved-rotary-phone-jrg5v75vg973qxx6.github.dev/" target="_blank" rel="noopener noreferrer">RP Tracker PRO</a> - 
+                <a href="https://github.com/RenaissanceduPhoenix/RP-Tracker2" target="_blank" rel="noopener noreferrer">Renaissance du Phoenix</a>
             </h2>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <small style="color: #888; font-size: 0.8rem;">Version 4.5.2</small>
-                <small id="db-status" style="color: #2ecc71; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
-                    <a href="https://console.firebase.google.com/project/rp-tracker-140ec/overview" target="_blank" rel="noopener noreferrer" style="color: #2ecc71; text-decoration: none;"><span style="animation: blink 2s infinite;">🟢</span> Serveur connecté</a>
+            <div class="header-sub-info">
+                <small class="header-version">Version 4.5.2</small>
+                <small id="db-status" class="header-db-status">
+                    <a href="https://console.firebase.google.com/project/rp-tracker-140ec/overview" target="_blank" rel="noopener noreferrer">
+                        <span class="header-db-blink">🟢</span> Serveur connecté
+                    </a>
                 </small>
-               <small>
-    <a href="https://discord.com/channels/@me" target="_blank" rel="noopener noreferrer" style="color: #a777e3; font-size: 1rem; font-weight: normal; margin-left: 8px; text-decoration: none;">
-        (@renaissanceduphoenix)
-    </a>
-</small>
+                <small>
+                    <a href="https://discord.com/channels/@me" target="_blank" rel="noopener noreferrer" class="header-discord-link">
+                        (@renaissanceduphoenix)
+                    </a>
+                </small>
             </div>
         </div>
 
-        <div style="display: flex; gap: 20px; background: rgba(255,255,255,0.02); padding: 8px 16px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
-            <div style="text-align: center;">
-                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alerte Pendings</span>
-                <strong id="global-pending-badge" style="color: #ff4a4a; font-size: 1.1rem;">--</strong>
+        <div class="header-stats-banner">
+            <div class="header-stat-item">
+                <span class="header-stat-label">Alerte Pendings</span>
+                <strong id="global-pending-badge" class="header-stat-value pending">--</strong>
             </div>
-            <div style="text-align: center;">
-                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Alerte Repondu</span>
-                <strong id="global-repondu" style="color: #3e34ff; font-size: 1.1rem;">--</strong>
+            <div class="header-stat-item">
+                <span class="header-stat-label">Alerte Repondu</span>
+                <strong id="global-repondu" class="header-stat-value repondu">--</strong>
             </div>
-            <div style="text-align: center;">
-                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Totalité Archivé</span>
-                <strong id="global-done" style="color: #008714; font-size: 1.1rem;">--</strong>
+            <div class="header-stat-item">
+                <span class="header-stat-label">Totalité Archivé</span>
+                <strong id="global-done" class="header-stat-value done">--</strong>
             </div>
-            <div style="text-align: center;">
-                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Total RP</span>
-                <strong id="global" style="color: #ffffff; font-size: 1.1rem;">--</strong>
+            <div class="header-stat-item">
+                <span class="header-stat-label">Total RP</span>
+                <strong id="global" class="header-stat-value total">--</strong>
             </div>
-            <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
-                <span style="display: block; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Rôle</span>
-                <strong id="user-role-badge" style="color: #ffcc00; font-size: 1.1rem; font-family: monospace;">Admin - Rôliste</strong>
+            
+            <div class="header-role-section">
+                <div>
+                    <span class="header-stat-label">Rôle</span>
+                    <strong id="user-role-badge" class="header-role-badge">Admin - Rôliste</strong>
+                </div>
+                
+                <label class="admin-toggle-switch">
+                    <input type="checkbox" id="toggle-admin-mode">
+                    <span class="admin-toggle-slider"></span>
+                </label>
             </div>
-        </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <button id="logout-btn" class="btn-secondary" style="margin: 0;">Déconnexion</button>
-        </div>
+            <div class="header-role-section">
+    <div>
+        <span class="header-stat-label">Thème</span>
+        <strong id="theme-mode-badge" class="header-role-badge">Sombre</strong>
     </div>
+    
+    <label class="admin-toggle-switch">
+        <input type="checkbox" id="toggle-theme-mode">
+        <span class="admin-toggle-slider"></span>
+    </label>
+</div>
+        </div>
+
+        <div class="header-actions-group">
+            <button id="logout-btn" class="btn-secondary">Déconnexion</button>
+            <button class="btn-secondary" onclick="window.verifierInactiviteEtNotifier()">Verifier l'Activité</button>
+        </div>
+
+    </div>
+</div>
+<main id="contenu-roliste">
 
     <div class="dashboard">
         <div class="row animate-fade-in">
-                <div class="box zone-ajout">
+            
+            <div class="box zone-ajout">
                 <h2>Ajouter un RP Envoyé</h2>
                 
-                <select id="char_sent" style="background: #0c0c10; border: 1px solid #444; color: white; padding: 6px 10px; font-size: 0.85rem; border-radius: 4px;">
+                <select id="char_sent" class="select-char-input">
                     <option value="">-- Choisir un personnage --</option>
                 </select>
                 
                 <input id="server_sent" placeholder="Nom du serveur">
-                
-                <textarea id="content_sent" placeholder="Colle ton RP ici pour l'XP..." style="margin-top: 10px;"></textarea>
+                <textarea id="content_sent" class="textarea-rp-content" placeholder="Colle ton RP ici pour l'XP..."></textarea>
                 
                 <button type="button" onclick="window.ajouterUnRpEnvoye()">
                     Ajouter aux envoyés
@@ -83,345 +111,355 @@
             </div>
 
             <div class="box zone-ajout-pending">
-    <h2>Nouveau RP en attente (Pending)</h2>
-    <input id="title" placeholder="Titre du RP" list="titresExistants" oninput="window.autoRemplirParticipants(this.value)">
-    <datalist id="titresExistants">
-        </datalist>
-    
-    <input id="char_received" placeholder="Ton personnage">
-    <input id="rp_participants" placeholder="Autres persos (ex: Étoile de Feu, Plume Grise)">
-    <input id="server_received" placeholder="Serveur">
-    <textarea id="content" placeholder="Colle le texte reçu..."></textarea>
-    <button onclick="addPending()">Ajouter aux pendings</button>
-</div>
+                <h2>Nouveau RP en attente (Pending)</h2>
+                <input id="title" placeholder="Titre du RP" list="titresExistants" oninput="window.autoRemplirParticipants(this.value)">
+                <datalist id="titresExistants"></datalist>
+                
+                <input id="char_received" placeholder="Ton personnage">
+                <input id="rp_participants" placeholder="Autres persos (ex: Étoile de Feu, Plume Grise)">
+                <input id="server_received" placeholder="Serveur">
+                <textarea id="content" placeholder="Colle le texte reçu..."></textarea>
+                <button type="button" onclick="addPending()">Ajouter aux pendings</button>
+            </div>
+
         </div>
     </div>
 
-<div class="row">
-            <div class="box zone-galerie" style="flex: 1;">
-                <h2>Galerie</h2>
-                <div id="char-gallery" class="char-gallery"></div>
-                
-                <div class="char-stats-mini-box">
-                    <p id="stat-pending-count">Attente : --</p>
-                    <p id="stat-sent-total">Total Envoyés : --</p>
-                </div>
-
-                <div class="galerie-actions">
-                    <button class="btn-reset" onclick="resetCharFilter()">Voir tous les personnages</button>
-                    <div class="btn-group">
-                        <button class="btn-profile" onclick="openFullPerso()">📊 Profil</button>
-                        <button class="btn-fiche" onclick="openOriginalFiche()">📜 Fiche</button>
-                    </div>
-                </div>
+    <div class="row">
+        <div class="box zone-galerie row-flex-1">
+            <h2>Galerie</h2>
+            <div id="char-gallery" class="char-gallery"></div>
+            
+            <div class="char-stats-mini-box">
+                <p id="stat-pending-count">Attente : --</p>
+                <p id="stat-sent-total">Total Envoyés : --</p>
             </div>
 
-            <div class="box zone-details-perso" style="flex: 2;">
-                <h2>Informations du Personnage</h2>
-                <div id="displayAreaPerso">
-                    <p class="empty-msg">Sélectionnez un personnage dans la galerie, puis cliquez sur 📊 Profil ou 📜 Fiche pour afficher les détails.</p>
+            <div class="galerie-actions">
+                <button type="button" class="btn-reset" onclick="resetCharFilter()">Voir tous les personnages</button>
+                <div class="btn-group">
+                    <button type="button" class="btn-profile" onclick="openFullPerso()">📊 Profil</button>
+                    <button type="button" class="btn-fiche" onclick="openOriginalFiche()">📜 Fiche</button>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="box zone-liste-pending" style="flex: 2;">
-                <h2>Mes RPs en Attente</h2>
-                <div id="pendingList" class="cards-container"></div>
-                <div id="displayAreaPending"></div>
+        <div class="box zone-details-perso row-flex-2">
+            <h2>Informations du Personnage</h2>
+            <div id="displayAreaPerso">
+                <p class="empty-msg">Sélectionnez un personnage dans la galerie, puis cliquez sur 📊 Profil ou 📜 Fiche pour afficher les détails.</p>
             </div>
+        </div>
+    </div>
 
-            <div class="box zone-graphique" style="flex: 3;">
+    <div class="row">
+        <div class="box zone-liste-pending row-flex-2">
+            <h2>Mes RPs en Attente</h2>
+            <div id="pendingList" class="cards-container"></div>
+            <div id="displayAreaPending"></div>
+        </div>
+
+        <div class="box zone-graphique row-flex-3">
+            <div class="zone-graphique-header">
                 <h2>Évolution de l'Activité</h2>
-                    <button id="btnZoomChart" title="Agrandir le graphique" style="background: none; border: none; color: #a777e3; cursor: pointer; font-size: 1.2rem; padding: 5px;">🔍</button>
-                <div class="controls" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <select id="viewType" onchange="loadCharts()">
-    <option value="total">📈 Total RP</option>
-    <option value="perso">👥 Par Personnage</option>
-    <option value="server">🖥️ Par Serveur</option>
-                    </select>
-                    <input type="text" id="startDate" placeholder="Date début">
-                    <input type="text" id="endDate" placeholder="Date fin">
-                </div>
-                <div class="canvas-container">
-                    <canvas id="chart"></canvas>
-                </div>
+                <button type="button" id="btnZoomChart" class="btn-zoom-chart" title="Agrandir le graphique">🔍</button>
+            </div>
+            
+            <div class="controls graph-controls">
+                <select id="viewType" onchange="loadCharts()">
+                    <option value="total">📈 Total RP</option>
+                    <option value="perso">👥 Par Personnage</option>
+                    <option value="server">🖥️ Par Serveur</option>
+                </select>
+                <input type="text" id="startDate" placeholder="Date début">
+                <input type="text" id="endDate" placeholder="Date fin">
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="chart"></canvas>
             </div>
         </div>
+    </div>
 
-        <div id="statsContainer" class="box">
-        </div>
+    <div id="statsContainer" class="box"></div>
 
+</main><div id="conteneur-admin-gestion" style="display: none;"></div>
 
-
-
-
-<div id="coWriteModal" class="chart-modal" style="display: none;">
+<div id="coWriteModal" class="chart-modal">
     <div class="chart-modal-content">
         <span class="chart-modal-close" onclick="closeCoWriteModal()">&times;</span>
-        <h2 id="coWriteModalTitle" style="color: #a777e3; margin-top: 0;">🖋️ Salon de Co-Écriture</h2>
+        <h2 id="coWriteModalTitle" class="cowrite-title">🖋️ Salon de Co-Écriture</h2>
         
-        <div id="traumaExclusiveModal" class="exclusive-modal" style="display: none;">
+        <div id="traumaExclusiveModal" class="exclusive-modal">
             <div class="trauma-modal">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ff4a4a; padding-bottom: 10px; margin-bottom: 15px;">
-                    <h2 id="traumaModalStatus" style="margin: 0; color: #ff4a4a; font-size: 1.5rem;">⚡ Analyse de l'impact Physique & Mental</h2>
-                    <button id="btnCloseTraumaExclusive" style="background: none; border: none; color: #ff4a4a; font-size: 1.8rem; cursor: pointer; font-weight: bold;">&times;</button>
+                <div class="trauma-modal-header">
+                    <h2 id="traumaModalStatus" class="trauma-modal-title">⚡ Analyse de l'impact Physique & Mental</h2>
+                    <button type="button" id="btnCloseTraumaExclusive" class="trauma-modal-close">&times;</button>
                 </div>
                 
-                <div id="traumaModalLoading" style="display: none; text-align: center; padding: 30px; font-size: 1.2rem; color: #ffcc00;">
+                <div id="traumaModalLoading" class="trauma-modal-loading">
                     ⚡ Le Clan des Étoiles analyse les blessures...
                 </div>
                 
-                <div id="traumaModalContent" style="display: none; flex-direction: column; gap: 20px; flex: 1;">
-                    <div style="display: flex; gap: 20px; flex: 1;">
-                        <div style="flex: 1; background: rgba(255,0,0,0.05); border: 1px solid rgba(255,74,74,0.2); padding: 15px; border-radius: 8px;">
-                            <h3 style="color: #ff6b6b; margin-top: 0; border-bottom: 1px solid rgba(255,107,107,0.2); padding-bottom: 5px;">🩸 Blessures Physiques</h3>
-                            <ul id="physicalWoundsList" class="wounds-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
+                <div id="traumaModalContent" class="trauma-modal-body">
+                    <div class="trauma-grid">
+                        <div class="trauma-box-physical">
+                            <h3>🩸 Blessures Physiques</h3>
+                            <ul id="physicalWoundsList" class="wounds-list"></ul>
                         </div>
-                        <div style="flex: 1; background: rgba(167,119,227,0.05); border: 1px solid rgba(167,119,227,0.2); padding: 15px; border-radius: 8px;">
-                            <h3 style="color: #a777e3; margin-top: 0; border-bottom: 1px solid rgba(167,119,227,0.2); padding-bottom: 5px;">🧠 Séquelles Psychologiques</h3>
-                            <ul id="mentalTraumaList" class="trauma-list" style="padding-left: 20px; margin: 10px 0 0 0;"></ul>
+                        <div class="trauma-box-mental">
+                            <h3>🧠 Séquelles Psychologiques</h3>
+                            <ul id="mentalTraumaList" class="trauma-list"></ul>
                         </div>
                     </div>
                     
-                    <div style="background: rgba(255,204,0,0.05); border: 1px solid rgba(255,204,0,0.2); padding: 15px; border-radius: 8px; margin-top: 25px;">
-                        <h3 style="color: #ffcc00; margin-top: 0; border-bottom: 1px solid rgba(255,204,0,0.2); padding-bottom: 5px;">🌿 Conseil du Guérisseur</h3>
-                        <p id="guerisseurText" class="healer-advice" style="margin: 10px 0 0 0; font-style: italic; line-height: 1.5; color: #e0e0e0;"></p>
+                    <div class="trauma-box-healer">
+                        <h3>🌿 Conseil du Guérisseur</h3>
+                        <p id="guerisseurText" class="healer-advice"></p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
-                <label style="color: #aaa; font-size: 0.85rem;">Auteur de la réplique :</label>
-                <select id="coWriteSenderName" style="background: #1c1c24; border: 1px solid #2c2c35; color: #fff; padding: 5px; border-radius: 4px; font-size: 0.85rem; width: 200px;">
+        <div class="cowrite-form-group">
+            <div class="cowrite-author-row">
+                <label class="cowrite-author-label">Auteur de la réplique :</label>
+                <select id="coWriteSenderName" class="cowrite-select-author">
                 </select>
             </div>
             
-            <div id="jdrDiceInterfaceContainer" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 15px; margin-top: 5px; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 204, 0, 0.2); padding-bottom: 6px;">
-                    <span style="color: #ffcc00; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">🎲 Dés de Situation</span>
-                    <small id="diceActiveCharLabel" style="color: #aaa; font-style: italic;"></small>
+            <div id="jdrDiceInterfaceContainer" class="jdr-dice-container">
+                <div class="jdr-dice-header">
+                    <span class="jdr-dice-title">🎲 Dés de Situation</span>
+                    <small id="diceActiveCharLabel" class="jdr-char-label"></small>
                 </div>
 
                 <div class="mood-selector-container">
-                    <button type="button" id="btnToggleConfigGlobal" style="background: rgba(167, 119, 227, 0.1); color: #a777e3; border: 1px solid #a777e3; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                    <button type="button" id="btnToggleConfigGlobal" class="btn-toggle-config">
                         ⚙️ Afficher la Configuration des dés et des émotions
                     </button>
 
-                    <div id="configGlobalContent" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #1c1c24; padding-top: 15px;">
+                    <div id="configGlobalContent" class="config-global-content">
                         
-                        <div class="mood-group">
-                            <span style="color: #ff5e5e; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚔️ COMBAT & PHYSIQUE</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="combat" onclick="window.basculerSelectionMood(this)" >Combat</button>
-                                <button type="button" class="mood-btn" data-mood="adrenaline" onclick="window.basculerSelectionMood(this)">Adrénaline</button>
-                                <button type="button" class="mood-btn" data-mood="epuisement" onclick="window.basculerSelectionMood(this)">Épuisement</button>
-                                <button type="button" class="mood-btn" data-mood="agonie" onclick="window.basculerSelectionMood(this)">Agonie</button>
-                                <button type="button" class="mood-btn" data-mood="douleur" onclick="window.basculerSelectionMood(this)">Douleur</button>
-                                <button type="button" class="mood-btn" data-mood="vitesse" onclick="window.basculerSelectionMood(this)">Vitesse</button>
-                                <button type="button" class="mood-btn" data-mood="furtivite" onclick="window.basculerSelectionMood(this)">Furtivité</button>
-                                <button type="button" class="mood-btn" data-mood="defense" onclick="window.basculerSelectionMood(this)">Défense</button>
-                                <button type="button" class="mood-btn" data-mood="faiblesse" onclick="window.basculerSelectionMood(this)">Faiblesse</button>
-                                <button type="button" class="mood-btn" data-mood="blessure" onclick="window.basculerSelectionMood(this)">Blessure</button>
-                                <button type="button" class="mood-btn" data-mood="reflexe" onclick="window.basculerSelectionMood(this)">Réflexe</button>
-                                <button type="button" class="mood-btn" data-mood="endurance" onclick="window.basculerSelectionMood(this)">Endurance</button>
-                                <button type="button" class="mood-btn" data-mood="brutalite" onclick="window.basculerSelectionMood(this)">Brutalité</button>
-                            </div>
-                        </div>
-
-                        <div class="mood-group">
-                            <span style="color: #ff9f43; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">😡 HOSTILITÉ & DOMINATION</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="colere">Colère</button>
-                                <button type="button" class="mood-btn" data-mood="rage">Rage</button>
-                                <button type="button" class="mood-btn" data-mood="cruaute">Cruauté</button>
-                                <button type="button" class="mood-btn" data-mood="sadisme">Sadisme</button>
-                                <button type="button" class="mood-btn" data-mood="provocation">Provocation</button>
-                                <button type="button" class="mood-btn" data-mood="mepris">Mépris</button>
-                                <button type="button" class="mood-btn" data-mood="arrogance">Arrogance</button>
-                                <button type="button" class="mood-btn" data-mood="vengeance">Vengeance</button>
-                                <button type="button" class="mood-btn" data-mood="menace">Menace</button>
-                                <button type="button" class="mood-btn" data-mood="haine">Haine</button>
-                                <button type="button" class="mood-btn" data-mood="rivalite">Rivalité</button>
-                                <button type="button" class="mood-btn" data-mood="tyrannie">Tyrannie</button>
-                                <button type="button" class="mood-btn" data-mood="defiance">Défi</button>
-                            </div>
-                        </div>
-
-                        <div class="mood-group">
-                            <span style="color: #54a0ff; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">💧 SOUFFRANCE PSYCHOLOGIQUE</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="tristesse">Tristesse</button>
-                                <button type="button" class="mood-btn" data-mood="deuil">Deuil</button>
-                                <button type="button" class="mood-btn" data-mood="peur">Peur</button>
-                                <button type="button" class="mood-btn" data-mood="terreur">Terreur</button>
-                                <button type="button" class="mood-btn" data-mood="angoisse">Angoisse</button>
-                                <button type="button" class="mood-btn" data-mood="regret">Regret</button>
-                                <button type="button" class="mood-btn" data-mood="desespoir">Désespoir</button>
-                                <button type="button" class="mood-btn" data-mood="solitude">Solitude</button>
-                                <button type="button" class="mood-btn" data-mood="culpabilite">Culpabilité</button>
-                                <button type="button" class="mood-btn" data-mood="nostalgie">Nostalgie</button>
-                                <button type="button" class="mood-btn" data-mood="abandon">Abandon</button>
-                                <button type="button" class="mood-btn" data-mood="detresse">Détresse</button>
-                                <button type="button" class="mood-btn" data-mood="trauma">Traumatisme</button>
-                            </div>
-                        </div>
-
-                        <div class="mood-group">
-                            <span style="color: #a777e3; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🧠 BLOCAGES, MALAISE & DISCRÉTION</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="gene">Gêne</button>
-                                <button type="button" class="mood-btn" data-mood="malaise">Malaise</button>
-                                <button type="button" class="mood-btn" data-mood="hesitation">Hésitation</button>
-                                <button type="button" class="mood-btn" data-mood="honte">Honte</button>
-                                <button type="button" class="mood-btn" data-mood="mefiance">Méfiance</button>
-                                <button type="button" class="mood-btn" data-mood="mystere">Mystère</button>
-                                <button type="button" class="mood-btn" data-mood="folie">Folie</button>
-                                <button type="button" class="mood-btn" data-mood="crise">Crise</button>
-                                <button type="button" class="mood-btn" data-mood="timidite">Timidité</button>
-                                <button type="button" class="mood-btn" data-mood="paranoia">Paranoïa</button>
-                                <button type="button" class="mood-btn" data-mood="confusion">Confusion</button>
-                                <button type="button" class="mood-btn" data-mood="secret">Secret</button>
-                                <button type="button" class="mood-btn" data-mood="perplexite">Perplexité</button>
-                            </div>
-                        </div>
-
-                        <div class="mood-group">
-                            <span style="color: #1dd1a1; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🤝 ATTACHEMENT & INTERACTIONS</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="amitie">Amitié</button>
-                                <button type="button" class="mood-btn" data-mood="complicite">Complicité</button>
-                                <button type="button" class="mood-btn" data-mood="drague">Drague</button>
-                                <button type="button" class="mood-btn" data-mood="charme">Charme</button>
-                                <button type="button" class="mood-btn" data-mood="romance">Romance</button>
-                                <button type="button" class="mood-btn" data-mood="tendresse">Tendresse</button>
-                                <button type="button" class="mood-btn" data-mood="malice">Malice</button>
-                                <button type="button" class="mood-btn" data-mood="respect">Respect</button>
-                                <button type="button" class="mood-btn" data-mood="empathie">Empathie</button>
-                                <button type="button" class="mood-btn" data-mood="loyaute">Loyauté</button>
-                                <button type="button" class="mood-btn" data-mood="devoement">Dévouement</button>
-                                <button type="button" class="mood-btn" data-mood="pardon">Pardon</button>
-                            </div>
-                        </div>
-
-                        <div class="mood-group">
-                            <span style="color: #feca57; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">⚖️ VERTUS & LOGIQUE MENTALE</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="mood-btn" data-mood="solennel">Solennel</button>
-                                <button type="button" class="mood-btn" data-mood="determination">Détermination</button>
-                                <button type="button" class="mood-btn" data-mood="focus">Focus</button>
-                                <button type="button" class="mood-btn" data-mood="bravoure">Bravoure</button>
-                                <button type="button" class="mood-btn" data-mood="courage">Courage</button>
-                                <button type="button" class="mood-btn" data-mood="resilience">Résilience</button>
-                                <button type="button" class="mood-btn" data-mood="fierte">Fierté</button>
-                                <button type="button" class="mood-btn" data-mood="apathie">Apathie</button>
-                                <button type="button" class="mood-btn" data-mood="detachement">Détachement</button>
-                                <button type="button" class="mood-btn" data-mood="froideur">Froideur</button>
-                                <button type="button" class="mood-btn" data-mood="sagesse">Sagesse</button>
-                                <button type="button" class="mood-btn" data-mood="ambition">Ambition</button>
-                                <button type="button" class="mood-btn" data-mood="patience">Patience</button>
-                            </div>
-                        </div>
-
-                        <div class="mood-group" style="border-top: 1px solid #1c1c24; padding-top: 12px; margin-top: 5px;">
-                            <span style="color: #ffcc00; font-size: 0.72rem; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">🎲 CAPACITÉS & LANCEURS DE DÉS</span>
-                            <div id="diceActionsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 4px;">
-                            </div>
-                        </div>
-
-                        <div id="diceResultZone" style="background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(255, 204, 0, 0.2); border-radius: 6px; padding: 12px; min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; color: #888; font-size: 0.95rem; margin-top: 5px;">
-                            Aucun dé lancé pour cette action. Cliquez sur une capacité ci-dessus.
-                        </div>
-
-                        <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
-    <button type="button" id="btnOuvrirIngredients" style="width: 100%; background: #1a1a24; border: 1px solid #444; color: #ffcc00; padding: 10px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; transition: all 0.2s;">
-        <span>✨ Configuration des Ingrédients Secrets</span>
-        <span id="badgeIngredientsCompte" style="background: #ffcc00; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">0</span>
-    </button>
-</div>
-                    </div> </div> </div> <div style="display: flex; gap: 10px; align-items: stretch; margin-top: 15px;">
-                <textarea id="coWriteContext" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..." style="flex: 1; height: 120px; background: #1c1c24; border: 1px solid #a777e3; color: #fff; padding: 8px; border-radius: 4px; resize: none; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
-                
-                <textarea id="coWriteAiInstructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)" style="flex: 1; height: 120px; background: #101015; border: 1px solid rgba(167,119,227,0.6); color: #fff; padding: 8px; border-radius: 4px; resize: none; font-size: 0.85rem; white-space: pre-wrap; word-wrap: break-word;"></textarea>
-                
-                <div style="display: flex; flex-direction: column; gap: 5px; justify-content: space-between;">
-                    <button id="btnSaveContext" style="background: #2c2c35; color: #fff; border: 1px solid #aaa; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;" onclick="window.Enregistrer()">💾 Enregistrer au RP</button>
-                    <button id="btnAiCoWrite" style="background: #a777e3; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: 100%;" onclick="window.EcrireIA()">✨ Écrire avec l'IA</button>
-                    <button type="button" onclick="window.relireLaScene()" style="background: #222; color: #ffcc00; border: 1px solid #ffcc00; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;">🎬 Relire la scène</button>
-                    <button id="btnDiagnosticTraumaSidebar" style="background:#ff4a4a; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:0.8rem; font-weight:bold; white-space:nowrap;">🩸 Bilan Séquelles (IA)</button>
-                    <div class="temperature-container" style="margin-top: 15px; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px;">
-    <label for="rangeTemperature" style="color: #fff; font-size: 0.9rem; display: flex; justify-content: space-between; font-weight: bold;">
-        <span>Fidélité / Créativité (Température)</span>
-        <span id="valeurTemperature" style="color: #ffcc00;">0.7</span>
-    </label>
-<input type="range" 
-       id="rangeTemperature" 
-       min="0.1" 
-       max="1.75" 
-       step="0.05" 
-       value="0.7" 
-       style="width: 100%; cursor: pointer; margin-top: 5px;" 
-       oninput="if(typeof window.mettreAJourTemperature === 'function') { window.mettreAJourTemperature(this.value); } else { const ind = document.getElementById('valeurTemperature'); if(ind) ind.innerText = this.value; }" >
-    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #aaa; margin-top: 2px;">
-        <span>Plus Précis (0.1)</span>
-        <span>Plus Créatif (1.75)</span>
+    <div class="mood-group">
+        <span class="mood-title combat">⚔️ COMBAT & PHYSIQUE</span>
+        <div class="mood-buttons-container">
+            <button type="button" class="mood-btn" data-mood="combat" onclick="window.basculerSelectionMood(this)">Combat</button>
+            <button type="button" class="mood-btn" data-mood="adrenaline" onclick="window.basculerSelectionMood(this)">Adrénaline</button>
+            <button type="button" class="mood-btn" data-mood="epuisement" onclick="window.basculerSelectionMood(this)">Épuisement</button>
+            <button type="button" class="mood-btn" data-mood="agonie" onclick="window.basculerSelectionMood(this)">Agonie</button>
+            <button type="button" class="mood-btn" data-mood="douleur" onclick="window.basculerSelectionMood(this)">Douleur</button>
+            <button type="button" class="mood-btn" data-mood="vitesse" onclick="window.basculerSelectionMood(this)">Vitesse</button>
+            <button type="button" class="mood-btn" data-mood="furtivite" onclick="window.basculerSelectionMood(this)">Furtivité</button>
+            <button type="button" class="mood-btn" data-mood="defense" onclick="window.basculerSelectionMood(this)">Défense</button>
+            <button type="button" class="mood-btn" data-mood="faiblesse" onclick="window.basculerSelectionMood(this)">Faiblesse</button>
+            <button type="button" class="mood-btn" data-mood="blessure" onclick="window.basculerSelectionMood(this)">Blessure</button>
+            <button type="button" class="mood-btn" data-mood="reflexe" onclick="window.basculerSelectionMood(this)">Réflexe</button>
+            <button type="button" class="mood-btn" data-mood="endurance" onclick="window.basculerSelectionMood(this)">Endurance</button>
+            <button type="button" class="mood-btn" data-mood="brutalite" onclick="window.basculerSelectionMood(this)">Brutalité</button>
+        </div>
     </div>
-<div class="range-container">
-    <label for="rangeNombreBlocs">Nombre de blocs de rédaction :</label>
-    <input type="range" id="rangeNombreBlocs" min="2" max="8" step="1" value="4" oninput="window.mettreAJourNombreBlocs(this.value)">
-    <span id="valeurNombreBlocs">4</span>
-</div>    
-</div>
-                </div>
-            </div>
 
-            <div id="coWriteAiOutput" style="color: #aaa; font-size: 0.85rem; min-height: 40px; margin-top: 10px;">
-                En attente d'une action...
-            </div>
-        </div> </div> </div> 
+    <div class="mood-group">
+        <span class="mood-title hostilite">😡 HOSTILITÉ & DOMINATION</span>
+        <div class="mood-buttons-container">
+            <button type="button" class="mood-btn" data-mood="colere" onclick="window.basculerSelectionMood(this)">Colère</button>
+            <button type="button" class="mood-btn" data-mood="rage" onclick="window.basculerSelectionMood(this)">Rage</button>
+            <button type="button" class="mood-btn" data-mood="cruaute" onclick="window.basculerSelectionMood(this)">Cruauté</button>
+            <button type="button" class="mood-btn" data-mood="sadisme" onclick="window.basculerSelectionMood(this)">Sadisme</button>
+            <button type="button" class="mood-btn" data-mood="provocation" onclick="window.basculerSelectionMood(this)">Provocation</button>
+            <button type="button" class="mood-btn" data-mood="mepris" onclick="window.basculerSelectionMood(this)">Mépris</button>
+            <button type="button" class="mood-btn" data-mood="arrogance" onclick="window.basculerSelectionMood(this)">Arrogance</button>
+            <button type="button" class="mood-btn" data-mood="vengeance" onclick="window.basculerSelectionMood(this)">Vengeance</button>
+            <button type="button" class="mood-btn" data-mood="menace" onclick="window.basculerSelectionMood(this)">Menace</button>
+            <button type="button" class="mood-btn" data-mood="haine" onclick="window.basculerSelectionMood(this)">Haine</button>
+            <button type="button" class="mood-btn" data-mood="rivalite" onclick="window.basculerSelectionMood(this)">Rivalité</button>
+            <button type="button" class="mood-btn" data-mood="tyrannie" onclick="window.basculerSelectionMood(this)">Tyrannie</button>
+            <button type="button" class="mood-btn" data-mood="defiance" onclick="window.basculerSelectionMood(this)">Défi</button>
+        </div>
+    </div>
 
-<div id="modalIngredientsSecrets" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-    <div style="background: #09090d; border: 1px solid #222; width: 95%; max-width: 95%; height: 90vh; border-radius: 8px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    <div class="mood-group">
+        <span class="mood-title souffrance">💧 SOUFFRANCE PSYCHOLOGIQUE</span>
+        <div class="mood-buttons-container">
+            <button type="button" class="mood-btn" data-mood="tristesse" onclick="window.basculerSelectionMood(this)">Tristesse</button>
+            <button type="button" class="mood-btn" data-mood="deuil" onclick="window.basculerSelectionMood(this)">Deuil</button>
+            <button type="button" class="mood-btn" data-mood="peur" onclick="window.basculerSelectionMood(this)">Peur</button>
+            <button type="button" class="mood-btn" data-mood="terreur" onclick="window.basculerSelectionMood(this)">Terreur</button>
+            <button type="button" class="mood-btn" data-mood="angoisse" onclick="window.basculerSelectionMood(this)">Angoisse</button>
+            <button type="button" class="mood-btn" data-mood="regret" onclick="window.basculerSelectionMood(this)">Regret</button>
+            <button type="button" class="mood-btn" data-mood="desespoir" onclick="window.basculerSelectionMood(this)">Désespoir</button>
+            <button type="button" class="mood-btn" data-mood="solitude" onclick="window.basculerSelectionMood(this)">Solitude</button>
+            <button type="button" class="mood-btn" data-mood="culpabilite" onclick="window.basculerSelectionMood(this)">Culpabilité</button>
+            <button type="button" class="mood-btn" data-mood="nostalgie" onclick="window.basculerSelectionMood(this)">Nostalgie</button>
+            <button type="button" class="mood-btn" data-mood="abandon" onclick="window.basculerSelectionMood(this)">Abandon</button>
+            <button type="button" class="mood-btn" data-mood="detresse" onclick="window.basculerSelectionMood(this)">Détresse</button>
+            <button type="button" class="mood-btn" data-mood="trauma" onclick="window.basculerSelectionMood(this)">Traumatisme</button>
+        </div>
+    </div>
+
+    <div class="mood-group">
+        <span class="mood-title blocages">🧠 BLOCAGES, MALAISE & DISCRÉTION</span>
+        <div class="mood-buttons-container">
+            <button type="button" class="mood-btn" data-mood="gene" onclick="window.basculerSelectionMood(this)">Gêne</button>
+            <button type="button" class="mood-btn" data-mood="malaise" onclick="window.basculerSelectionMood(this)">Malaise</button>
+            <button type="button" class="mood-btn" data-mood="hesitation" onclick="window.basculerSelectionMood(this)">Hésitation</button>
+            <button type="button" class="mood-btn" data-mood="honte" onclick="window.basculerSelectionMood(this)">Honte</button>
+            <button type="button" class="mood-btn" data-mood="mefiance" onclick="window.basculerSelectionMood(this)">Méfiance</button>
+            <button type="button" class="mood-btn" data-mood="mystere" onclick="window.basculerSelectionMood(this)">Mystère</button>
+            <button type="button" class="mood-btn" data-mood="folie" onclick="window.basculerSelectionMood(this)">Folie</button>
+            <button type="button" class="mood-btn" data-mood="crise" onclick="window.basculerSelectionMood(this)">Crise</button>
+            <button type="button" class="mood-btn" data-mood="timidite" onclick="window.basculerSelectionMood(this)">Timidité</button>
+            <button type="button" class="mood-btn" data-mood="paranoia" onclick="window.basculerSelectionMood(this)">Paranoïa</button>
+            <button type="button" class="mood-btn" data-mood="confusion" onclick="window.basculerSelectionMood(this)">Confusion</button>
+            <button type="button" class="mood-btn" data-mood="secret" onclick="window.basculerSelectionMood(this)">Secret</button>
+            <button type="button" class="mood-btn" data-mood="perplexite" onclick="window.basculerSelectionMood(this)">Perplexité</button>
+        </div>
+    </div>
+
+    <div class="mood-group">
+        <span class="mood-title attachement">🤝 ATTACHEMENT & INTERACTIONS</span>
+        <div class="mood-buttons-container">
+            <button type="button" class="mood-btn" data-mood="amitie" onclick="window.basculerSelectionMood(this)">Amitié</button>
+            <button type="button" class="mood-btn" data-mood="complicite" onclick="window.basculerSelectionMood(this)">Complicité</button>
+            <button type="button" class="mood-btn" data-mood="drague" onclick="window.basculerSelectionMood(this)">Drague</button>
+            <button type="button" class="mood-btn" data-mood="charme" onclick="window.basculerSelectionMood(this)">Charme</button>
+            <button type="button" class="mood-btn" data-mood="romance" onclick="window.basculerSelectionMood(this)">Romance</button>
+            <button type="button" class="mood-btn" data-mood="tendresse" onclick="window.basculerSelectionMood(this)">Tendresse</button>
+            <button type="button" class="mood-btn" data-mood="malice" onclick="window.basculerSelectionMood(this)">Malice</button>
+            <button type="button" class="mood-btn" data-mood="respect" onclick="window.basculerSelectionMood(this)">Respect</button>
+            <button type="button" class="mood-btn" data-mood="empathie" onclick="window.basculerSelectionMood(this)">Empathie</button>
+            <button type="button" class="mood-btn" data-mood="loyaute" onclick="window.basculerSelectionMood(this)">Loyauté</button>
+            <button type="button" class="mood-btn" data-mood="devoement" onclick="window.basculerSelectionMood(this)">Dévouement</button>
+            <button type="button" class="mood-btn" data-mood="pardon" onclick="window.basculerSelectionMood(this)">Pardon</button>
+        </div>
+    </div>
+
+    <div class="mood-group">
+        <span class="mood-title vertus">⚖️ VERTUS & LOGIQUE MENTALE</span>
+        <div class="mood-buttons-container">
+            <button type="button" class="mood-btn" data-mood="solennel" onclick="window.basculerSelectionMood(this)">Solennel</button>
+            <button type="button" class="mood-btn" data-mood="determination" onclick="window.basculerSelectionMood(this)">Détermination</button>
+            <button type="button" class="mood-btn" data-mood="focus" onclick="window.basculerSelectionMood(this)">Focus</button>
+            <button type="button" class="mood-btn" data-mood="bravoure" onclick="window.basculerSelectionMood(this)">Bravoure</button>
+            <button type="button" class="mood-btn" data-mood="courage" onclick="window.basculerSelectionMood(this)">Courage</button>
+            <button type="button" class="mood-btn" data-mood="resilience" onclick="window.basculerSelectionMood(this)">Résilience</button>
+            <button type="button" class="mood-btn" data-mood="fierte" onclick="window.basculerSelectionMood(this)">Fierté</button>
+            <button type="button" class="mood-btn" data-mood="apathie" onclick="window.basculerSelectionMood(this)">Apathie</button>
+            <button type="button" class="mood-btn" data-mood="detachement" onclick="window.basculerSelectionMood(this)">Détachement</button>
+            <button type="button" class="mood-btn" data-mood="froideur" onclick="window.basculerSelectionMood(this)">Froideur</button>
+            <button type="button" class="mood-btn" data-mood="sagesse" onclick="window.basculerSelectionMood(this)">Sagesse</button>
+            <button type="button" class="mood-btn" data-mood="ambition" onclick="window.basculerSelectionMood(this)">Ambition</button>
+            <button type="button" class="mood-btn" data-mood="patience" onclick="window.basculerSelectionMood(this)">Patience</button>
+        </div>
+    </div>
+
+    <div class="mood-group mood-group-dice">
+        <span class="mood-title capacites">🎲 CAPACITÉS & LANCEURS DE DÉS</span>
+        <div id="diceActionsList" class="dice-actions-grid"></div>
+    </div>
+
+    <div id="diceResultZone" class="dice-result-box">
+        Aucun dé lancé pour cette action. Cliquez sur une capacité ci-dessus.
+    </div>
+
+    <div class="ingredients-wrapper">
+        <button type="button" id="btnOuvrirIngredients" class="btn-ingredients-config">
+            <span>✨ Configuration des Ingrédients Secrets</span>
+            <span id="badgeIngredientsCompte" class="badge-ingredients-count">0</span>
+        </button>
+    </div>
+    
+</div> 
+</div> 
+</div> 
+
+<div class="cowrite-editor-row">
+    <textarea id="coWriteContext" class="textarea-cowrite-context" placeholder="Colle le message reçu, ton ébauche, ou le message d'un autre participant..."></textarea>
+    
+    <textarea id="coWriteAiInstructions" class="textarea-cowrite-instructions" placeholder="Consigne IA (ex: Suite plus dramatique, Corrige le ton...)"></textarea>
+    
+    <div class="cowrite-actions-column">
+        <button type="button" id="btnSaveContext" class="btn-cowrite-action save" onclick="window.Enregistrer()">💾 Enregistrer au RP</button>
+        <button type="button" id="btnAiCoWrite" class="btn-cowrite-action ai" onclick="window.EcrireIA()">✨ Écrire avec l'IA</button>
+        <button type="button" class="btn-cowrite-action relire" onclick="window.relireLaScene()">🎬 Relire la scène</button>
+        <button type="button" id="btnDiagnosticTraumaSidebar" class="btn-cowrite-action trauma">🩸 Bilan Séquelles (IA)</button>
         
-        <div style="padding: 15px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; background: #0c0c10; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-            <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-weight: 600; font-family: monospace;">
-                <span style="color: #ffcc00;">✨</span> Banque d'Ingrédients Secrets pour l'IA
+        <div class="temperature-container">
+            <label for="rangeTemperature" class="temp-label">
+                <span>Fidélité / Créativité (Température)</span>
+                <span id="valeurTemperature" class="temp-valeur">0.7</span>
+            </label>
+            <input type="range" 
+                   id="rangeTemperature" 
+                   min="0.1" 
+                   max="1.75" 
+                   step="0.05" 
+                   value="0.7" 
+                   class="range-input-temp" 
+                   oninput="if(typeof window.mettreAJourTemperature === 'function') { window.mettreAJourTemperature(this.value); } else { const ind = document.getElementById('valeurTemperature'); if(ind) ind.innerText = this.value; }">
+            
+            <div class="temp-legend">
+                <span>Plus Précis (0.1)</span>
+                <span>Plus Créatif (1.75)</span>
+            </div>
+            
+            <div class="range-container">
+                <label for="rangeNombreBlocs">Nombre de blocs de rédaction :</label>
+                <input type="range" id="rangeNombreBlocs" min="2" max="8" step="1" value="4" oninput="window.mettreAJourNombreBlocs(this.value)">
+                <span id="valeurNombreBlocs">4</span>
+            </div>    
+        </div>
+    </div>
+</div>
+
+            <div id="coWriteAiOutput" class="cowrite-ai-output">
+    En attente d'une action...
+</div>
+</div> 
+</div> 
+</div> 
+
+<div id="modalIngredientsSecrets" class="modal-ingredients-overlay">
+    <div class="modal-ingredients-content">
+        
+        <div class="modal-ingredients-header">
+            <h3 class="modal-ingredients-title">
+                <span class="icon-accent">✨</span> Banque d'Ingrédients Secrets pour l'IA
             </h3>
-            <span id="btnFermerIngredients" style="color: #aaa; font-size: 24px; font-weight: bold; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">&times;</span>
+            <span id="btnFermerIngredients" class="modal-ingredients-close">&times;</span>
         </div>
 
-        <div style="padding: 15px 20px 5px 20px; background: #09090d;">
+        <div class="modal-ingredients-search-container">
             <input 
                 type="text" 
                 id="barreRechercheIngredients" 
+                class="input-search-ingredients"
                 placeholder="🔍 Rechercher un ingrédient RP (ex: murmure, griffes, peur...)" 
-                style="width: 100%; padding: 10px 14px; background: #111116; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border-color 0.2s;"
-                onfocus="this.style.borderColor='#ffcc00'"
-                onblur="this.style.borderColor='#333'"
             />
         </div>
 
-        <div style="padding: 20px; overflow-y: auto; flex: 1;">
-            <p style="color: #888; font-size: 0.8rem; margin-top: 0; margin-bottom: 20px;">
+        <div class="modal-ingredients-body">
+            <p class="modal-ingredients-description">
                 Coche les éléments que l'IA doit impérativement faire apparaître dans son récit. Elle gérera sa broderie et l'ordre d'apparition de manière totalement libre.
             </p>
 
-            <div id="grilleDynamiqueIngredients" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+            <div id="grilleDynamiqueIngredients" class="grid-ingredients-dynamic">
             </div>
         </div>
 
-        <div style="padding: 15px 20px; border-top: 1px solid #222; text-align: right; background: #0c0c10; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-            <button type="button" id="btnValiderIngredients" style="background: #ffcc00; color: #000; border: none; padding: 8px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;" onmouseover="this.style.background='#e6b800'" onmouseout="this.style.background='#ffcc00'">
+        <div class="modal-ingredients-footer">
+            <button type="button" id="btnValiderIngredients" class="btn-validate-ingredients">
                 Valider la sélection (<span id="badgeIngredientsCompteur">0</span>)
             </button>
         </div>
     </div>
-</div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</div> 
+</div> 
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script type="module" src="./JavaScript/Authentification.js?v=2.1"></script>
-
 </body>
 </html>

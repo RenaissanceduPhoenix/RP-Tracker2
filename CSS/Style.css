@@ -117,12 +117,26 @@ button:hover {
     40%, 80% { transform: translateX(6px); }
 }
 
-.feedback-success {
-    animation: fadeIn 0.3s ease-out;
+/* ============================================================================
+   💬 RETROACTION & FEEDBACK (showFeedback)
+   ============================================================================ */
+
+/* État d'erreur sur l'élément */
+.input-error {
+    border-color: #e74c3c !important;
 }
 
+/* Message de succès */
+.feedback-success-msg {
+    color: #2ecc71;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Animation optionnelle pour l'apparition du message */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
+    from { opacity: 0; transform: translateY(-3px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -280,52 +294,12 @@ button:hover {
     box-shadow: 0 6px 20px rgba(167, 119, 227, 0.2);
 }
 
-/* En-tête de la carte (Auteur / Serveur) */
-.rp-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Aligne sur la flèche verte */
-    width: 100%;
-}
 
-/* Titre du RP */
-.rp-card-title {
-    font-weight: bold;
-    color: #fff;
-    font-size: 0.95rem;
-    margin-bottom: 6px;
-}
 
-/* Extrait ou contenu du RP */
-.rp-card-body {
-    font-size: 0.85rem;
-    color: #bbb;
-    max-height: 60px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 10px;
-    line-height: 1.4;
-}
+        .rp-dialogue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #dfb56c; line-height: 1.4; }
+        .rp-speech { color: #dfb56c;  font-size: 1.4rem !important; }
+        .rp-incise { font-weight: bold; color: #ffffff; font-size: 1.4rem !important; }
 
-.rp-dialogue {
-            margin: 12px 0;
-            padding-left: 12px;
-            border-left: 3px solid #dfb56c;
-            line-height: 1.4;
-        }
-        .rp-speech {
-            color: #dfb56c;
-
-            font-size: 1.4rem !important;
-            font-style: normal;
-        }
-        .rp-incise {
-            font-weight: bold;
-            color: #ffffff;
-
-            font-size: 1.4rem !important;
-            font-style: normal;
-        }
 
 /* Base des badges d'urgence / catégories (Pills haut de gamme) */
 .urgency-badge {
@@ -422,22 +396,77 @@ select.select-tag-toggle:focus {
     padding: 20px 0;
 }
 
+/* ============================================================================
+   📖 LECTEUR MODAL ROLEPLAY (.rp-reader)
+   ============================================================================ */
+
 .rp-reader {
-    background: rgba(10, 10, 15, 0.98);
-    border: 1px solid #a777e3;
+    background: rgba(20, 20, 28, 0.95);
+    border: 1px solid #2a2a35;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    animation: fadeIn 0.2s ease-out;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    color: #e0e0e0;
 }
 
+/* En-tête de la modal */
+.rp-reader-header {
+    border-bottom: 1px solid #333344;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.rp-reader-title {
+    margin: 0;
+    color: #ffcc00;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.rp-reader-meta {
+    color: #8888aa;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Bouton pour fermer la modal (la croix) */
+.rp-reader-close {
+    background: none;
+    border: none;
+    color: #aaaaaa;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.2s ease;
+}
+
+.rp-reader-close:hover {
+    color: #ffffff;
+}
+
+/* Zone du contenu texte formaté */
 .rp-display-content {
-    max-height: 450px;
-    overflow-y: auto;
-    padding-right: 10px;
-    font-size: 1rem;
     line-height: 1.6;
-    color: #e0e0e0;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Personnalisation de la scrollbar pour rester dans le thème */
+.rp-display-content::-webkit-scrollbar {
+    width: 6px;
+}
+.rp-display-content::-webkit-scrollbar-thumb {
+    background: #3a3a4c;
+    border-radius: 3px;
+}
+.rp-display-content::-webkit-scrollbar-thumb:hover {
+    background: #a777e3;
 }
 
 /* ==========================================================================
@@ -770,6 +799,121 @@ select.select-tag-toggle:focus {
    SCROLL SÉCURISÉ POUR LES RP EN ATTENTE (ANTI-COUPURE) - VERSION FINALE
    ========================================================================== */
 
+
+/* ============================================================================
+   🃏 CARTE ROLEPLAY (.rp-card-header)
+   ============================================================================ */
+
+.rp-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+}
+
+/* Zone texte (Titre + Métadonnées) */
+.rp-card-info {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rp-card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+}
+
+.rp-card-title {
+    margin: 0;
+    word-break: break-word;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.rp-card-badge-container {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Métadonnées (Personnage & Serveur) */
+.rp-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.rp-card-char {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.rp-card-server {
+    font-size: 0.78rem;
+    color: #78716c;
+    font-style: italic;
+    padding-left: 2px;
+}
+
+/* Zone des boutons d'action */
+.rp-card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Boutons spécifiques */
+.btn-action.btn-done { background: #27ae60; }
+.btn-action.btn-archive { background: #c0392b; }
+
+/* ============================================================================
+   🧹 BOUTON NETTOYAGE MÉMOIRE IA (.btn-clean-ai)
+   ============================================================================ */
+
+.btn-action.btn-clean-ai {
+    background: #34495e;
+    transition: background 0.3s ease, transform 0.15s ease;
+}
+
+/* État de chargement (sablier) */
+.btn-action.btn-clean-ai.is-loading {
+    cursor: wait;
+    opacity: 0.8;
+}
+
+/* État de succès (vert feux) */
+.btn-action.btn-clean-ai.is-success {
+    background: #2ecc71 !important;
+}
+
+.btn-cowrite {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.15s ease;
+}
+
+.btn-cowrite:hover {
+    transform: scale(1.15);
+}
+
+/* Zone de tags en bas du header */
+.rp-card-tags-area {
+    margin-top: 8px;
+}
+
 /* 1. Le conteneur réel du scroll : on active le magnétisme vertical */
 #pendingList {
     flex: 1;
@@ -909,6 +1053,18 @@ select.select-tag-toggle:focus {
     box-sizing: border-box !important;
 }
 
+.co-write-display#modalTexteClassique {
+    border-left: 3px solid #a777e3; padding: 10px; background: rgba(167,119,227,0.02); border-radius:4px;
+}
+
+.co-write-display#modalTexteExclusive {
+    flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;
+}
+
+.co-write-display#ReponseResume {
+    flex: 1; padding: 25px; overflow-y: auto; color: #f0f0f0; font-size: 1.4rem !important; line-height: 1.6; background: #0c0c10;
+}
+
 
 /* Boîtier de la modale Trauma configuré en format géant ultra-large */
 .trauma-modal {
@@ -925,4 +1081,1990 @@ select.select-tag-toggle:focus {
     overflow-y: auto !important;       
     padding: 30px !important;          
     box-sizing: border-box !important; /* Force le calcul exact des marges intérieures */
+}
+
+/* =========================================================================
+   🎛️ STYLE DU SWITCH DE MODE (Toujours présent dans l'index)
+   ========================================================================= */
+/* Style du Switch */
+.admin-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+    cursor: pointer;
+}
+
+/* On masque la checkbox HTML native mais elle reste cliquable */
+.admin-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Le fond du slider */
+.admin-toggle-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+/* Le petit rond blanc */
+.admin-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+/* État quand la case est cochée */
+.admin-toggle-switch input:checked + .admin-toggle-slider {
+    background-color: #ffcc00; /* Couleur d'activation */
+}
+
+.admin-toggle-switch input:checked + .admin-toggle-slider:before {
+    transform: translateX(22px);
+}
+
+#titreRedac {
+    color:#a777e3; font-weight:bold;
+}
+
+#btnVoirCoWrite {
+    background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor: pointer
+}
+
+#btnReroll {
+    background:#2c2c35; color:#fff; border:1px solid #a777e3; padding:3px 8px; font-size:0.7rem; border-radius:3px; cursor: pointer
+}
+
+
+#btnCopierCoWrite {
+background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;
+}
+
+#btnCloseExclusive {
+    background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;
+}
+
+#TexteIAPropre {
+    color:#fff; font-size:1.2rem; line-height:1.4 !important; margin:0;
+}
+
+#coWriteExclusiveModal {
+    display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;
+}
+
+#MiseenPlaceArriereExclusive {
+    background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;
+}
+
+#HeaderExclusive {
+    padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;
+}
+
+#TitreExclusive {
+    margin: 0; color: #ffcc00;
+}
+
+/* Quand le bouton est en mode "Suivant" (Violet Cyberpunk) */
+.btn-bloc-suivant {
+    background-color: #a777e3;
+    color: #ffffff;
+}
+
+/* Quand le bouton est en mode "Tout est copié" (Vert Fluo) */
+.btn-bloc-succes {
+    background-color: #2ecc71;
+    color: #ffffff;
+}
+
+/* Le texte de chargement de l'historique */
+.history-loading-text {
+    color: #888888;
+}
+
+/* Le bouton de config quand le panneau est MASQUÉ (Fermé) */
+.btn-config-closed {
+    background-color: rgba(167, 119, 227, 0.1);
+}
+
+/* Le bouton de config quand le panneau est AFFICHÉ (Ouvert) */
+.btn-config-opened {
+    background-color: rgba(167, 119, 227, 0.2);
+}
+
+#MiseEnPlaceTitre {
+    display:flex; align-items:center; justify-content:space-between; width:100%; gap:20px;
+}
+
+.BoutonMemoire {
+    background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;
+}
+
+#BoutonSommaire {
+    background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid #ffcc00; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight:bold; display:flex; align-items:center; gap:6px; transition: all 0.2s; margin-right: 20px;
+}
+
+#CouleurTitreModal {
+    color: #a777e3;
+}
+
+/* Style de base d'un bouton d'action (Decoché) */
+.btn-action-dice {
+    padding: 8px 10px;
+    margin: 5px 0;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #b0b0b8;
+    transition: all 0.2s ease;
+}
+
+/* Indicateur à l'état désactivé */
+.btn-action-dice .status-indicator {
+    color: #444a5a;
+    font-weight: bold;
+}
+
+.btn-action-dice {
+    color: #b0b0b8;
+    background-color: rgba(255, 255, 255, 0.01);
+}
+
+/* ÉTAT COCHÉ : Quand la classe .is-checked est présente */
+.btn-action-dice.is-checked {
+    background-color: rgba(0, 255, 210, 0.15); /* Teinte fluo sombre */
+    border-color: #00ffd2;
+    color: #ffffff;
+}
+
+/* L'indicateur passe automatiquement en néon grâce à la cascade ! */
+.btn-action-dice.is-checked .status-indicator {
+    color: #00ffd2;
+}
+
+/* Style de base pour les titres de catégories de dés */
+.title-dice-category {
+    font-size: 0.85rem;
+    display: block;
+}
+
+/* Titre des actions physiques (Jaune/Doré) */
+.title-dice-physical {
+    color: #ffcc00;
+    margin-top: 5px;
+}
+
+/* Titre des actions sociales (Violet) */
+.title-dice-social {
+    color: #a777e3;
+    margin-top: 15px;
+}
+
+#modalConsignes {
+    display: none; position: fixed; z-index: 300000; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(5,5,8,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center;
+}
+
+#MiseArriereConsigne {
+    background: #0c0c10; border: 1px solid #a777e3; box-shadow: 0 0 25px rgba(167, 119, 227, 0.2); width: 50vw; max-width: 600px; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; color: #fff;
+}
+
+#HeaderConsigne {
+    padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.2); display: flex; justify-content: space-between; align-items: center; background: #121218;
+}
+
+#TitreConsigne {
+    margin: 0; color: #a777e3; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;
+}
+
+#FermerConsigne {
+    background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; line-height: 1;
+}
+
+#MiseEnPlaceBouton {
+    padding: 20px; background: #08080c; display: flex; flex-direction: column; gap: 15px;
+}
+
+#MiseEnPageBouton {
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+#TitreConsigne {
+    font-size: 0.85rem; color: #aaa; font-weight: bold;
+}
+
+#btnGenererIA {
+    background: #2ecc71; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 8px rgba(46, 204, 113, 0.2);
+}
+
+#textareaConsignes {
+    width: 100%; height: 200px; background: #121218; border: 1px solid #2a2a35; border-radius: 4px; color: #fff; padding: 10px; resize: none; box-sizing: border-box;
+}
+
+#BoutonQuitter {
+    background: #a777e3; color: #fff; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%;
+}
+
+/* Style du bouton modal IA par défaut (État Normal) */
+.btn-modal-ia {
+    background-color: #a777e3; /* Violet cyberpunk par exemple */
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+/* État 1 : Chargement / Désactivé */
+.btn-modal-ia.is-loading,
+.btn-modal-ia:disabled {
+    background-color: #7f8c8d; /* Gris de chargement */
+    cursor: not-allowed;
+}
+
+/* État 2 : Succès */
+.btn-modal-ia.is-success {
+    background-color: #2ecc71; /* Vert de confirmation */
+    color: #ffffff;
+}
+
+/* Style du bouton d'ouverture des consignes en mode sombre */
+#btnOuvrirConsignes {
+    background-color: #a777e3; /* Ton violet cyberpunk */
+    color: #ffffff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+/* Optionnel : un petit effet survol sympathique */
+#btnOuvrirConsignes:hover {
+    background-color: #8e5bd1;
+}
+
+/* Style du message de chargement de l'analyse des traumatismes */
+.trauma-loading-text {
+    color: #a777e3; /* Violet pour le Clan des Étoiles */
+    font-weight: 500;
+}
+
+/* Message d'erreur ou d'historique vide */
+.trauma-error-text {
+    color: #ff4d4d; /* Rouge d'alerte doux */
+    font-weight: 500;
+}
+
+#MsgReroll {
+    color: #a777e3;
+}
+
+#btnCopierResume {
+    background:#a777e3; color:#fff; border:none; padding:3px 6px; font-size:0.7rem; border-radius:3px; cursor:pointer;
+}
+
+#MisePlaceClassique {
+    background: rgba(167, 119, 227, 0.1); border-left: 3px solid #a777e3; padding: 12px; margin-top: 10px; border-radius: 4px; color: #e0e0e0; font-size: 0.9rem; line-height: 1.5;
+}
+
+#TitreResumeClassique {
+    color: #a777e3; display: block; margin-bottom: 6px;
+}
+
+#coWriteExclusiveModal.Resume {
+    display: none; position: fixed; z-index: 100000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(5, 5, 8, 0.95); backdrop-filter: blur(8px); justify-content: center; align-items: center;
+}
+
+#MisePlaceArriere {
+    background: #121218; border: 1px solid #a777e3; box-shadow: 0 0 30px rgba(167, 119, 227, 0.2); width: calc(100vw - 400px); max-width: 1500px; height: 80vh; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; position: relative;
+}
+
+#HeaderResume {
+    padding: 15px 20px; border-bottom: 1px solid rgba(167, 119, 227, 0.3); display: flex; justify-content: space-between; align-items: center; background: #161622;
+}
+
+#TitreResume {
+    margin: 0;
+    color: #ffcc00;
+}
+
+/* --- MODALE DE DIAGNOSTIC DE TRAUMATISME (Sombre) --- */
+
+/* Textes simples générés dans les résultats */
+.trauma-text-item {
+    color: #e0e0e0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 4px 0;
+}
+
+/* Listes de blessures/séquelles avec puces custom */
+.trauma-list {
+    margin: 6px 0;
+    padding-left: 20px;
+    list-style-type: '🌿 ';
+    line-height: 1.6;
+    color: #e0e0e0;
+}
+
+.trauma-list li {
+    margin-bottom: 6px;
+}
+
+/* Cartes sous-sections (sous-blocs d'objets) */
+.trauma-subblock {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 10px;
+    margin-top: 5px;
+}
+
+.trauma-subcard {
+    margin-top: 10px;
+    border-left: 2px dashed rgba(255, 204, 0, 0.3);
+    padding-left: 15px;
+}
+
+/* Titres dorés (Patte & Étincelle) */
+.trauma-title-gold {
+    color: #ffcc00;
+    font-size: 1.1rem;
+}
+
+.trauma-label-gold {
+    color: #ffcc00;
+}
+
+/* Cartes de conseils du guérisseur */
+.trauma-guerisseur-card {
+    background-color: rgba(255, 204, 0, 0.03);
+    border: 1px solid rgba(255, 204, 0, 0.15);
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.trauma-guerisseur-title {
+    margin: 0 0 10px 0;
+    color: #ffcc00;
+    font-size: 1.1rem;
+    border-bottom: 1px dashed rgba(255, 204, 0, 0.2);
+    padding-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Textes "Aucun résultat" */
+.trauma-empty-text {
+    color: #aaaaaa;
+}
+
+/* Style de base d'une ligne d'action épurée */
+.line-select-action {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    color: #b0b0b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    background-color: rgba(255, 255, 255, 0.01);
+    margin-bottom: 2px;
+    border-radius: 4px;
+}
+
+/* L'indicateur par défaut */
+.line-select-action .status-indicator {
+    font-size: 0.75rem;
+    color: #444a5a;
+    font-weight: bold;
+}
+
+/* 🌟 Effet au survol en CSS (Remplace totalement le JS onmouseover/onmouseout !) */
+.line-select-action:hover:not(.is-selected) {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+}
+
+/* 🎯 ÉTAT SELECTIONNÉ / COCHÉ (Doré) */
+.line-select-action.is-selected {
+    color: #ffcc00;
+    background-color: rgba(255, 204, 0, 0.08);
+}
+
+/* L'indicateur passe automatiquement en doré grâce à la cascade ! */
+.line-select-action.is-selected .status-indicator {
+    color: #ffcc00;
+}
+
+/* --- ZONE DES RÉSULTATS DE DÉS (Sombre) --- */
+
+/* Titre principal de la zone */
+.dice-results-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.dice-results-title {
+    color: #ffcc00;
+    border-bottom: 1px dashed rgba(255, 204, 0, 0.2);
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* Carte de résultat individuel */
+.dice-result-card {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-left: 3px solid var(--verdict-color, #aaaaaa); /* Utilise la variable ou du gris par défaut */
+    padding: 5px 8px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+}
+
+.dice-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dice-result-name {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.dice-result-total {
+    font-weight: bold;
+    color: var(--verdict-color, #aaaaaa);
+    font-size: 0.8rem;
+}
+
+.dice-result-details {
+    color: #a0a0aa;
+    font-style: italic;
+    display: block;
+    margin-top: 1px;
+}
+
+.dice-result-formula {
+    color: #a777e3; /* Violet pour les détails du jet */
+}
+
+/* --- VUE DU PROFIL PERSONNAGE (Sombre) --- */
+
+/* Message d'erreur (données introuvables) */
+.empty-msg.error-text {
+    color: #ff4d4d;
+}
+
+/* Titre du profil */
+.perso-profile-title {
+    border: none;
+}
+
+/* Bloc Résumé du personnage */
+.perso-summary-box {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.perso-summary-title {
+    color: #ffcc00;
+    margin-top: 0;
+}
+
+.perso-summary-divider {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+}
+
+/* Bouton déclencheur Baptême/Évolution */
+.btn-bapteme-trigger {
+    background-color: #a777e3;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.btn-bapteme-trigger:hover {
+    background-color: #8e5bd1;
+}
+
+/* Zone dépliable de changement de nom */
+.bapteme-zone {
+    gap: 8px;
+    margin-top: 12px;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(167, 119, 227, 0.3);
+}
+
+.bapteme-label {
+    font-size: 0.8rem;
+    color: #ffcc00;
+    font-weight: 500;
+}
+
+.bapteme-controls {
+    display: flex;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+/* Champ de saisie du nouveau nom */
+.bapteme-input {
+    flex-grow: 1;
+    background-color: #0c0c10;
+    border: 1px solid #444444;
+    color: #ffffff;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}
+
+/* Boutons OK / Annuler du formulaire de baptême */
+.btn-bapteme-confirm {
+    background-color: #27ae60;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-bapteme-cancel {
+    background-color: #57534e;
+    color: #ffffff;
+    border: none;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Titre de l'historique RP */
+.perso-history-title {
+    color: #a777e3;
+}
+
+/* Nom d'origine à côté du nom de baptême */
+.bapteme-original-name {
+    color: #78716c;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+/* Liste d'historique des RP */
+.perso-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.perso-history-item {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Titre principal de la fiche originale */
+.fiche-title {
+    color: #a777e3;
+    text-align: center;
+}
+
+/* --- GRILLE D'INGRÉDIENTS RP --- */
+.ingredient-category-header {
+    grid-column: span 4;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #222222;
+    padding-bottom: 6px;
+}
+
+.ingredient-category-title {
+    color: #ffcc00;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: monospace;
+}
+
+.ingredient-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background-color: #0e0e14;
+    border: 1px solid #161622;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.ingredient-card:hover {
+    background-color: #13131f;
+}
+
+.ingredient-checkbox {
+    margin-top: 3px;
+    cursor: pointer;
+    accent-color: #ffcc00;
+}
+
+.ingredient-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.ingredient-label {
+    color: #eeeeee;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ingredient-prompt {
+    color: #666666;
+    font-size: 0.75rem;
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+.ingredient-empty {
+    grid-column: span 4;
+    text-align: center;
+    color: #555555;
+    padding: 40px 0;
+    font-size: 0.9rem;
+    font-family: monospace;
+}
+
+.ingredient-badge {
+    background-color: #444444;
+    color: #aaaaaa;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ingredient-badge.has-count {
+    background-color: #ffcc00;
+    color: #000000;
+}
+
+#HistoriqueLecture {
+    color: #a777e3;
+}
+
+.blink {
+    color: #a777e3;
+}
+
+/* --- SOMMAIRE & TIMELINE RP (Sombre) --- */
+
+/* Texte d'état ou d'erreur */
+.C777 {
+    color: #777777;
+}
+
+.timeline-error {
+    color: #e74c3c;
+}
+
+/* Badge du sommaire personnage */
+.summary-char-badge {
+    background-color: #1c1c24;
+    border: 1px solid #ffcc00;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.summary-char-badge:hover {
+    background-color: #282834;
+}
+
+.summary-char-name {
+    color: #ffcc00;
+    font-weight: bold;
+}
+
+.summary-char-count {
+    background-color: #2c2c35;
+    color: #aaaaaa;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* Éléments de la Timeline */
+.summary-timeline-item {
+    padding: 10px;
+    background-color: #161622;
+    border-left: 3px solid var(--item-accent, #a777e3);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease;
+}
+
+.summary-timeline-item:hover {
+    background-color: #1d1d2d;
+}
+
+.summary-item-header {
+    display: flex;
+    justify-content: space-between;
+    color: var(--item-accent, #a777e3);
+    font-weight: bold;
+    margin-bottom: 2px;
+    align-items: center;
+}
+
+.summary-item-date {
+    color: #777777;
+    font-size: 0.75rem;
+}
+
+.summary-item-body {
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- MODALE ET LECTEUR DU SOMMAIRE RP --- */
+
+/* Badge "Nouveau" animé */
+.badge-nouveau {
+    display: inline-block !important;
+    background-color: #2ecc71 !important;
+    color: #ffffff !important;
+    font-size: 0.65rem !important;
+    font-weight: bold !important;
+    padding: 2px 5px !important;
+    border-radius: 3px !important;
+    margin-left: 6px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 0 6px #2ecc71 !important;
+    animation: lueurPulsation 2s infinite ease-in-out !important;
+}
+
+.post-sommaire-nouveau {
+    box-shadow: inset 4px 0 10px rgba(46, 204, 113, 0.12) !important;
+}
+
+@keyframes lueurPulsation {
+    0% { box-shadow: 0 0 4px #2ecc71; opacity: 0.8; }
+    50% { box-shadow: 0 0 12px #2ecc71; opacity: 1; }
+    100% { box-shadow: 0 0 4px #2ecc71; opacity: 0.8; }
+}
+
+/* En-tête de compilation par personnage */
+.reader-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 204, 0, 0.3);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.reader-filter-title {
+    margin: 0;
+    color: #ffcc00;
+}
+
+.btn-reset-view {
+    background-color: #2c2c35;
+    color: #ffffff;
+    border: 1px solid #aaaaaa;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-reset-view:hover {
+    background-color: #3f3f4d;
+}
+
+/* Carte de réplique individuelle dans la compilation */
+.reader-post-card {
+    margin-bottom: 30px;
+    background-color: #121218;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #1c1c24;
+}
+
+.reader-post-meta {
+    color: #a777e3;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    border-bottom: 1px dotted #2c2c35;
+    padding-bottom: 4px;
+}
+
+.reader-post-text {
+    color: #f0f0f0;
+    font-size: 1.25rem;
+    line-height: 1.5;
+}
+
+/* Vue d'un seul post dans le lecteur */
+.reader-single-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.reader-single-header {
+    border-bottom: 1px solid rgba(167, 119, 227, 0.3);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reader-author-label,
+.reader-date-label {
+    color: #777777;
+    font-size: 0.8rem;
+}
+
+.reader-author-name {
+    margin: 0;
+    color: #ffcc00;
+    font-size: 1.3rem;
+}
+
+.reader-date-value {
+    color: #aaaaaa;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.reader-single-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+    color: #f0f0f0;
+    font-size: 1.35rem;
+    line-height: 1.6;
+}
+
+/* Structure globale de la Modal Sommaire */
+.rp-modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 200000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(5, 5, 8, 0.95);
+    backdrop-filter: blur(10px);
+    justify-content: center;
+    align-items: center;
+}
+
+.rp-modal-window {
+    background-color: #0c0c10;
+    border: 1px solid #ffcc00;
+    box-shadow: 0 0 35px rgba(255, 204, 0, 0.15);
+    width: 95vw;
+    height: 90vh;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.rp-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #121218;
+}
+
+.rp-modal-title {
+    margin: 0;
+    color: #ffcc00;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rp-modal-close {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.rp-modal-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background-color: #08080c;
+}
+
+/* Colonne 1 : Personnages */
+.rp-sidebar-chars {
+    width: 250px;
+    border-right: 1px solid #1c1c24;
+    display: flex;
+    flex-direction: column;
+    background-color: #0c0c12;
+}
+
+.rp-sidebar-title {
+    padding: 10px;
+    font-size: 0.75rem;
+    color: #777777;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #1c1c24;
+}
+
+.rp-sidebar-chars-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Colonne 2 : Chronologie */
+.rp-sidebar-timeline {
+    width: 320px;
+    border-right: 1px solid #1c1c24;
+    display: flex;
+    flex-direction: column;
+    background-color: #0e0e16;
+}
+
+.rp-sidebar-timeline-tracks {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Colonne 3 : Panneau de lecture principal */
+.rp-main-reader {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+    background-color: #06060a;
+}
+
+/* --- GESTION DES TAGS ET FILTRES DE CARTES --- */
+
+.pending-footer-tags {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.rp-tags-badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.select-tag-toggle {
+    background-color: #101015;
+    color: #cccccc;
+    border: 1px solid rgba(167, 119, 227, 0.4);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.select-tag-toggle:hover {
+    border-color: rgba(167, 119, 227, 0.8);
+    background-color: #161620;
+}
+
+/* Classe utilitaire pour masquer les cartes lors du filtrage */
+.pending-item.is-hidden {
+    display: none !important;
+}
+
+/* --- LE RECTIFICATIF DE STYLE DES STATS --- */
+
+.stats-title {
+    color: #a777e3;
+    margin-bottom: 25px;
+    font-size: 1.4rem;
+}
+
+.stats-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+.stats-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #2a2a35;
+    padding: 20px;
+    border-radius: 6px;
+    color: #e0e0e0;
+}
+
+.stats-card-title {
+    margin-top: 0;
+    border-bottom: 1px solid #2a2a35;
+    padding-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.stats-card-title.semaine { color: #ffcc00; }
+.stats-card-title.mois { color: #3498db; }
+.stats-card-title.global { color: #2ecc71; }
+
+/* Kill absolu des puces de listes */
+.stats-list, 
+ul.stats-list {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding: 0 !important;
+    margin: 15px 0 !important;
+    line-height: 1.8;
+    font-size: 0.9rem;
+}
+
+.stats-list li {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.stats-highlight-xp { color: #ffcc00; font-weight: bold; }
+.stats-highlight-activity { color: #2ecc71; }
+.stats-highlight-words { color: #3498db; font-weight: bold; }
+
+.stats-subtext {
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #aaaaaa;
+}
+
+.btn-toggle-graph {
+    background: #a777e3;
+    color: #ffffff;
+    border: none;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.75rem;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-toggle-graph:hover {
+    background: #9358d4;
+}
+
+.stats-graph-zone {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.stats-graph-zone.is-visible {
+    display: flex !important;
+}
+
+/* Graphique Camembert basé sur les variables CSS */
+.stats-pie-chart {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    /* Utilisation des variables CSS passées par le JS */
+    background: conic-gradient(
+        #e28743 0% var(--act, 0%), 
+        #76b5c5 var(--act, 0%) calc(var(--act, 0%) + var(--par, 0%)), 
+        #873e23 calc(var(--act, 0%) + var(--par, 0%)) 100%
+    );
+}
+
+.stats-graph-legend {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.legend-act { color: #e28743; }
+.legend-par { color: #76b5c5; }
+.legend-pen { color: #873e23; }
+
+/** ==============
+    MarkDown Style
+    ============== **/
+
+.M__1 {
+    text-decoration:underline; font-weight:bold; font-style:italic
+}
+
+.M__2 {
+    text-decoration:underline; font-weight:bold
+}
+
+.M__3 {
+    text-decoration:underline; font-style:italic
+}
+.M__4 {
+    text-decoration:underline;
+}
+
+.A__1 {
+    font-weight:bold; font-style:italic
+}
+
+.A__2 {
+    font-weight:bold;
+}
+
+.A__3 {
+    font-style:italic
+}
+
+#trimmed {
+    height: 12px;
+}
+
+#if-trimmed {
+    margin-bottom: 8px;
+    font-style: italic;
+    color: #bbb;
+}
+
+#not-trimmed {
+    margin-bottom: 8px;
+}
+
+#System-Error {
+    color: #ff4a4a;
+    padding: 20px;
+
+}
+
+
+
+
+
+/* ============================================================================
+   HEADER DU DASHBOARD (#main-dashboard)
+   ============================================================================ */
+
+.header-box {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Bloc Titre et Infos */
+.header-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.header-title a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.header-sub-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-version {
+    color: #888888;
+    font-size: 0.8rem;
+}
+
+.header-db-status {
+    color: #2ecc71;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.header-db-status a {
+    color: #2ecc71;
+    text-decoration: none;
+}
+
+.header-db-blink {
+    animation: blink 2s infinite;
+}
+
+.header-discord-link {
+    color: #a777e3;
+    font-size: 1rem;
+    font-weight: normal;
+    margin-left: 8px;
+    text-decoration: none;
+}
+
+/* Bloc Statistiques Clés (Conteneur central) */
+.header-stats-banner {
+    display: flex;
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+}
+
+.header-stat-item {
+    text-align: center;
+}
+
+.header-stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.header-stat-value {
+    font-size: 1.1rem;
+}
+
+.header-stat-value.pending { color: #ff4a4a; }
+.header-stat-value.repondu { color: #3e34ff; }
+.header-stat-value.done { color: #008714; }
+.header-stat-value.total { color: #ffffff; }
+
+/* Bloc Rôle & Switch Admin */
+.header-role-section {
+    text-align: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.header-role-badge {
+    color: #ffcc00;
+    font-size: 1.1rem;
+    font-family: monospace;
+}
+
+/* Bloc Boutons d'Action (Droite) */
+.header-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-actions-group .btn-secondary {
+    margin: 0;
+}
+
+/* ============================================================================
+   🏰 CONTENU RÔLISTE & DASHBOARD
+   ============================================================================ */
+
+/* Sélecteur de personnage dans la zone d'ajout */
+.select-char-input {
+    background: #0c0c10;
+    border: 1px solid #444444;
+    color: #ffffff;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}
+
+/* Espacement du champ texte RP */
+.textarea-rp-content {
+    margin-top: 10px;
+}
+
+/* Grille Flexbox pour les lignes du dashboard */
+.row-flex-1 { flex: 1; }
+.row-flex-2 { flex: 2; }
+.row-flex-3 { flex: 3; }
+
+/* En-tête de la zone Graphique */
+.zone-graphique-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-zoom-chart {
+    background: none;
+    border: none;
+    color: #a777e3;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 5px;
+    transition: transform 0.15s ease;
+}
+
+.btn-zoom-chart:hover {
+    transform: scale(1.15);
+}
+
+/* Filtres et contrôles du graphique */
+.graph-controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+
+
+
+
+
+
+
+
+
+/* ============================================================================
+   🖋️ MODAL CO-ÉCRITURE (#coWriteModal)
+   ============================================================================ */
+
+.cowrite-title {
+    color: #a777e3;
+    margin-top: 0;
+}
+
+/* --- Sub-modal Blessures & Traumatismes --- */
+.trauma-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ff4a4a;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.trauma-modal-title {
+    margin: 0;
+    color: #ff4a4a;
+    font-size: 1.5rem;
+}
+
+.trauma-modal-close {
+    background: none;
+    border: none;
+    color: #ff4a4a;
+    font-size: 1.8rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.trauma-modal-loading {
+    display: none;
+    text-align: center;
+    padding: 30px;
+    font-size: 1.2rem;
+    color: #ffcc00;
+}
+
+.trauma-modal-body {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+.trauma-grid {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+}
+
+/* Bloc Physiques */
+.trauma-box-physical {
+    flex: 1;
+    background: rgba(255, 0, 0, 0.05);
+    border: 1px solid rgba(255, 74, 74, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.trauma-box-physical h3 {
+    color: #ff6b6b;
+    margin-top: 0;
+    border-bottom: 1px solid rgba(255, 107, 107, 0.2);
+    padding-bottom: 5px;
+}
+
+/* Bloc Mentales */
+.trauma-box-mental {
+    flex: 1;
+    background: rgba(167, 119, 227, 0.05);
+    border: 1px solid rgba(167, 119, 227, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.trauma-box-mental h3 {
+    color: #a777e3;
+    margin-top: 0;
+    border-bottom: 1px solid rgba(167, 119, 227, 0.2);
+    padding-bottom: 5px;
+}
+
+/* Bloc Guérisseur */
+.trauma-box-healer {
+    background: rgba(255, 204, 0, 0.05);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 25px;
+}
+
+.trauma-box-healer h3 {
+    color: #ffcc00;
+    margin-top: 0;
+    border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+    padding-bottom: 5px;
+}
+
+.wounds-list, .trauma-list {
+    padding-left: 20px;
+    margin: 10px 0 0 0;
+}
+
+.healer-advice {
+    margin: 10px 0 0 0;
+    font-style: italic;
+    line-height: 1.5;
+    color: #e0e0e0;
+}
+
+/* --- Section Configuration de Réplique & Dés --- */
+.cowrite-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.cowrite-author-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.cowrite-author-label {
+    color: #aaaaaa;
+    font-size: 0.85rem;
+}
+
+.cowrite-select-author {
+    background: #1c1c24;
+    border: 1px solid #2c2c35;
+    color: #ffffff;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    width: 200px;
+}
+
+/* Interface Dés de JDR */
+.jdr-dice-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.jdr-dice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+    padding-bottom: 6px;
+}
+
+.jdr-dice-title {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.jdr-char-label {
+    color: #aaaaaa;
+    font-style: italic;
+}
+
+.btn-toggle-config {
+    background: rgba(167, 119, 227, 0.1);
+    color: #a777e3;
+    border: 1px solid #a777e3;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle-config:hover {
+    background: rgba(167, 119, 227, 0.2);
+}
+
+
+/* ============================================================================
+   ⚙️ CONFIGURATION GLOBALE DÉS & ÉMOTIONS (Co-Écriture)
+   ============================================================================ */
+
+.config-global-content {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+    border-top: 1px solid #1c1c24;
+    padding-top: 15px;
+}
+
+/* Titres de groupes de dés/humeurs */
+.mood-title {
+    font-size: 0.72rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.mood-title.combat { color: #ff5e5e; }
+.mood-title.hostilite { color: #ff9f43; }
+.mood-title.souffrance { color: #54a0ff; }
+.mood-title.blocages { color: #a777e3; }
+.mood-title.attachement { color: #1dd1a1; }
+.mood-title.vertus { color: #feca57; }
+.mood-title.capacites { color: #ffcc00; }
+
+.mood-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Section Capacités & Résultat Dés */
+.mood-group-dice {
+    border-top: 1px solid #1c1c24;
+    padding-top: 12px;
+    margin-top: 5px;
+}
+
+.dice-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.dice-result-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed rgba(255, 204, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #888888;
+    font-size: 0.95rem;
+    margin-top: 5px;
+}
+
+/* Bouton Ingrédients Secrets */
+.ingredients-wrapper {
+    margin-top: 15px;
+    border-top: 1px solid #333333;
+    padding-top: 15px;
+}
+
+.btn-ingredients-config {
+    width: 100%;
+    background: #1a1a24;
+    border: 1px solid #444444;
+    color: #ffcc00;
+    padding: 10px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.badge-ingredients-count {
+    background: #ffcc00;
+    color: #000000;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+/* --- Section Zone de Rédaction IA & Contrôles --- */
+.cowrite-editor-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-top: 15px;
+}
+
+.textarea-cowrite-context {
+    flex: 1;
+    height: 120px;
+    background: #1c1c24;
+    border: 1px solid #a777e3;
+    color: #ffffff;
+    padding: 8px;
+    border-radius: 4px;
+    resize: none;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.textarea-cowrite-instructions {
+    flex: 1;
+    height: 120px;
+    background: #101015;
+    border: 1px solid rgba(167, 119, 227, 0.6);
+    color: #ffffff;
+    padding: 8px;
+    border-radius: 4px;
+    resize: none;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.cowrite-actions-column {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: space-between;
+}
+
+/* Boutons d'action latéraux */
+.btn-cowrite-action {
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.btn-cowrite-action.save {
+    background: #2c2c35;
+    color: #ffffff;
+    border: 1px solid #aaaaaa;
+}
+
+.btn-cowrite-action.ai {
+    background: #a777e3;
+    color: #ffffff;
+    border: none;
+    height: 100%;
+}
+
+.btn-cowrite-action.relire {
+    background: #222222;
+    color: #ffcc00;
+    border: 1px solid #ffcc00;
+}
+
+.btn-cowrite-action.trauma {
+    background: #ff4a4a;
+    color: #ffffff;
+    border: none;
+}
+
+/* Box Réglages Température & Blocs */
+.temperature-container {
+    margin-top: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.temp-label {
+    color: #ffffff;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.temp-valeur {
+    color: #ffcc00;
+}
+
+.range-input-temp {
+    width: 100%;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.temp-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #aaaaaa;
+    margin-top: 2px;
+}
+
+
+
+
+
+/* ============================================================================
+   ✨ MODALE INGRÉDIENTS SECRETS & AI OUTPUT
+   ============================================================================ */
+
+/* Zone de résultat / statut de l'IA */
+.cowrite-ai-output {
+    color: #aaaaaa;
+    font-size: 0.85rem;
+    min-height: 40px;
+    margin-top: 10px;
+}
+
+/* Modale globale (Overlay) */
+.modal-ingredients-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+/* Structure de la carte modale */
+.modal-ingredients-content {
+    background: #09090d;
+    border: 1px solid #222222;
+    width: 95%;
+    max-width: 95%;
+    height: 90vh;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* En-tête de la modale */
+.modal-ingredients-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #222222;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0c0c10;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.modal-ingredients-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ffffff;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.modal-ingredients-title .icon-accent {
+    color: #ffcc00;
+}
+
+.modal-ingredients-close {
+    color: #aaaaaa;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.modal-ingredients-close:hover {
+    color: #ffffff;
+}
+
+/* Barre de recherche */
+.modal-ingredients-search-container {
+    padding: 15px 20px 5px 20px;
+    background: #09090d;
+}
+
+.input-search-ingredients {
+    width: 100%;
+    padding: 10px 14px;
+    background: #111116;
+    border: 1px solid #333333;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.input-search-ingredients:focus {
+    border-color: #ffcc00;
+}
+
+/* Corps de la modale & grille */
+.modal-ingredients-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-ingredients-description {
+    color: #888888;
+    font-size: 0.8rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.grid-ingredients-dynamic {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* Pied de la modale */
+.modal-ingredients-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #222222;
+    text-align: right;
+    background: #0c0c10;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.btn-validate-ingredients {
+    background: #ffcc00;
+    color: #000000;
+    border: none;
+    padding: 8px 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s ease;
+}
+
+.btn-validate-ingredients:hover {
+    background: #e6b800;
 }

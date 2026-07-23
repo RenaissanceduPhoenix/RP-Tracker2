@@ -186,6 +186,41 @@ export const DICTIONNAIRE_INGREDIENTS_RP = {
         "timbre_voile_enroue": { label: "Voix éraillée par les pleurs", prompt: "S'exprimer avec un timbre de voix complètement cassé et enroué par de longues minutes de sanglots. Larmes" },
         "aveu_de_peur_enfantine": { label: "Confession de terreur brute", prompt: "Exprimer une peur simple et enfantine d'une voix tremblante, dépouillée de toute rhétorique adulte. Larmes" },
 
+        // --- BLOC TENDRESSE 1 : DIALOGUES - PAROLE ET ÉMOTION DOUCE ---
+"souffle_voix_chaude": { label: "Murmure thermique", prompt: "Prononcer une réplique d'une voix douce et feutrée, presque un souffle chaud destiné uniquement aux oreilles de l'autre. Tendresse" },
+"bafouillage_aveu_pudique": { label: "Hésitation affective", prompt: "Laisser un silence s'installer au milieu de sa phrase avant de lâcher un mot tendre, traduisant une douce pudeur. Tendresse" },
+"ronronnement_parle": { label: "Vibration vocale syncopée", prompt: "Laisser un ronronnement sourd s'immiscer et faire vibrer les mots au moment même où le personnage prend la parole. Tendresse" },
+"intonation_berceuse_calme": { label: "Tonalité apaisante", prompt: "Adopter un ton de voix particulièrement calme et mélodieux, semblable à une berceuse pour rassurer son interlocuteur. Tendresse" },
+"compliment_pelage_sincere": { label: "Éloge sensoriel", prompt: "Glisser dans la conversation une remarque sincère et flatteuse sur la douceur, l'odeur ou la beauté du pelage de l'autre. Tendresse" },
+"apostrophe_surnom_intime": { label: "Appellation exclusive", prompt: "Utiliser un surnom doux ou affectueux inédit pour interpeller l'autre, renforçant immédiatement la complicité. Tendresse" },
+"rire_doux_gorge": { label: "Ricanement affectueux", prompt: "Laisser échapper un petit rire doux et étouffé au fond de la gorge, dénué de toute moquerie ou ironie. Tendresse" },
+"aveu_dependance_chaleur": { label: "Confession du besoin", prompt: "Formuler verbalement à quel point la présence ou la chaleur de l'autre est devenue essentielle à son équilibre. Tendresse" },
+"promesse_lunes_avenir": { label: "Serment de fidélité", prompt: "Évoquer l'avenir ou les lunes à venir avec une certitude tranquille, incluant implicitement l'autre à ses côtés. Tendresse" },
+"silence_comblé_regard": { label: "Dialogue oculaire muet", prompt: "S'interrompre au milieu d'une tirade pour simplement ancrer son regard dans celui de l'autre avec une bienveillance absolue. Tendresse" },
+
+// --- BLOC TENDRESSE 4 : DIALOGUES - RASSURANCE ET LIEN INDÉSTRUCTIBLE ---
+"affirmation_presence_constante": { label: "Promesse d'ancrage verbal", prompt: "Assurer l'autre d'une voix ferme et douce à la fois qu'on ne bougera pas de ses côtés, quoi qu'il arrive. Tendresse" },
+"remerciement_timide_sincere": { label: "Gratitude vocale pudique", prompt: "Exprimer un merci à voix basse, presque timide, pour un geste ou une attention que l'autre vient d'avoir. Tendresse" },
+"intonation_taquine_affectueuse": { label: "Pique verbale amicale", prompt: "Adopter un ton légèrement moqueur mais débordant d'affection pour désamorcer une tension ou faire réagir l'autre. Tendresse" },
+"rappel_serment_partage": { label: "Évocation du pacte muet", prompt: "Rappeler verbalement un accord passé ou un moment fort partagé à deux pour raviver leur complicité unique. Tendresse" },
+"recherche_accord_chuchote": { label: "Validation intime soufflée", prompt: "Poser une question très douce à voix basse, cherchant simplement à entendre l'autre acquiescer et valider son affection. Tendresse" },
+"nomination_statut_officiel": { label: "Désignation honorifique intime", prompt: "Prononcer à voix haute le mot de 'compagnon', 'sœur' ou 'frère' avec une fierté immense et une infinie douceur. Tendresse" },
+"consolation_mots_feutres": { label: "Apaisement des craintes par le verbe", prompt: "Trouver des mots simples et chauds pour balayer une angoisse que l'autre vient d'exprimer à demi-mot. Tendresse" },
+"bruit_gorge_accueil": { label: "Murmure de bienvenue amical", prompt: "Laisser échapper un petit son de bienvenue mélodieux au fond de la gorge au moment où l'autre s'approche. Tendresse" },
+"aveu_soulagement_retrouvaille": { label: "Expression du manque comblé", prompt: "Formuler explicitement à quel point cela fait du bien de se retrouver enfin seul à seul, loin des autres. Tendresse" },
+"soupir_aise_fin_phrase": { label: "Expiration de bien-être vocale", prompt: "Terminer sa tirade par un long soupir d'aise et de relâchement total, montrant qu'on se sent parfaitement en sécurité. Tendresse" },
+
+// --- BLOC TENDRESSE 7 : DIALOGUES - AVEUX DE CONFIANCE ET PAROLES CIBLÉES ---
+"declaration_amour_transparente": { label: "Aveu affectif direct", prompt: "Formuler sans détour et avec une clarté désarmante les sentiments profonds que l'on éprouve pour son interlocuteur. Tendresse" },
+"invitation_partage_taniere": { label: "Proposition de rapprochement nocturne", prompt: "Proposer d'une voix douce à l'autre de venir partager sa litière de mousse pour la nuit à venir. Tendresse" },
+"murmure_nom_affection": { label: "Vocalisation douce du prénom", prompt: "Prononcer le nom de l'autre dans un souffle caressant, comme si ce simple mot était précieux. Tendresse" },
+"reassurance_avenir_clans": { label: "Parole d'espoir partagé", prompt: "Évoquer les saisons futures avec optimisme, en insistant sur le fait qu'ils affronteront tout ensemble. Tendresse" },
+"question_bien_etre_intime": { label: "Enquête affectueuse sincère", prompt: "Demander doucement à l'autre s'il se sent bien ou s'il a besoin de quelque chose, le regard ancré dans le sien. Tendresse" },
+"rappel_anecdote_amusante": { label: "Ravivement d'un rire commun", prompt: "Mentionner à demi-mot une bêtise ou un souvenir amusant du passé pour faire naître un sourire sur le museau de l'autre. Tendresse" },
+"remerciement_protection_recue": { label: "Gratitude pour le bouclier", prompt: "Exprimer verbalement à quel point on s'est senti protégé ou soutenu par l'autre lors d'un moment difficile. Tendresse" },
+"bruit_gorge_approbation": { label: "Ronronnement d'acquiescement", prompt: "Émettre un petit roucoulement de gorge amical pour valider les paroles ou la présence de son partenaire. Tendresse" },
+"ultimatum_affectueux_sourire": { label: "Exigence tendre taquine", prompt: "Formuler une fausse exigence ou un petit ordre ludique, teinté d'une immense affection sous-jacente. Tendresse" },
+"souffle_mots_endormissement": { label: "Dernier murmure du soir", prompt: "Lâcher une toute dernière réplique à voix très basse, presque inaudible, juste avant de fermer les yeux pour dormir. Tendresse" },
     },
     actions: {
         "ancrage_griffes": { label: "Ancrage des griffes au sol", prompt: "Décrire minutieusement les muscles des pattes antérieures qui se tendent et les griffes qui s'ancrent dans la terre ou l'écorce." },
@@ -346,7 +381,42 @@ export const DICTIONNAIRE_INGREDIENTS_RP = {
         "morsure_involontaire_support": { label: "Crispation buccale de douleur", prompt: "Planter ses dents dans un morceau de bois mort, une feuille ou sa propre patte pour étouffer le bruit de ses sanglots. Larmes" },
         "clignement_yeux_rougis": { label: "Paupières gonflées d'eau", prompt: "Garder les yeux mi-clos, les membranes nictitantes visibles et irritées par le flux continu des larmes. Larmes" },
 
-    },
+        // --- BLOC TENDRESSE 2 : ACTIONS - CONTACTS ET POSTURES COUPLÉES ---
+"toilettage_front_meticuleux": { label: "Léchage apaisant du crâne", prompt: "Déposer de petits coups de langue méthodiques et doux entre les deux oreilles de l'autre pour lisser ses poils ébouriffés. Tendresse" },
+"fusion_posturale_etoiles": { label: "Abandon corporel nocturne", prompt: "Se blottir de tout son long contre les flancs de son partenaire, cherchant une symétrie parfaite pour s'endormir. Tendresse" },
+"pression_epaule_reassurance": { label: "Ancrage physique latéral", prompt: "Appuyer fermement mais doucement son épaule contre celle de l'autre en marchant ou en restant assis, signe de soutien indéfectible. Tendresse" },
+"enroulement_queues_entrelacees": { label: "Étreinte caudale", prompt: "Venir entrelacer l'extrémité de sa propre queue autour de celle de son interlocuteur dans un mouvement fluide. Tendresse" },
+"frottement_joue_marquage": { label: "Échange olfactif affectif", prompt: "Passer sa joue et son menton contre le cou ou la tempe de l'autre pour y déposer son odeur et sceller leur lien. Tendresse" },
+"petit_coup_museau_amical": { label: "Pulsion nasale affectueuse", prompt: "Donner une légère impulsion du bout du nez contre la patte ou le poitrail de l'autre pour attirer doucement son attention. Tendresse" },
+"clignement_yeux_lent": { label: "Signal de confiance total", prompt: "Fermer puis rouvrir très lentement les paupières en regardant l'autre, le code félin ultime de l'amour tranquille. Tendresse" },
+"partage_proie_approche_douce": { label: "Offrande de subsistance", prompt: "Pousser délicatement une proie fraîchement attrapée vers les pattes de l'autre, insistant pour qu'il mange en premier. Tendresse" },
+"recherche_chaleur_sous_cou": { label: "Refuge sous-gulaire", prompt: "Glisser timidement sa tête juste en dessous du menton de l'autre, s'offrant entièrement à sa protection. Tendresse" },
+"marche_flanc_contre_flanc": { label: "Synchronisation des pas", prompt: "Ajuster parfaitement sa démarche pour marcher au même rythme, les fourrures se frôlant à chaque pas. Tendresse" },
+  
+// --- BLOC TENDRESSE 5 : ACTIONS - PARTAGE ET PROTECTIONS POSTURALES ---
+"toilettage_joue_croisé": { label: "Léchage réciproque des tempes", prompt: "Profiter de la proximité pour lécher doucement la joue de l'autre, initiant un moment d'entretien mutuel et affectueux. Tendresse" },
+"bouclier_corporel_chaleur": { label: "Enveloppement thermique protecteur", prompt: "S'installer légèrement en amont de l'autre pour couper le vent frais de la nuit, lui offrant son propre corps comme rempart. Tendresse" },
+"pose_menton_encolure": { label: "Ancrage cervical confiant", prompt: "Venir poser l'arc de son menton directement sur l'épaule ou l'encolure de son partenaire dans un geste d'abandon. Tendresse" },
+"balancement_queues_synchro": { label: "Frôlement caudal rythmique", prompt: "Laisser les deux queues se croiser et se frôler mollement à intervalles réguliers alors qu'ils sont assis côte à côte. Tendresse" },
+"poussee_flanc_invitation": { label: "Légère pression de rapprochement", prompt: "Donner une douce impulsion du flanc pour inviter l'autre à se décaler ou à s'asseoir plus près, sans aucune agressivité. Tendresse" },
+"inclinaison_tete_confiance": { label: "Présentation de la nuque", prompt: "Pencher doucement la tête sur le côté, exposant sa zone vulnérable derrière les oreilles aux coups de langue de l'autre. Tendresse" },
+"partage_nid_taniere": { label: "Cohabitation posturale serrée", prompt: "Ajuster sa position dans la mousse ou la litière pour s'imbriquer parfaitement dans les courbes du corps de son partenaire. Tendresse" },
+"nettoyage_pattes_partagé": { label: "Toilettage simultané côte à côte", prompt: "Commencer à se laver de concert avec l'autre, calquant ses mouvements sur les siens dans une harmonie tranquille. Tendresse" },
+"aspiration_odeur_fourrure": { label: "Immersion olfactive active", prompt: "Enfoncer un instant le museau dans le pelage du cou de l'autre pour s'imprégner intensément de son odeur familière. Tendresse" },
+"etirement_langue_amical": { label: "Baiser félin furtif", prompt: "Déposer un unique et rapide coup de langue sur le bout du nez de son interlocuteur avant de reculer avec douceur. Tendresse" },
+
+// --- BLOC TENDRESSE 8 : ACTIONS - DECOMPRESSION ET COMPLICITÉ POSTURALE ---
+"massage_pattes_alterné": { label: "Pétrissage de litière amical", prompt: "Malaxer doucement la mousse du nid ou le sol alternatif avec ses pattes avant tout en restant blotti contre l'autre. Tendresse" },
+"souffle_chaud_oreilles": { label: "Expiration thermique auriculaire", prompt: "Laisser échapper un long soupir chaud tout près de l'oreille de son partenaire en fermant les yeux. Tendresse" },
+"pose_patte_protectrice": { label: "Apposition de patte rassurante", prompt: "Venir poser délicatement une patte avant sur celle de l'autre ou sur son flanc, comme pour retenir doucement sa présence. Tendresse" },
+"toilettage_encolure_profond": { label: "Léchage vigoureux du cou", prompt: "Appliquer de grands coups de langue appuyés le long de l'encolure de l'autre pour dénouer les tensions de sa fourrure. Tendresse" },
+"croisement_regards_clignement": { label: "Échange visuel complice", prompt: "Capter le regard de son partenaire à travers la pièce ou la clairière et lui adresser un plissement d'yeux discret. Tendresse" },
+"affaissement_corps_confiant": { label: "Relâchement musculaire total contre le flanc", prompt: "Laisser tout le poids de son corps s'affaisser et se détendre lourdement contre le flanc de son compagnon. Tendresse" },
+"recherche_contact_bout_queue": { label: "Frôlement caudal minimaliste", prompt: "Laisser simplement l'extrémité de sa queue reposer ou pianoter contre la patte arrière de l'autre. Tendresse" },
+"partage_ombre_canicule": { label: "Rapprochement sous le feuillage", prompt: "S'installer à l'ombre étroite d'un buisson en se serrant contre l'autre pour lui laisser la place la plus fraîche. Tendresse" },
+"nettoyage_museau_furtif": { label: "Toilettage facial affectueux", prompt: "Passer rapidement sa langue sur la joue ou le museau terreux de l'autre après une longue journée. Tendresse" },
+"sommeil_imbrique_courbes": { label: "Somnolence en puzzle", prompt: "S'endormir la tête posée sur les cuisses ou le bas du dos de son partenaire, les corps parfaitement imbriqués. Tendresse" },
+},
     introspection: {
         "flashback_ancetres": { label: "Flashback / Leçon ancienne", prompt: "Évoquer le souvenir fugace d'une cicatrice reçue, d'un conseil d'un mentor disparu ou d'une erreur passée." },
         "contradiction_interne": { label: "Monologue intérieur contradictoire", prompt: "Développer ses doutes intérieurs : le personnage pense exactement l'opposé de ce qu'il montre ou dit." },
@@ -510,5 +580,40 @@ export const DICTIONNAIRE_INGREDIENTS_RP = {
         "sensation_de_froid_post_crise": { label: "Hypothermie émotionnelle", prompt: "Sentir son corps devenir glacial à mesure que les larmes s'évaporent sur ses joues, le laissant grelotter de l'intérieur. Larmes" },
         "sentiment_de_mise_a_nu": { label: "Mise à nu psychologique", prompt: "Avoir l'impression d'avoir livré ses secrets les plus intimes et d'être désormais sans aucune défense face à l'autre. Larmes" },
 
-    }
+        // --- BLOC TENDRESSE 3 : INTROSPECTION - SENSATIONS ET PENSÉES PROFONDES ---
+"sentiment_ancrage_refuge": { label: "Sensation de havre absolu", prompt: "Prendre conscience au fond de soi que la proximité de l'autre dissipe instantanément toutes ses angoisses et ses doutes. Tendresse" },
+"analyse_douceur_regard": { label: "Lecture oculaire bienveillante", prompt: "Détailler mentalement l'expression de l'autre, s'attardant sur la lueur chaleureuse et apaisante qui émane de ses yeux. Tendresse" },
+"acceptation_vulnerabilite_totale": { label: "Lâcher-prise psychologique", prompt: "S'avouer intérieurement qu'on n'a plus le courage ni l'envie de feindre la froideur ou la rébellion face à cet être aimé. Tendresse" },
+"reconnaissance_odeur_apaisante": { label: "Ancrage olfactif rassurant", prompt: "Inhaler profondément l'effluve familière de la fourrure de son partenaire, y trouvant un réconfort presque physique. Tendresse" },
+"evocation_souvenir_complice": { label: "Rémanence d'une lune partagée", prompt: "Laisser son esprit dériver brièvement vers un moment de complicité passé, souriant intérieurement à ce souvenir. Tendresse" },
+"instinct_protection_viscerale": { label: "Éveil du bouclier interne", prompt: "Ressentir une impulsion viscérale et protectrice, une volonté farouche de préserver le bonheur de l'autre contre le reste du monde. Tendresse" },
+"constat_battements_coeur_calme": { label: "Synchronisation cardiaque interne", prompt: "Percevoir le rythme régulier de son propre cœur qui s'apaise au simple contact de la fourrure de son compagnon. Tendresse" },
+"gratitude_silencieuse_presence": { label: "Remerciement muet de l'âme", prompt: "Formuler une pensée de pure gratitude envers le destin ou les ancêtres pour la chance d'avoir ce chat à ses côtés. Tendresse" },
+"disparition_peur_abandon": { label: "Dissolution temporaire des craintes", prompt: "Sentir sa peur chronique de la solitude s'effacer complètement, balayée par la certitude d'être à sa place. Tendresse" },
+"anticipation_douce_futur": { label: "Projection d'un nid commun", prompt: "S'imaginer avec un apaisement profond les lunes futures passées à partager la même tanière et la même chaleur. Tendresse" },
+    
+// --- BLOC TENDRESSE 6 : INTROSPECTION - COMPLICITÉ ET PLÉNITUDE INTERNE ---
+"constat_changement_interieur": { label: "Prise de conscience de l'adoucissement", prompt: "Réaliser avec surprise à quel point son tempérament autrefois distant s'est adouci au contact de ce chat. Tendresse" },
+"cartographie_details_pelage": { label: "Examen mental minutieux", prompt: "Détailler mentalement les nuances de la fourrure ou la forme des oreilles de l'autre, gravant chaque détail dans sa mémoire. Tendresse" },
+"sensation_chaleur_diffuse": { label: "Rayonnement thermique interne", prompt: "Ressentir une onde de chaleur réconfortante se propager dans sa poitrine au simple son de la voix de son partenaire. Tendresse" },
+"recolement_souvenirs_communs": { label: "Mosaïque nostalgique douce", prompt: "Faire défiler les images des épreuves surmontées ensemble, mesurant le chemin parcouru jusqu'à cette harmonie. Tendresse" },
+"suppression_barrieres_mentales": { label: "Abandon des dernières défenses", prompt: "Décider intérieurement de laisser tomber ses derniers doutes pour s'abandonner pleinement à la confiance mutuelle. Tendresse" },
+"sentiment_fierte_appartenance": { label: "Fierté du lien partagé", prompt: "Éprouver un élan de fierté secrète en regardant l'autre, heureux d'être celui ou celle qui partage sa vie. Tendresse" },
+"analyse_rythme_respiration": { label: "Écoute respiratoire synchro", prompt: "Se focaliser sur le va-et-vient régulier des flancs de l'autre, trouvant dans ce rythme un puissant calmant. Tendresse" },
+"certitude_instant_present": { label: "Ancrage temporel absolu", prompt: "S'avouer qu'aucun autre endroit dans la forêt ou le camp n'a plus d'importance que cet instant précis à deux. Tendresse" },
+"dissolution_rancœurs_passees": { label: "Pardon intérieur silencieux", prompt: "Sentir les vieilles tensions ou maladresses passées s'effacer d'un coup, balayées par l'affection actuelle. Tendresse" },
+"projection_partage_proies": { label: "Désir d'attention nourricière", prompt: "Anticiper le plaisir simple de chasser la plus belle proie possible pour l'offrir ensuite à l'autre au retour. Tendresse" },
+// --- BLOC TENDRESSE 9 : INTROSPECTION - SÉRÉNITÉ ET ANCRAGE AFFECTIF ---
+"constat_absence_tension": { label: "Disparition du bouclier interne", prompt: "S'apercevoir avec un profond soulagement qu'on ne ressent plus le besoin de rester sur ses gardes face à ce chat. Tendresse" },
+"sensation_plenitude_instant": { label: "Satiété affective de l'esprit", prompt: "Savoir de manière absolue et interne que rien d'autre ne compte en cet instant précis que la tiédeur de ce pelage. Tendresse" },
+"analyse_rythme_cardiaque_compagnon": { label: "Écoute interne des pulsations", prompt: "Percevoir les battements calmes du cœur de l'autre à travers sa cage thoracique, y trouvant un puissant calmant. Tendresse" },
+"acceptation_lien_indestructible": { label: "Validation intime de l'attachement", prompt: "S'avouer intérieurement que ce lien dépasse désormais tout ce qu'on avait pu imaginer ou redouter par le passé. Tendresse" },
+"sentiment_secu_taniere": { label: "Immunité émotionnelle interne", prompt: "Ressentir une impression de sécurité si forte qu'on se sent capable de braver n'importe quelle tempête du Clan. Tendresse" },
+"remerciement_muet_ancetres": { label: "Gratitude spirituelle silencieuse", prompt: "Envoyer une pensée de pure reconnaissance vers le Clan des Étoiles pour avoir mis ce compagnon sur sa route. Tendresse" },
+"dissolution_anxiete_gestation": { label: "Apaisement des peurs maternelles", prompt: "Sentir les angoisses liées à l'avenir ou à son état physique s'estomper, balayées par la présence de l'autre. Tendresse" },
+"memorisation_odeur_interne": { label: "Ancrage olfactif permanent", prompt: "S'efforcer d'imprimer mentalement l'effluve exacte de la fourrure de son partenaire pour pouvoir s'en souvenir la nuit. Tendresse" },
+"constat_fierte_mutuelle": { label: "Certitude de la réciprocité", prompt: "Se réjouir intérieurement de la lueur de fierté et de bienveillance qui brille dans les yeux de son interlocuteur. Tendresse" },
+"abandon_total_pensees_sombres": { label: "Nettoyage mental affectif", prompt: "Laisser toutes les vieilles rancunes et les souvenirs douloureux se dissoudre dans la douceur de cet échange. Tendresse" },
+
+}
 };
